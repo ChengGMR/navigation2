@@ -42,6 +42,7 @@
 #include "nav2_costmap_2d/costmap_2d.hpp"
 #include "nav2_costmap_2d/layer.hpp"
 
+#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>

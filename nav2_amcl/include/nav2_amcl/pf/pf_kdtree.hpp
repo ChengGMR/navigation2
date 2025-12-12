@@ -28,6 +28,8 @@
 #ifndef NAV2_AMCL__PF__PF_KDTREE_HPP_
 #define NAV2_AMCL__PF__PF_KDTREE_HPP_
 
+#include "nav2_amcl/pf/pf_vector.hpp"
+
 #ifdef INCLUDE_RTKGUI
     #include <rtk.h>
 #endif

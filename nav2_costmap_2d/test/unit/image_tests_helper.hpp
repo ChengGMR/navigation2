@@ -19,7 +19,9 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <map>
+#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <vector>
