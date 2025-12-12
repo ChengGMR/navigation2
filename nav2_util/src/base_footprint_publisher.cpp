@@ -12,16 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
-
 #include "base_footprint_publisher.hpp"
 
-int main(int argc, char ** argv)
-{
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<nav2_util::BaseFootprintPublisher>();
-  rclcpp::spin(node->get_node_base_interface());
-  rclcpp::shutdown();
+#include <memory>
 
-  return 0;
+int main(int argc, char** argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<nav2_util::BaseFootprintPublisher>();
+    rclcpp::spin(node->get_node_base_interface());
+    rclcpp::shutdown();
+
+    return 0;
 }

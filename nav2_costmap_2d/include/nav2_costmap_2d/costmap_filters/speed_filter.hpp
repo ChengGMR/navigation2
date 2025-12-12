@@ -38,78 +38,71 @@
 #ifndef NAV2_COSTMAP_2D__COSTMAP_FILTERS__SPEED_FILTER_HPP_
 #define NAV2_COSTMAP_2D__COSTMAP_FILTERS__SPEED_FILTER_HPP_
 
-#include <memory>
-#include <string>
-
 #include "nav2_costmap_2d/costmap_filters/costmap_filter.hpp"
-
 #include "nav2_msgs/msg/costmap_filter_info.hpp"
 #include "nav2_msgs/msg/speed_limit.hpp"
 
-namespace nav2_costmap_2d
-{
+#include <memory>
+#include <string>
+
+namespace nav2_costmap_2d {
 /**
  * @class SpeedFilter
  * @brief Reads in a speed restriction mask and enables a robot to
  * dynamically adjust speed based on pose in map to slow in dangerous
  * areas. Done via absolute speed setting or percentage of maximum speed
  */
-class SpeedFilter : public CostmapFilter
-{
-public:
-  /**
-   * @brief A constructor
-   */
-  SpeedFilter();
+class SpeedFilter : public CostmapFilter {
+   public:
+    /**
+     * @brief A constructor
+     */
+    SpeedFilter();
 
-  /**
-   * @brief Initialize the filter and subscribe to the info topic
-   */
-  void initializeFilter(
-    const std::string & filter_info_topic);
+    /**
+     * @brief Initialize the filter and subscribe to the info topic
+     */
+    void initializeFilter(const std::string& filter_info_topic);
 
-  /**
-   * @brief Process the keepout layer at the current pose / bounds / grid
-   */
-  void process(
-    nav2_costmap_2d::Costmap2D & master_grid,
-    int min_i, int min_j, int max_i, int max_j,
-    const geometry_msgs::msg::Pose & pose);
+    /**
+     * @brief Process the keepout layer at the current pose / bounds / grid
+     */
+    void process(nav2_costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i, int max_j, const geometry_msgs::msg::Pose& pose);
 
-  /**
-   * @brief Reset the costmap filter / topic / info
-   */
-  void resetFilter();
+    /**
+     * @brief Reset the costmap filter / topic / info
+     */
+    void resetFilter();
 
-  /**
-   * @brief If this filter is active
-   */
-  bool isActive();
+    /**
+     * @brief If this filter is active
+     */
+    bool isActive();
 
-private:
-  /**
-   * @brief Callback for the filter information
-   */
-  void filterInfoCallback(const nav2_msgs::msg::CostmapFilterInfo::SharedPtr msg);
-  /**
-   * @brief Callback for the filter mask
-   */
-  void maskCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg);
+   private:
+    /**
+     * @brief Callback for the filter information
+     */
+    void filterInfoCallback(const nav2_msgs::msg::CostmapFilterInfo::SharedPtr msg);
+    /**
+     * @brief Callback for the filter mask
+     */
+    void maskCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg);
 
-  nav2::Subscription<nav2_msgs::msg::CostmapFilterInfo>::SharedPtr filter_info_sub_;
-  nav2::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr mask_sub_;
+    nav2::Subscription<nav2_msgs::msg::CostmapFilterInfo>::SharedPtr filter_info_sub_;
+    nav2::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr mask_sub_;
 
-  nav2::Publisher<nav2_msgs::msg::SpeedLimit>::SharedPtr speed_limit_pub_;
+    nav2::Publisher<nav2_msgs::msg::SpeedLimit>::SharedPtr speed_limit_pub_;
 
-  nav_msgs::msg::OccupancyGrid::SharedPtr filter_mask_;
+    nav_msgs::msg::OccupancyGrid::SharedPtr filter_mask_;
 
-  std::string global_frame_;  // Frame of current layer (master_grid)
+    std::string global_frame_; // Frame of current layer (master_grid)
 
-  double base_, multiplier_;
-  bool percentage_;
-  double speed_limit_, speed_limit_prev_;
+    double base_, multiplier_;
+    bool percentage_;
+    double speed_limit_, speed_limit_prev_;
 };
 
-}  // namespace nav2_costmap_2d
+} // namespace nav2_costmap_2d
 
-#endif  // NAV2_COSTMAP_2D__COSTMAP_FILTERS__SPEED_FILTER_HPP_
+#endif // NAV2_COSTMAP_2D__COSTMAP_FILTERS__SPEED_FILTER_HPP_

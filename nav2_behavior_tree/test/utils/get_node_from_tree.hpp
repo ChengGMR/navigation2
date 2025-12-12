@@ -15,52 +15,47 @@
 #ifndef UTILS__GET_NODE_FROM_TREE_HPP_
 #define UTILS__GET_NODE_FROM_TREE_HPP_
 
-#include <memory>
-#include <vector>
-
 #include "behaviortree_cpp/bt_factory.h"
 #include "rclcpp/rclcpp.hpp"
 
-namespace nav2_behavior_tree
-{
+#include <memory>
+#include <vector>
+
+namespace nav2_behavior_tree {
 
 /**
  * @brief Get node from tree by type and index, casted to NodeT type, const casted away
  * Returns node if it was found, nullptr otherwise.
  */
-template<typename NodeT>
-NodeT * get_node_from_tree(
-  const std::shared_ptr<BT::Tree> tree,
-  const size_t index = 0)
-{
-  static rclcpp::Logger logger = rclcpp::get_logger("nav2_behavior_tree::get_node_from_tree");
+template <typename NodeT>
+NodeT* get_node_from_tree(const std::shared_ptr<BT::Tree> tree, const size_t index = 0) {
+    static rclcpp::Logger logger = rclcpp::get_logger("nav2_behavior_tree::get_node_from_tree");
 
-  std::vector<const BT::TreeNode *> nodes = tree->getNodesByPath<NodeT>("*");
-  if (nodes.empty()) {
-    RCLCPP_ERROR(logger, "No nodes of given type found");
-    return nullptr;
-  }
-  if (nodes.size() <= index) {
-    RCLCPP_ERROR(logger, "Out of bounds (found %zu < %zu nodes)", nodes.size(), index);
-    return nullptr;
-  }
+    std::vector<const BT::TreeNode*> nodes = tree->getNodesByPath<NodeT>("*");
+    if (nodes.empty()) {
+        RCLCPP_ERROR(logger, "No nodes of given type found");
+        return nullptr;
+    }
+    if (nodes.size() <= index) {
+        RCLCPP_ERROR(logger, "Out of bounds (found %zu < %zu nodes)", nodes.size(), index);
+        return nullptr;
+    }
 
-  const NodeT * const_bt_node =
-    dynamic_cast<const NodeT *>(nodes[index]);
-  if (const_bt_node == nullptr) {
-    RCLCPP_ERROR(logger, "Failed to cast node to given type");
-    return nullptr;
-  }
+    const NodeT* const_bt_node = dynamic_cast<const NodeT*>(nodes[index]);
+    if (const_bt_node == nullptr) {
+        RCLCPP_ERROR(logger, "Failed to cast node to given type");
+        return nullptr;
+    }
 
-  NodeT * bt_node = const_cast<NodeT *>(const_bt_node);
-  if (bt_node == nullptr) {
-    RCLCPP_ERROR(logger, "Failed to cast away const from node");
-    return nullptr;
-  }
+    NodeT* bt_node = const_cast<NodeT*>(const_bt_node);
+    if (bt_node == nullptr) {
+        RCLCPP_ERROR(logger, "Failed to cast away const from node");
+        return nullptr;
+    }
 
-  return bt_node;
+    return bt_node;
 }
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // UTILS__GET_NODE_FROM_TREE_HPP_
+#endif // UTILS__GET_NODE_FROM_TREE_HPP_

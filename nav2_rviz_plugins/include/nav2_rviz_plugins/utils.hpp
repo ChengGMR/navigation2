@@ -16,33 +16,28 @@
 #ifndef NAV2_RVIZ_PLUGINS__UTILS_HPP_
 #define NAV2_RVIZ_PLUGINS__UTILS_HPP_
 
-#include <QtWidgets>
+#include "action_msgs/msg/goal_status.hpp"
+#include "rclcpp/rclcpp.hpp"
 
+#include <QtWidgets>
 #include <string>
 
-#include "rclcpp/rclcpp.hpp"
-#include "action_msgs/msg/goal_status.hpp"
-
-namespace nav2_rviz_plugins
-{
+namespace nav2_rviz_plugins {
 
 /**
-   * @brief Load the available plugins into the combo box
-   * @param node The node to use for loading the plugins
-   * @param server_failed if the server failed to load the plugins, false otherwise
-   * @param server_name The name of the server to load plugins for
-   * @param plugin_type The type of plugin to load
-   * @param combo_box The combo box to add the loaded plugins to
-   * @param executor The executor to pass to the AsyncParameterClient
-   */
-void pluginLoader(
-  rclcpp::Node::SharedPtr node, bool & server_failed, const std::string & server_name,
-  const std::string & plugin_type, QComboBox * combo_box,
-  rclcpp::Executor::SharedPtr executor = nullptr);
+ * @brief Load the available plugins into the combo box
+ * @param node The node to use for loading the plugins
+ * @param server_failed if the server failed to load the plugins, false otherwise
+ * @param server_name The name of the server to load plugins for
+ * @param plugin_type The type of plugin to load
+ * @param combo_box The combo box to add the loaded plugins to
+ * @param executor The executor to pass to the AsyncParameterClient
+ */
+void pluginLoader(rclcpp::Node::SharedPtr node, bool& server_failed, const std::string& server_name, const std::string& plugin_type,
+                  QComboBox* combo_box, rclcpp::Executor::SharedPtr executor = nullptr);
 
 // Create label string from goal status msg
-QString getGoalStatusLabel(
-  std::string title = "Feedback", int8_t status = action_msgs::msg::GoalStatus::STATUS_UNKNOWN);
-}  // namespace nav2_rviz_plugins
+QString getGoalStatusLabel(std::string title = "Feedback", int8_t status = action_msgs::msg::GoalStatus::STATUS_UNKNOWN);
+} // namespace nav2_rviz_plugins
 
-#endif  // NAV2_RVIZ_PLUGINS__UTILS_HPP_
+#endif // NAV2_RVIZ_PLUGINS__UTILS_HPP_

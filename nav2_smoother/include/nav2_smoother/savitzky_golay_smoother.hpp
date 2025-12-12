@@ -15,101 +15,94 @@
 #ifndef NAV2_SMOOTHER__SAVITZKY_GOLAY_SMOOTHER_HPP_
 #define NAV2_SMOOTHER__SAVITZKY_GOLAY_SMOOTHER_HPP_
 
+#include "angles/angles.h"
+#include "nav2_core/smoother.hpp"
+#include "nav2_costmap_2d/cost_values.hpp"
+#include "nav2_costmap_2d/costmap_2d.hpp"
+#include "nav2_ros_common/node_utils.hpp"
+#include "nav2_util/geometry_utils.hpp"
+#include "nav2_util/smoother_utils.hpp"
+#include "nav_msgs/msg/path.hpp"
+
+#include "tf2/utils.hpp"
+
 #include <Eigen/Dense>
+
 #include <cmath>
-#include <vector>
-#include <string>
 #include <iostream>
 #include <memory>
 #include <queue>
+#include <string>
 #include <utility>
+#include <vector>
 
-#include "nav2_core/smoother.hpp"
-#include "nav2_util/smoother_utils.hpp"
-#include "nav2_costmap_2d/costmap_2d.hpp"
-#include "nav2_costmap_2d/cost_values.hpp"
-#include "nav2_util/geometry_utils.hpp"
-#include "nav2_ros_common/node_utils.hpp"
-#include "nav_msgs/msg/path.hpp"
-#include "angles/angles.h"
-#include "tf2/utils.hpp"
-
-namespace nav2_smoother
-{
+namespace nav2_smoother {
 
 /**
  * @class nav2_smoother::SavitzkyGolaySmoother
  * @brief A path smoother implementation using Savitzky Golay filters
  */
-class SavitzkyGolaySmoother : public nav2_core::Smoother
-{
-public:
-  /**
-   * @brief A constructor for nav2_smoother::SavitzkyGolaySmoother
-   */
-  SavitzkyGolaySmoother() = default;
+class SavitzkyGolaySmoother : public nav2_core::Smoother {
+   public:
+    /**
+     * @brief A constructor for nav2_smoother::SavitzkyGolaySmoother
+     */
+    SavitzkyGolaySmoother() = default;
 
-  /**
-   * @brief A destructor for nav2_smoother::SavitzkyGolaySmoother
-   */
-  ~SavitzkyGolaySmoother() override = default;
+    /**
+     * @brief A destructor for nav2_smoother::SavitzkyGolaySmoother
+     */
+    ~SavitzkyGolaySmoother() override = default;
 
-  void configure(
-    const nav2::LifecycleNode::WeakPtr &,
-    std::string name, std::shared_ptr<tf2_ros::Buffer>,
-    std::shared_ptr<nav2_costmap_2d::CostmapSubscriber>,
-    std::shared_ptr<nav2_costmap_2d::FootprintSubscriber>) override;
+    void configure(const nav2::LifecycleNode::WeakPtr&, std::string name, std::shared_ptr<tf2_ros::Buffer>,
+                   std::shared_ptr<nav2_costmap_2d::CostmapSubscriber>, std::shared_ptr<nav2_costmap_2d::FootprintSubscriber>) override;
 
-  /**
-   * @brief Method to cleanup resources.
-   */
-  void cleanup() override {}
+    /**
+     * @brief Method to cleanup resources.
+     */
+    void cleanup() override {}
 
-  /**
-   * @brief Method to activate smoother and any threads involved in execution.
-   */
-  void activate() override {}
+    /**
+     * @brief Method to activate smoother and any threads involved in execution.
+     */
+    void activate() override {}
 
-  /**
-   * @brief Method to deactivate smoother and any threads involved in execution.
-   */
-  void deactivate() override {}
+    /**
+     * @brief Method to deactivate smoother and any threads involved in execution.
+     */
+    void deactivate() override {}
 
-  /**
-   * @brief Method to smooth given path
-   *
-   * @param path In-out path to be smoothed
-   * @param max_time Maximum duration smoothing should take
-   * @return If smoothing was completed (true) or interrupted by time limit (false)
-   */
-  bool smooth(
-    nav_msgs::msg::Path & path,
-    const rclcpp::Duration & max_time) override;
+    /**
+     * @brief Method to smooth given path
+     *
+     * @param path In-out path to be smoothed
+     * @param max_time Maximum duration smoothing should take
+     * @return If smoothing was completed (true) or interrupted by time limit (false)
+     */
+    bool smooth(nav_msgs::msg::Path& path, const rclcpp::Duration& max_time) override;
 
-  /**
-   * @brief Method to calculate SavitzkyGolay Coefficients
-   */
-  void calculateCoefficients();
+    /**
+     * @brief Method to calculate SavitzkyGolay Coefficients
+     */
+    void calculateCoefficients();
 
-protected:
-  /**
-   * @brief Smoother method - does the smoothing on a segment
-   * @param path Reference to path
-   * @param reversing_segment Return if this is a reversing segment
-   * @param costmap Pointer to minimal costmap
-   * @param max_time Maximum time to compute, stop early if over limit
-   * @return If smoothing was successful
-   */
-  bool smoothImpl(
-    nav_msgs::msg::Path & path,
-    bool & reversing_segment);
+   protected:
+    /**
+     * @brief Smoother method - does the smoothing on a segment
+     * @param path Reference to path
+     * @param reversing_segment Return if this is a reversing segment
+     * @param costmap Pointer to minimal costmap
+     * @param max_time Maximum time to compute, stop early if over limit
+     * @return If smoothing was successful
+     */
+    bool smoothImpl(nav_msgs::msg::Path& path, bool& reversing_segment);
 
-  bool do_refinement_, enforce_path_inversion_;
-  int refinement_num_, window_size_, half_window_size_, poly_order_;
-  Eigen::VectorXd sg_coeffs_;
-  rclcpp::Logger logger_{rclcpp::get_logger("SGSmoother")};
+    bool do_refinement_, enforce_path_inversion_;
+    int refinement_num_, window_size_, half_window_size_, poly_order_;
+    Eigen::VectorXd sg_coeffs_;
+    rclcpp::Logger logger_{rclcpp::get_logger("SGSmoother")};
 };
 
-}  // namespace nav2_smoother
+} // namespace nav2_smoother
 
-#endif  // NAV2_SMOOTHER__SAVITZKY_GOLAY_SMOOTHER_HPP_
+#endif // NAV2_SMOOTHER__SAVITZKY_GOLAY_SMOOTHER_HPP_

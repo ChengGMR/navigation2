@@ -12,75 +12,66 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
-#include <memory>
-#include <map>
-
-#include "utils/test_behavior_tree_fixture.hpp"
 #include "nav2_behavior_tree/plugins/condition/would_a_smoother_recovery_help_condition.hpp"
 #include "nav2_msgs/action/smooth_path.hpp"
+#include "utils/test_behavior_tree_fixture.hpp"
 
-class WouldASmootherRecoveryHelpFixture : public nav2_behavior_tree::BehaviorTreeTestFixture
-{
-public:
-  using Action = nav2_msgs::action::SmoothPath;
-  using ActionGoal = Action::Result;
-  void SetUp()
-  {
-    uint16_t error_code = ActionGoal::NONE;
-    config_->blackboard->set("error_code", error_code);
+#include <gtest/gtest.h>
 
-    std::string xml_txt =
-      R"(
+#include <map>
+#include <memory>
+
+class WouldASmootherRecoveryHelpFixture : public nav2_behavior_tree::BehaviorTreeTestFixture {
+   public:
+    using Action = nav2_msgs::action::SmoothPath;
+    using ActionGoal = Action::Result;
+    void SetUp() {
+        uint16_t error_code = ActionGoal::NONE;
+        config_->blackboard->set("error_code", error_code);
+
+        std::string xml_txt =
+            R"(
       <root BTCPP_format="4">
         <BehaviorTree ID="MainTree">
             <WouldASmootherRecoveryHelp error_code="{error_code}"/>
         </BehaviorTree>
       </root>)";
 
-    factory_->registerNodeType<nav2_behavior_tree::WouldASmootherRecoveryHelp>(
-      "WouldASmootherRecoveryHelp");
-    tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
-  }
+        factory_->registerNodeType<nav2_behavior_tree::WouldASmootherRecoveryHelp>("WouldASmootherRecoveryHelp");
+        tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
+    }
 
-  void TearDown()
-  {
-    tree_.reset();
-  }
+    void TearDown() { tree_.reset(); }
 
-protected:
-  static std::shared_ptr<BT::Tree> tree_;
+   protected:
+    static std::shared_ptr<BT::Tree> tree_;
 };
 
 std::shared_ptr<BT::Tree> WouldASmootherRecoveryHelpFixture::tree_ = nullptr;
 
-TEST_F(WouldASmootherRecoveryHelpFixture, test_condition)
-{
-  std::map<uint16_t, BT::NodeStatus> error_to_status_map = {
-    {ActionGoal::NONE, BT::NodeStatus::FAILURE},
-    {ActionGoal::UNKNOWN, BT::NodeStatus::SUCCESS},
-    {ActionGoal::TIMEOUT, BT::NodeStatus::SUCCESS},
-    {ActionGoal::FAILED_TO_SMOOTH_PATH, BT::NodeStatus::SUCCESS},
-    {ActionGoal::SMOOTHED_PATH_IN_COLLISION, BT::NodeStatus::SUCCESS}
-  };
+TEST_F(WouldASmootherRecoveryHelpFixture, test_condition) {
+    std::map<uint16_t, BT::NodeStatus> error_to_status_map = {{ActionGoal::NONE, BT::NodeStatus::FAILURE},
+                                                              {ActionGoal::UNKNOWN, BT::NodeStatus::SUCCESS},
+                                                              {ActionGoal::TIMEOUT, BT::NodeStatus::SUCCESS},
+                                                              {ActionGoal::FAILED_TO_SMOOTH_PATH, BT::NodeStatus::SUCCESS},
+                                                              {ActionGoal::SMOOTHED_PATH_IN_COLLISION, BT::NodeStatus::SUCCESS}};
 
-  for (const auto & error_to_status : error_to_status_map) {
-    config_->blackboard->set("error_code", error_to_status.first);
-    EXPECT_EQ(tree_->tickOnce(), error_to_status.second);
-  }
+    for (const auto& error_to_status : error_to_status_map) {
+        config_->blackboard->set("error_code", error_to_status.first);
+        EXPECT_EQ(tree_->tickOnce(), error_to_status.second);
+    }
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  // initialize ROS
-  rclcpp::init(argc, argv);
+    // initialize ROS
+    rclcpp::init(argc, argv);
 
-  bool all_successful = RUN_ALL_TESTS();
+    bool all_successful = RUN_ALL_TESTS();
 
-  // shutdown ROS
-  rclcpp::shutdown();
+    // shutdown ROS
+    rclcpp::shutdown();
 
-  return all_successful;
+    return all_successful;
 }

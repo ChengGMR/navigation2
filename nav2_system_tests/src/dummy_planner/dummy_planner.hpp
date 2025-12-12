@@ -15,26 +15,23 @@
 #ifndef DUMMY_PLANNER__DUMMY_PLANNER_HPP_
 #define DUMMY_PLANNER__DUMMY_PLANNER_HPP_
 
-#include <memory>
-
 #include "nav2_behavior_tree/compute_path_to_pose_task.hpp"
 
-namespace nav2_system_tests
-{
+#include <memory>
 
-class DummyPlanner : public rclcpp::Node
-{
-public:
-  DummyPlanner();
-  ~DummyPlanner();
+namespace nav2_system_tests {
 
-  nav2_behavior_tree::TaskStatus computePathToPose(
-    const nav2_behavior_tree::ComputePathToPoseCommand::SharedPtr command);
+class DummyPlanner : public rclcpp::Node {
+   public:
+    DummyPlanner();
+    ~DummyPlanner();
 
-private:
-  std::unique_ptr<nav2_behavior_tree::ComputePathToPoseTaskServer> task_server_;
+    nav2_behavior_tree::TaskStatus computePathToPose(const nav2_behavior_tree::ComputePathToPoseCommand::SharedPtr command);
+
+   private:
+    std::unique_ptr<nav2_behavior_tree::ComputePathToPoseTaskServer> task_server_;
 };
 
-}  // namespace nav2_system_tests
+} // namespace nav2_system_tests
 
-#endif  // DUMMY_PLANNER__DUMMY_PLANNER_HPP_
+#endif // DUMMY_PLANNER__DUMMY_PLANNER_HPP_

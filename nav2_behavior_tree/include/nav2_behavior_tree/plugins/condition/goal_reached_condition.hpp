@@ -15,92 +15,84 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__GOAL_REACHED_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__GOAL_REACHED_CONDITION_HPP_
 
-#include <string>
-#include <memory>
-
-#include "nav2_ros_common/lifecycle_node.hpp"
 #include "behaviortree_cpp/condition_node.h"
 #include "behaviortree_cpp/json_export.h"
 #include "nav2_behavior_tree/bt_utils.hpp"
 #include "nav2_behavior_tree/json_utils.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+
 #include "tf2_ros/buffer.hpp"
 
+#include <memory>
+#include <string>
 
-namespace nav2_behavior_tree
-{
+namespace nav2_behavior_tree {
 
 /**
  * @brief A BT::ConditionNode that returns SUCCESS when a specified goal
  * is reached and FAILURE otherwise
  * @note  It will re-initialize when halted.
  */
-class GoalReachedCondition : public BT::ConditionNode
-{
-public:
-  /**
-   * @brief A constructor for nav2_behavior_tree::GoalReachedCondition
-   * @param condition_name Name for the XML tag for this node
-   * @param conf BT node configuration
-   */
-  GoalReachedCondition(
-    const std::string & condition_name,
-    const BT::NodeConfiguration & conf);
+class GoalReachedCondition : public BT::ConditionNode {
+   public:
+    /**
+     * @brief A constructor for nav2_behavior_tree::GoalReachedCondition
+     * @param condition_name Name for the XML tag for this node
+     * @param conf BT node configuration
+     */
+    GoalReachedCondition(const std::string& condition_name, const BT::NodeConfiguration& conf);
 
-  GoalReachedCondition() = delete;
+    GoalReachedCondition() = delete;
 
-  /**
-   * @brief A destructor for nav2_behavior_tree::GoalReachedCondition
-   */
-  ~GoalReachedCondition() override;
+    /**
+     * @brief A destructor for nav2_behavior_tree::GoalReachedCondition
+     */
+    ~GoalReachedCondition() override;
 
-  /**
-   * @brief The main override required by a BT action
-   * @return BT::NodeStatus Status of tick execution
-   */
-  BT::NodeStatus tick() override;
+    /**
+     * @brief The main override required by a BT action
+     * @return BT::NodeStatus Status of tick execution
+     */
+    BT::NodeStatus tick() override;
 
-  /**
-   * @brief Function to read parameters and initialize class variables
-   */
-  void initialize();
+    /**
+     * @brief Function to read parameters and initialize class variables
+     */
+    void initialize();
 
-  /**
-   * @brief Checks if the current robot pose lies within a given distance from the goal
-   * @return bool true when goal is reached, false otherwise
-   */
-  bool isGoalReached();
+    /**
+     * @brief Checks if the current robot pose lies within a given distance from the goal
+     * @return bool true when goal is reached, false otherwise
+     */
+    bool isGoalReached();
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing node-specific ports
-   */
-  static BT::PortsList providedPorts()
-  {
-    // Register JSON definitions for the types used in the ports
-    BT::RegisterJsonDefinition<geometry_msgs::msg::PoseStamped>();
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing node-specific ports
+     */
+    static BT::PortsList providedPorts() {
+        // Register JSON definitions for the types used in the ports
+        BT::RegisterJsonDefinition<geometry_msgs::msg::PoseStamped>();
 
-    return {
-      BT::InputPort<geometry_msgs::msg::PoseStamped>("goal", "Destination"),
-      BT::InputPort<std::string>("robot_base_frame", "Robot base frame")
-    };
-  }
+        return {BT::InputPort<geometry_msgs::msg::PoseStamped>("goal", "Destination"),
+                BT::InputPort<std::string>("robot_base_frame", "Robot base frame")};
+    }
 
-protected:
-  /**
-   * @brief Cleanup function
-   */
-  void cleanup()
-  {}
+   protected:
+    /**
+     * @brief Cleanup function
+     */
+    void cleanup() {}
 
-private:
-  nav2::LifecycleNode::SharedPtr node_;
-  std::shared_ptr<tf2_ros::Buffer> tf_;
+   private:
+    nav2::LifecycleNode::SharedPtr node_;
+    std::shared_ptr<tf2_ros::Buffer> tf_;
 
-  double goal_reached_tol_;
-  double transform_tolerance_;
-  std::string robot_base_frame_;
+    double goal_reached_tol_;
+    double transform_tolerance_;
+    std::string robot_base_frame_;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__GOAL_REACHED_CONDITION_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__GOAL_REACHED_CONDITION_HPP_

@@ -12,17 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <gtest/gtest.h>
-
-#include <string>
-#include <memory>
-#include <chrono>
-#include <limits>
-#include <mutex>
-
+#include "nav2_map_server/costmap_filter_info_server.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "nav2_map_server/costmap_filter_info_server.hpp"
+#include <gtest/gtest.h>
+
+#include <chrono>
+#include <limits>
+#include <memory>
+#include <mutex>
+#include <string>
 
 using namespace std::chrono_literals;
 
@@ -36,152 +35,127 @@ static const double MULTIPLIER = 0.2;
 
 static const double EPSILON = std::numeric_limits<float>::epsilon();
 
-class InfoServerWrapper : public nav2_map_server::CostmapFilterInfoServer
-{
-public:
-  void start()
-  {
-    on_configure(get_current_state());
-    on_activate(get_current_state());
-  }
-
-  void stop()
-  {
-    on_deactivate(get_current_state());
-    on_cleanup(get_current_state());
-    on_shutdown(get_current_state());
-  }
-
-  void deactivate()
-  {
-    on_deactivate(get_current_state());
-  }
-
-  void activate()
-  {
-    on_activate(get_current_state());
-  }
-};
-
-class InfoServerTester : public ::testing::Test
-{
-public:
-  InfoServerTester()
-  : info_server_(nullptr), info_(nullptr), subscription_(nullptr)
-  {
-    access_ = new mutex_t();
-
-    info_server_ = std::make_shared<InfoServerWrapper>();
-    try {
-      info_server_->set_parameter(rclcpp::Parameter("filter_info_topic", FILTER_INFO_TOPIC));
-      info_server_->set_parameter(rclcpp::Parameter("type", TYPE));
-      info_server_->set_parameter(rclcpp::Parameter("mask_topic", MASK_TOPIC));
-      info_server_->set_parameter(rclcpp::Parameter("base", BASE));
-      info_server_->set_parameter(rclcpp::Parameter("multiplier", MULTIPLIER));
-    } catch (rclcpp::exceptions::ParameterNotDeclaredException & ex) {
-      RCLCPP_ERROR(
-        info_server_->get_logger(),
-        "Error while setting parameters for CostmapFilterInfoServer: %s", ex.what());
-      throw;
+class InfoServerWrapper : public nav2_map_server::CostmapFilterInfoServer {
+   public:
+    void start() {
+        on_configure(get_current_state());
+        on_activate(get_current_state());
     }
 
-    info_server_->start();
-
-    subscription_ = info_server_->create_subscription<nav2_msgs::msg::CostmapFilterInfo>(
-      FILTER_INFO_TOPIC,
-      std::bind(&InfoServerTester::infoCallback, this, std::placeholders::_1),
-      nav2::qos::LatchedSubscriptionQoS());
-  }
-
-  ~InfoServerTester()
-  {
-    info_server_->stop();
-    info_server_.reset();
-    subscription_.reset();
-  }
-
-  bool isReceived()
-  {
-    std::lock_guard<mutex_t> guard(*getMutex());
-    if (info_) {
-      return true;
-    } else {
-      return false;
+    void stop() {
+        on_deactivate(get_current_state());
+        on_cleanup(get_current_state());
+        on_shutdown(get_current_state());
     }
-  }
 
-  mutex_t * getMutex()
-  {
-    return access_;
-  }
+    void deactivate() { on_deactivate(get_current_state()); }
 
-protected:
-  std::shared_ptr<InfoServerWrapper> info_server_;
-  nav2_msgs::msg::CostmapFilterInfo::SharedPtr info_;
-
-private:
-  void infoCallback(const nav2_msgs::msg::CostmapFilterInfo::SharedPtr msg)
-  {
-    std::lock_guard<mutex_t> guard(*getMutex());
-    info_ = msg;
-  }
-
-  nav2::Subscription<nav2_msgs::msg::CostmapFilterInfo>::SharedPtr subscription_;
-
-  mutex_t * access_;
+    void activate() { on_activate(get_current_state()); }
 };
 
-TEST_F(InfoServerTester, testCostmapFilterInfoPublish)
-{
-  rclcpp::Time start_time = info_server_->now();
-  rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(info_server_->get_node_base_interface());
-  while (!isReceived()) {
-    executor.spin_some();
-    std::this_thread::sleep_for(100ms);
-    // Waiting no more than 5 seconds
-    ASSERT_TRUE((info_server_->now() - start_time) <= rclcpp::Duration(5000ms));
-  }
+class InfoServerTester : public ::testing::Test {
+   public:
+    InfoServerTester() : info_server_(nullptr), info_(nullptr), subscription_(nullptr) {
+        access_ = new mutex_t();
 
-  // Checking received CostmapFilterInfo for consistency
-  EXPECT_EQ(info_->type, TYPE);
-  EXPECT_EQ(info_->filter_mask_topic, MASK_TOPIC);
-  EXPECT_NEAR(info_->base, BASE, EPSILON);
-  EXPECT_NEAR(info_->multiplier, MULTIPLIER, EPSILON);
+        info_server_ = std::make_shared<InfoServerWrapper>();
+        try {
+            info_server_->set_parameter(rclcpp::Parameter("filter_info_topic", FILTER_INFO_TOPIC));
+            info_server_->set_parameter(rclcpp::Parameter("type", TYPE));
+            info_server_->set_parameter(rclcpp::Parameter("mask_topic", MASK_TOPIC));
+            info_server_->set_parameter(rclcpp::Parameter("base", BASE));
+            info_server_->set_parameter(rclcpp::Parameter("multiplier", MULTIPLIER));
+        } catch (rclcpp::exceptions::ParameterNotDeclaredException& ex) {
+            RCLCPP_ERROR(info_server_->get_logger(), "Error while setting parameters for CostmapFilterInfoServer: %s", ex.what());
+            throw;
+        }
+
+        info_server_->start();
+
+        subscription_ = info_server_->create_subscription<nav2_msgs::msg::CostmapFilterInfo>(
+            FILTER_INFO_TOPIC, std::bind(&InfoServerTester::infoCallback, this, std::placeholders::_1), nav2::qos::LatchedSubscriptionQoS());
+    }
+
+    ~InfoServerTester() {
+        info_server_->stop();
+        info_server_.reset();
+        subscription_.reset();
+    }
+
+    bool isReceived() {
+        std::lock_guard<mutex_t> guard(*getMutex());
+        if (info_) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    mutex_t* getMutex() { return access_; }
+
+   protected:
+    std::shared_ptr<InfoServerWrapper> info_server_;
+    nav2_msgs::msg::CostmapFilterInfo::SharedPtr info_;
+
+   private:
+    void infoCallback(const nav2_msgs::msg::CostmapFilterInfo::SharedPtr msg) {
+        std::lock_guard<mutex_t> guard(*getMutex());
+        info_ = msg;
+    }
+
+    nav2::Subscription<nav2_msgs::msg::CostmapFilterInfo>::SharedPtr subscription_;
+
+    mutex_t* access_;
+};
+
+TEST_F(InfoServerTester, testCostmapFilterInfoPublish) {
+    rclcpp::Time start_time = info_server_->now();
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(info_server_->get_node_base_interface());
+    while (!isReceived()) {
+        executor.spin_some();
+        std::this_thread::sleep_for(100ms);
+        // Waiting no more than 5 seconds
+        ASSERT_TRUE((info_server_->now() - start_time) <= rclcpp::Duration(5000ms));
+    }
+
+    // Checking received CostmapFilterInfo for consistency
+    EXPECT_EQ(info_->type, TYPE);
+    EXPECT_EQ(info_->filter_mask_topic, MASK_TOPIC);
+    EXPECT_NEAR(info_->base, BASE, EPSILON);
+    EXPECT_NEAR(info_->multiplier, MULTIPLIER, EPSILON);
 }
 
-TEST_F(InfoServerTester, testCostmapFilterInfoDeactivateActivate)
-{
-  info_server_->deactivate();
-  info_ = nullptr;
-  info_server_->activate();
+TEST_F(InfoServerTester, testCostmapFilterInfoDeactivateActivate) {
+    info_server_->deactivate();
+    info_ = nullptr;
+    info_server_->activate();
 
-  rclcpp::Time start_time = info_server_->now();
-  rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(info_server_->get_node_base_interface());
-  while (!isReceived()) {
-    executor.spin_some();
-    std::this_thread::sleep_for(100ms);
-    // Waiting no more than 5 seconds
-    ASSERT_TRUE((info_server_->now() - start_time) <= rclcpp::Duration(5000ms));
-  }
+    rclcpp::Time start_time = info_server_->now();
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(info_server_->get_node_base_interface());
+    while (!isReceived()) {
+        executor.spin_some();
+        std::this_thread::sleep_for(100ms);
+        // Waiting no more than 5 seconds
+        ASSERT_TRUE((info_server_->now() - start_time) <= rclcpp::Duration(5000ms));
+    }
 
-  // Checking received CostmapFilterInfo for consistency
-  EXPECT_EQ(info_->type, TYPE);
-  EXPECT_EQ(info_->filter_mask_topic, MASK_TOPIC);
-  EXPECT_NEAR(info_->base, BASE, EPSILON);
-  EXPECT_NEAR(info_->multiplier, MULTIPLIER, EPSILON);
+    // Checking received CostmapFilterInfo for consistency
+    EXPECT_EQ(info_->type, TYPE);
+    EXPECT_EQ(info_->filter_mask_topic, MASK_TOPIC);
+    EXPECT_NEAR(info_->base, BASE, EPSILON);
+    EXPECT_NEAR(info_->multiplier, MULTIPLIER, EPSILON);
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  rclcpp::init(0, nullptr);
+    rclcpp::init(0, nullptr);
 
-  int result = RUN_ALL_TESTS();
+    int result = RUN_ALL_TESTS();
 
-  rclcpp::shutdown();
+    rclcpp::shutdown();
 
-  return result;
+    return result;
 }

@@ -12,18 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
-
+#include "nav2_collision_monitor/collision_detector_node.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-#include "nav2_collision_monitor/collision_detector_node.hpp"
+#include <memory>
 
-int main(int argc, char * argv[])
-{
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<nav2_collision_monitor::CollisionDetector>();
-  rclcpp::spin(node->get_node_base_interface());
-  rclcpp::shutdown();
+int main(int argc, char* argv[]) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<nav2_collision_monitor::CollisionDetector>();
+    rclcpp::spin(node->get_node_base_interface());
+    rclcpp::shutdown();
 
-  return 0;
+    return 0;
 }

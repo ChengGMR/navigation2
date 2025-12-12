@@ -16,66 +16,50 @@
 #ifndef UTILS__TEST_DUMMY_TREE_NODE_HPP_
 #define UTILS__TEST_DUMMY_TREE_NODE_HPP_
 
-#include <behaviortree_cpp/basic_types.h>
-#include <behaviortree_cpp/action_node.h>
 #include <string>
 
-namespace nav2_behavior_tree
-{
+#include <behaviortree_cpp/action_node.h>
+#include <behaviortree_cpp/basic_types.h>
+
+namespace nav2_behavior_tree {
 
 /**
  * @brief A Dummy TreeNode to be used as a child for testing nodes
  * Returns the current status on tick without any execution logic
  */
-class DummyNode : public BT::ActionNodeBase
-{
-public:
-  DummyNode(
-    const std::string & /*xml_tag_name*/ = "dummy",
-    const BT::NodeConfiguration & /*conf*/ = BT::NodeConfiguration())
-  : BT::ActionNodeBase("dummy", {})
-  {
-  }
+class DummyNode : public BT::ActionNodeBase {
+   public:
+    DummyNode(const std::string& /*xml_tag_name*/ = "dummy", const BT::NodeConfiguration& /*conf*/ = BT::NodeConfiguration())
+        : BT::ActionNodeBase("dummy", {}) {}
 
-  void changeStatus(BT::NodeStatus status)
-  {
-    requested_status = status;
-    if (requested_status == BT::NodeStatus::IDLE) {
-      resetStatus();
-    } else {
-      setStatus(requested_status);
+    void changeStatus(BT::NodeStatus status) {
+        requested_status = status;
+        if (requested_status == BT::NodeStatus::IDLE) {
+            resetStatus();
+        } else {
+            setStatus(requested_status);
+        }
     }
-  }
 
-  BT::NodeStatus executeTick() override
-  {
-    return tick();
-  }
+    BT::NodeStatus executeTick() override { return tick(); }
 
-  BT::NodeStatus tick() override
-  {
-    if (requested_status == BT::NodeStatus::IDLE) {
-      resetStatus();
-    } else {
-      setStatus(requested_status);
+    BT::NodeStatus tick() override {
+        if (requested_status == BT::NodeStatus::IDLE) {
+            resetStatus();
+        } else {
+            setStatus(requested_status);
+        }
+        return status();
     }
-    return status();
-  }
 
-  void halt() override
-  {
-    resetStatus();
-  }
+    void halt() override { resetStatus(); }
 
-  static BT::PortsList providedPorts()
-  {
-    return {};
-  }
+    static BT::PortsList providedPorts() { return {}; }
 
-protected:
-  BT::NodeStatus requested_status = BT::NodeStatus::IDLE;
+   protected:
+    BT::NodeStatus requested_status = BT::NodeStatus::IDLE;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // UTILS__TEST_DUMMY_TREE_NODE_HPP_
+#endif // UTILS__TEST_DUMMY_TREE_NODE_HPP_

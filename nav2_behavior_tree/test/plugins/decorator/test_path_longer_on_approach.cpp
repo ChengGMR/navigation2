@@ -12,83 +12,71 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "nav2_behavior_tree/plugins/decorator/path_longer_on_approach.hpp"
+#include "nav_msgs/msg/path.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "utils/test_behavior_tree_fixture.hpp"
+#include "utils/test_dummy_tree_node.hpp"
+
+#include "geometry_msgs/msg/pose_stamped.hpp"
+
 #include <gtest/gtest.h>
+
 #include <chrono>
 #include <memory>
 #include <set>
 #include <string>
 
-#include "rclcpp/rclcpp.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "nav_msgs/msg/path.hpp"
+using namespace std::chrono; // NOLINT
+using namespace std::chrono_literals; // NOLINT
 
-#include "utils/test_behavior_tree_fixture.hpp"
-#include "utils/test_dummy_tree_node.hpp"
-#include "nav2_behavior_tree/plugins/decorator/path_longer_on_approach.hpp"
+class PathLongerOnApproachTestFixture : public ::testing::Test {
+   public:
+    static void SetUpTestCase() {
+        node_ = std::make_shared<nav2::LifecycleNode>("path_longer_on_approach_test_fixture");
+        factory_ = std::make_shared<BT::BehaviorTreeFactory>();
 
-using namespace std::chrono;  // NOLINT
-using namespace std::chrono_literals;  // NOLINT
+        config_ = new BT::NodeConfiguration();
 
-class PathLongerOnApproachTestFixture : public ::testing::Test
-{
-public:
-  static void SetUpTestCase()
-  {
-    node_ = std::make_shared<nav2::LifecycleNode>("path_longer_on_approach_test_fixture");
-    factory_ = std::make_shared<BT::BehaviorTreeFactory>();
+        // Create the blackboard that will be shared by all of the nodes in the tree
+        config_->blackboard = BT::Blackboard::create();
+        // Put items on the blackboard
+        config_->blackboard->set("node", node_);
 
-    config_ = new BT::NodeConfiguration();
+        BT::NodeBuilder builder = [](const std::string& name, const BT::NodeConfiguration& config) {
+            return std::make_unique<nav2_behavior_tree::PathLongerOnApproach>(name, config);
+        };
 
-    // Create the blackboard that will be shared by all of the nodes in the tree
-    config_->blackboard = BT::Blackboard::create();
-    // Put items on the blackboard
-    config_->blackboard->set(
-      "node",
-      node_);
+        factory_->registerBuilder<nav2_behavior_tree::PathLongerOnApproach>("PathLongerOnApproach", builder);
+    }
 
-    BT::NodeBuilder builder =
-      [](const std::string & name, const BT::NodeConfiguration & config)
-      {
-        return std::make_unique<nav2_behavior_tree::PathLongerOnApproach>(
-          name, config);
-      };
+    static void TearDownTestCase() {
+        delete config_;
+        config_ = nullptr;
+        node_.reset();
+        factory_.reset();
+    }
 
-    factory_->registerBuilder<nav2_behavior_tree::PathLongerOnApproach>(
-      "PathLongerOnApproach", builder);
-  }
+    void TearDown() override { tree_.reset(); }
 
-  static void TearDownTestCase()
-  {
-    delete config_;
-    config_ = nullptr;
-    node_.reset();
-    factory_.reset();
-  }
-
-  void TearDown() override
-  {
-    tree_.reset();
-  }
-
-protected:
-  static nav2::LifecycleNode::SharedPtr node_;
-  static BT::NodeConfiguration * config_;
-  static std::shared_ptr<BT::BehaviorTreeFactory> factory_;
-  static std::shared_ptr<BT::Tree> tree_;
+   protected:
+    static nav2::LifecycleNode::SharedPtr node_;
+    static BT::NodeConfiguration* config_;
+    static std::shared_ptr<BT::BehaviorTreeFactory> factory_;
+    static std::shared_ptr<BT::Tree> tree_;
 };
 
 nav2::LifecycleNode::SharedPtr PathLongerOnApproachTestFixture::node_ = nullptr;
 
-BT::NodeConfiguration * PathLongerOnApproachTestFixture::config_ = nullptr;
+BT::NodeConfiguration* PathLongerOnApproachTestFixture::config_ = nullptr;
 std::shared_ptr<BT::BehaviorTreeFactory> PathLongerOnApproachTestFixture::factory_ = nullptr;
 std::shared_ptr<BT::Tree> PathLongerOnApproachTestFixture::tree_ = nullptr;
 
-TEST_F(PathLongerOnApproachTestFixture, test_tick)
-{
-  // Success test
-  // create tree
-  std::string xml_txt =
-    R"(
+TEST_F(PathLongerOnApproachTestFixture, test_tick) {
+    // Success test
+    // create tree
+    std::string xml_txt =
+        R"(
       <root BTCPP_format="4">
         <BehaviorTree ID="MainTree">
           <PathLongerOnApproach path="{path}" prox_len="5.0" length_factor="2.0">
@@ -97,24 +85,24 @@ TEST_F(PathLongerOnApproachTestFixture, test_tick)
         </BehaviorTree>
       </root>)";
 
-  tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
+    tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
 
-  // set new path on blackboard
-  nav_msgs::msg::Path new_path;
-  new_path.poses.resize(10);
-  for (unsigned int i = 0; i < new_path.poses.size(); i++) {
-    // Assuming distance between waypoints to be 1.5m
-    new_path.poses[i].pose.position.x = 1.5 * i;
-  }
-  config_->blackboard->set("path", new_path);
+    // set new path on blackboard
+    nav_msgs::msg::Path new_path;
+    new_path.poses.resize(10);
+    for (unsigned int i = 0; i < new_path.poses.size(); i++) {
+        // Assuming distance between waypoints to be 1.5m
+        new_path.poses[i].pose.position.x = 1.5 * i;
+    }
+    config_->blackboard->set("path", new_path);
 
-  tree_->rootNode()->executeTick();
-  EXPECT_EQ(tree_->rootNode()->status(), BT::NodeStatus::SUCCESS);
+    tree_->rootNode()->executeTick();
+    EXPECT_EQ(tree_->rootNode()->status(), BT::NodeStatus::SUCCESS);
 
-  // Failure test
-  // create tree
-  xml_txt =
-    R"(
+    // Failure test
+    // create tree
+    xml_txt =
+        R"(
       <root BTCPP_format="4">
         <BehaviorTree ID="MainTree">
           <PathLongerOnApproach path="{path}" prox_len="20.0" length_factor="1.0">
@@ -123,41 +111,40 @@ TEST_F(PathLongerOnApproachTestFixture, test_tick)
         </BehaviorTree>
       </root>)";
 
-  tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
+    tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
 
-  // set old path on blackboard
-  nav_msgs::msg::Path old_path;
-  old_path.poses.resize(5);
-  for (unsigned int i = 1; i <= old_path.poses.size(); i++) {
-    // Assuming distance between waypoints to be 3.0m
-    old_path.poses[i - 1].pose.position.x = 3.0 * i;
-  }
-  config_->blackboard->set("path", old_path);
-  tree_->rootNode()->executeTick();
+    // set old path on blackboard
+    nav_msgs::msg::Path old_path;
+    old_path.poses.resize(5);
+    for (unsigned int i = 1; i <= old_path.poses.size(); i++) {
+        // Assuming distance between waypoints to be 3.0m
+        old_path.poses[i - 1].pose.position.x = 3.0 * i;
+    }
+    config_->blackboard->set("path", old_path);
+    tree_->rootNode()->executeTick();
 
-  // set new path on blackboard
-  new_path.poses.resize(11);
-  for (unsigned int i = 0; i <= new_path.poses.size(); i++) {
-    // Assuming distance between waypoints to be 1.5m
-    new_path.poses[i].pose.position.x = 1.5 * i;
-  }
-  config_->blackboard->set("path", new_path);
-  tree_->rootNode()->executeTick();
+    // set new path on blackboard
+    new_path.poses.resize(11);
+    for (unsigned int i = 0; i <= new_path.poses.size(); i++) {
+        // Assuming distance between waypoints to be 1.5m
+        new_path.poses[i].pose.position.x = 1.5 * i;
+    }
+    config_->blackboard->set("path", new_path);
+    tree_->rootNode()->executeTick();
 
-  EXPECT_EQ(tree_->rootNode()->status(), BT::NodeStatus::FAILURE);
+    EXPECT_EQ(tree_->rootNode()->status(), BT::NodeStatus::FAILURE);
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  // initialize ROS
-  rclcpp::init(argc, argv);
+    // initialize ROS
+    rclcpp::init(argc, argv);
 
-  int all_successful = RUN_ALL_TESTS();
+    int all_successful = RUN_ALL_TESTS();
 
-  // shutdown ROS
-  rclcpp::shutdown();
+    // shutdown ROS
+    rclcpp::shutdown();
 
-  return all_successful;
+    return all_successful;
 }

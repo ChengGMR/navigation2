@@ -35,14 +35,13 @@
 #ifndef DWB_CRITICS__BASE_OBSTACLE_HPP_
 #define DWB_CRITICS__BASE_OBSTACLE_HPP_
 
-#include <string>
-#include <vector>
-#include <utility>
-
 #include "dwb_core/trajectory_critic.hpp"
 
-namespace dwb_critics
-{
+#include <string>
+#include <utility>
+#include <vector>
+
+namespace dwb_critics {
 /**
  * @class BaseObstacleCritic
  * @brief Uses costmap 2d to assign negative costs if a circular robot would collide at any point of the trajectory.
@@ -54,31 +53,29 @@ namespace dwb_critics
  *
  * Other classes (like ObstacleFootprintCritic) can do more advanced checking for collisions.
  */
-class BaseObstacleCritic : public dwb_core::TrajectoryCritic
-{
-public:
-  void onInit() override;
-  double scoreTrajectory(const dwb_msgs::msg::Trajectory2D & traj) override;
-  void addCriticVisualization(
-    std::vector<std::pair<std::string, std::vector<float>>> & cost_channels) override;
+class BaseObstacleCritic : public dwb_core::TrajectoryCritic {
+   public:
+    void onInit() override;
+    double scoreTrajectory(const dwb_msgs::msg::Trajectory2D& traj) override;
+    void addCriticVisualization(std::vector<std::pair<std::string, std::vector<float>>>& cost_channels) override;
 
-  /**
-   * @brief Return the obstacle score for a particular pose
-   * @param pose Pose to check
-   */
-  virtual double scorePose(const geometry_msgs::msg::Pose & pose);
+    /**
+     * @brief Return the obstacle score for a particular pose
+     * @param pose Pose to check
+     */
+    virtual double scorePose(const geometry_msgs::msg::Pose& pose);
 
-  /**
-   * @brief Check to see whether a given cell cost is valid for driving through.
-   * @param cost Cost of the cell
-   * @return Return true if valid cell
-   */
-  virtual bool isValidCost(const unsigned char cost);
+    /**
+     * @brief Check to see whether a given cell cost is valid for driving through.
+     * @param cost Cost of the cell
+     * @return Return true if valid cell
+     */
+    virtual bool isValidCost(const unsigned char cost);
 
-protected:
-  nav2_costmap_2d::Costmap2D * costmap_;
-  bool sum_scores_;
+   protected:
+    nav2_costmap_2d::Costmap2D* costmap_;
+    bool sum_scores_;
 };
-}  // namespace dwb_critics
+} // namespace dwb_critics
 
-#endif  // DWB_CRITICS__BASE_OBSTACLE_HPP_
+#endif // DWB_CRITICS__BASE_OBSTACLE_HPP_

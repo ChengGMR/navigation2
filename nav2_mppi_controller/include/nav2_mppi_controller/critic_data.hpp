@@ -15,44 +15,42 @@
 #ifndef NAV2_MPPI_CONTROLLER__CRITIC_DATA_HPP_
 #define NAV2_MPPI_CONTROLLER__CRITIC_DATA_HPP_
 
+#include "nav2_core/goal_checker.hpp"
+#include "nav2_mppi_controller/models/path.hpp"
+#include "nav2_mppi_controller/models/state.hpp"
+#include "nav2_mppi_controller/models/trajectories.hpp"
+#include "nav2_mppi_controller/motion_models.hpp"
+
+#include "geometry_msgs/msg/pose_stamped.hpp"
+
 #include <Eigen/Dense>
 
 #include <memory>
 #include <vector>
 
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "nav2_core/goal_checker.hpp"
-#include "nav2_mppi_controller/models/state.hpp"
-#include "nav2_mppi_controller/models/trajectories.hpp"
-#include "nav2_mppi_controller/models/path.hpp"
-#include "nav2_mppi_controller/motion_models.hpp"
-
-
-namespace mppi
-{
+namespace mppi {
 
 /**
  * @struct mppi::CriticData
  * @brief Data to pass to critics for scoring, including state, trajectories,
  * pruned path, global goal, costs, and important parameters to share
  */
-struct CriticData
-{
-  const models::State & state;
-  const models::Trajectories & trajectories;
-  const models::Path & path;
-  const geometry_msgs::msg::Pose & goal;
+struct CriticData {
+    const models::State& state;
+    const models::Trajectories& trajectories;
+    const models::Path& path;
+    const geometry_msgs::msg::Pose& goal;
 
-  Eigen::ArrayXf & costs;
-  float & model_dt;
+    Eigen::ArrayXf& costs;
+    float& model_dt;
 
-  bool fail_flag;
-  nav2_core::GoalChecker * goal_checker;
-  std::shared_ptr<MotionModel> motion_model;
-  std::optional<std::vector<bool>> path_pts_valid;
-  std::optional<size_t> furthest_reached_path_point;
+    bool fail_flag;
+    nav2_core::GoalChecker* goal_checker;
+    std::shared_ptr<MotionModel> motion_model;
+    std::optional<std::vector<bool>> path_pts_valid;
+    std::optional<size_t> furthest_reached_path_point;
 };
 
-}  // namespace mppi
+} // namespace mppi
 
-#endif  // NAV2_MPPI_CONTROLLER__CRITIC_DATA_HPP_
+#endif // NAV2_MPPI_CONTROLLER__CRITIC_DATA_HPP_

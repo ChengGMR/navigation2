@@ -16,61 +16,52 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__TIME_EXPIRED_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__TIME_EXPIRED_CONDITION_HPP_
 
+#include "behaviortree_cpp/condition_node.h"
+#include "nav2_ros_common/lifecycle_node.hpp"
+
 #include <string>
 
-#include "nav2_ros_common/lifecycle_node.hpp"
-#include "behaviortree_cpp/condition_node.h"
-
-namespace nav2_behavior_tree
-{
+namespace nav2_behavior_tree {
 
 /**
  * @brief A BT::ConditionNode that returns SUCCESS every time a specified
  * time period passes and FAILURE otherwise
  * @note It will re-initialize when halted.
  */
-class TimeExpiredCondition : public BT::ConditionNode
-{
-public:
-  /**
-   * @brief A constructor for nav2_behavior_tree::TimeExpiredCondition
-   * @param condition_name Name for the XML tag for this node
-   * @param conf BT node configuration
-   */
-  TimeExpiredCondition(
-    const std::string & condition_name,
-    const BT::NodeConfiguration & conf);
+class TimeExpiredCondition : public BT::ConditionNode {
+   public:
+    /**
+     * @brief A constructor for nav2_behavior_tree::TimeExpiredCondition
+     * @param condition_name Name for the XML tag for this node
+     * @param conf BT node configuration
+     */
+    TimeExpiredCondition(const std::string& condition_name, const BT::NodeConfiguration& conf);
 
-  TimeExpiredCondition() = delete;
+    TimeExpiredCondition() = delete;
 
-  /**
-   * @brief The main override required by a BT action
-   * @return BT::NodeStatus Status of tick execution
-   */
-  BT::NodeStatus tick() override;
+    /**
+     * @brief The main override required by a BT action
+     * @return BT::NodeStatus Status of tick execution
+     */
+    BT::NodeStatus tick() override;
 
-  /**
-   * @brief Function to read parameters and initialize class variables
-   */
-  void initialize();
+    /**
+     * @brief Function to read parameters and initialize class variables
+     */
+    void initialize();
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing node-specific ports
-   */
-  static BT::PortsList providedPorts()
-  {
-    return {
-      BT::InputPort<double>("seconds", 1.0, "Seconds")
-    };
-  }
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing node-specific ports
+     */
+    static BT::PortsList providedPorts() { return {BT::InputPort<double>("seconds", 1.0, "Seconds")}; }
 
-private:
-  nav2::LifecycleNode::SharedPtr node_;
-  rclcpp::Time start_;
-  double period_;
+   private:
+    nav2::LifecycleNode::SharedPtr node_;
+    rclcpp::Time start_;
+    double period_;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__TIME_EXPIRED_CONDITION_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__TIME_EXPIRED_CONDITION_HPP_

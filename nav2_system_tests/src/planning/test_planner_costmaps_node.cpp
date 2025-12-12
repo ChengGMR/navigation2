@@ -12,12 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. Reserved.
 
-#include <gtest/gtest.h>
-#include <memory>
-#include <vector>
+#include "planner_tester.hpp"
 
 #include "rclcpp/rclcpp.hpp"
-#include "planner_tester.hpp"
+
+#include <gtest/gtest.h>
+
+#include <memory>
+#include <vector>
 
 using namespace std::chrono_literals;
 
@@ -27,40 +29,32 @@ using nav2_util::TestCostmap;
 using ComputePathToPoseCommand = geometry_msgs::msg::PoseStamped;
 using ComputePathToPoseResult = nav_msgs::msg::Path;
 
-TEST(testSimpleCostmaps, testSimpleCostmaps)
-{
-  auto obj = std::make_shared<PlannerTester>();
+TEST(testSimpleCostmaps, testSimpleCostmaps) {
+    auto obj = std::make_shared<PlannerTester>();
 
-  std::vector<TestCostmap> costmaps = {
-    TestCostmap::open_space,
-    TestCostmap::bounded,
-    TestCostmap::top_left_obstacle,
-    TestCostmap::bottom_left_obstacle,
-    TestCostmap::maze1,
-    TestCostmap::maze2
-  };
+    std::vector<TestCostmap> costmaps = {TestCostmap::open_space,           TestCostmap::bounded, TestCostmap::top_left_obstacle,
+                                         TestCostmap::bottom_left_obstacle, TestCostmap::maze1,   TestCostmap::maze2};
 
-  ComputePathToPoseResult result;
+    ComputePathToPoseResult result;
 
-  obj->activate();
+    obj->activate();
 
-  for (auto costmap : costmaps) {
-    obj->loadSimpleCostmap(costmap);
-    EXPECT_EQ(true, obj->defaultPlannerTest(result));
-  }
+    for (auto costmap : costmaps) {
+        obj->loadSimpleCostmap(costmap);
+        EXPECT_EQ(true, obj->defaultPlannerTest(result));
+    }
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  // initialize ROS
-  rclcpp::init(argc, argv);
+    // initialize ROS
+    rclcpp::init(argc, argv);
 
-  bool all_successful = RUN_ALL_TESTS();
+    bool all_successful = RUN_ALL_TESTS();
 
-  // shutdown ROS
-  rclcpp::shutdown();
+    // shutdown ROS
+    rclcpp::shutdown();
 
-  return all_successful;
+    return all_successful;
 }

@@ -15,26 +15,22 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__WOULD_A_CONTROLLER_RECOVERY_HELP_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__WOULD_A_CONTROLLER_RECOVERY_HELP_CONDITION_HPP_
 
+#include "nav2_behavior_tree/plugins/condition/are_error_codes_present_condition.hpp"
+#include "nav2_msgs/action/follow_path.hpp"
+
 #include <string>
 
-#include "nav2_msgs/action/follow_path.hpp"
-#include "nav2_behavior_tree/plugins/condition/are_error_codes_present_condition.hpp"
+namespace nav2_behavior_tree {
 
-namespace nav2_behavior_tree
-{
+class WouldAControllerRecoveryHelp : public AreErrorCodesPresent {
+    using Action = nav2_msgs::action::FollowPath;
+    using ActionResult = Action::Result;
 
-class WouldAControllerRecoveryHelp : public AreErrorCodesPresent
-{
-  using Action = nav2_msgs::action::FollowPath;
-  using ActionResult = Action::Result;
+   public:
+    WouldAControllerRecoveryHelp(const std::string& condition_name, const BT::NodeConfiguration& conf);
 
-public:
-  WouldAControllerRecoveryHelp(
-    const std::string & condition_name,
-    const BT::NodeConfiguration & conf);
-
-  WouldAControllerRecoveryHelp() = delete;
+    WouldAControllerRecoveryHelp() = delete;
 };
 
-}  // namespace nav2_behavior_tree
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__WOULD_A_CONTROLLER_RECOVERY_HELP_CONDITION_HPP_
+} // namespace nav2_behavior_tree
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__WOULD_A_CONTROLLER_RECOVERY_HELP_CONDITION_HPP_

@@ -15,22 +15,21 @@
 #ifndef NAV2_GRACEFUL_CONTROLLER__UTILS_HPP_
 #define NAV2_GRACEFUL_CONTROLLER__UTILS_HPP_
 
-#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "visualization_msgs/msg/marker.hpp"
 
-namespace nav2_graceful_controller
-{
+#include "geometry_msgs/msg/pose_stamped.hpp"
+
+namespace nav2_graceful_controller {
 /**
-   * @brief Create a flat circle marker of radius slowdown_radius around the motion target for
-   * debugging / visualization porpuses.
-   *
-   * @param motion_target Motion target
-   * @param slowdown_radius Radius of the slowdown circle
-   * @return visualization_msgs::msg::Marker Slowdown marker
-   */
-visualization_msgs::msg::Marker createSlowdownMarker(
-  const geometry_msgs::msg::PoseStamped & motion_target, const double & slowdown_radius);
+ * @brief Create a flat circle marker of radius slowdown_radius around the motion target for
+ * debugging / visualization porpuses.
+ *
+ * @param motion_target Motion target
+ * @param slowdown_radius Radius of the slowdown circle
+ * @return visualization_msgs::msg::Marker Slowdown marker
+ */
+visualization_msgs::msg::Marker createSlowdownMarker(const geometry_msgs::msg::PoseStamped& motion_target, const double& slowdown_radius);
 
-}  // namespace nav2_graceful_controller
+} // namespace nav2_graceful_controller
 
-#endif  // NAV2_GRACEFUL_CONTROLLER__UTILS_HPP_
+#endif // NAV2_GRACEFUL_CONTROLLER__UTILS_HPP_

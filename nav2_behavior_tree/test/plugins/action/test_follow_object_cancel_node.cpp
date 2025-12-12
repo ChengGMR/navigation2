@@ -13,161 +13,130 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "behaviortree_cpp/bt_factory.h"
+#include "lifecycle_msgs/srv/change_state.hpp"
+#include "nav2_behavior_tree/plugins/action/follow_object_cancel_node.hpp"
+#include "nav2_behavior_tree/utils/test_action_server.hpp"
+
 #include <gtest/gtest.h>
+
 #include <memory>
 #include <set>
 #include <string>
 
-#include "behaviortree_cpp/bt_factory.h"
+class CancelFollowObjectServer : public TestActionServer<nav2_msgs::action::FollowObject> {
+   public:
+    CancelFollowObjectServer() : TestActionServer("follow_object") {}
 
-#include "lifecycle_msgs/srv/change_state.hpp"
-#include "nav2_behavior_tree/utils/test_action_server.hpp"
-#include "nav2_behavior_tree/plugins/action/follow_object_cancel_node.hpp"
-
-class CancelFollowObjectServer
-  : public TestActionServer<nav2_msgs::action::FollowObject>
-{
-public:
-  CancelFollowObjectServer()
-  : TestActionServer("follow_object")
-  {}
-
-protected:
-  void execute(
-    const typename std::shared_ptr<
-      rclcpp_action::ServerGoalHandle<nav2_msgs::action::FollowObject>>
-    goal_handle)
-  {
-    while (!goal_handle->is_canceling()) {
-      // Assisted Teleop here until goal cancels
-      std::this_thread::sleep_for(std::chrono::milliseconds(15));
+   protected:
+    void execute(const typename std::shared_ptr<rclcpp_action::ServerGoalHandle<nav2_msgs::action::FollowObject>> goal_handle) {
+        while (!goal_handle->is_canceling()) {
+            // Assisted Teleop here until goal cancels
+            std::this_thread::sleep_for(std::chrono::milliseconds(15));
+        }
     }
-  }
 };
 
-class CancelFollowObjectActionTestFixture : public ::testing::Test
-{
-public:
-  static void SetUpTestCase()
-  {
-    node_ = std::make_shared<nav2::LifecycleNode>("cancel_follow_object_action_test_fixture");
-    factory_ = std::make_shared<BT::BehaviorTreeFactory>();
+class CancelFollowObjectActionTestFixture : public ::testing::Test {
+   public:
+    static void SetUpTestCase() {
+        node_ = std::make_shared<nav2::LifecycleNode>("cancel_follow_object_action_test_fixture");
+        factory_ = std::make_shared<BT::BehaviorTreeFactory>();
 
-    config_ = new BT::NodeConfiguration();
+        config_ = new BT::NodeConfiguration();
 
-    // Create the blackboard that will be shared by all of the nodes in the tree
-    config_->blackboard = BT::Blackboard::create();
-    // Put items on the blackboard
-    config_->blackboard->set("node", node_);
-    config_->blackboard->set<std::chrono::milliseconds>(
-      "server_timeout", std::chrono::milliseconds(20));
-    config_->blackboard->set<std::chrono::milliseconds>(
-      "bt_loop_duration", std::chrono::milliseconds(10));
-    config_->blackboard->set<std::chrono::milliseconds>(
-      "wait_for_service_timeout", std::chrono::milliseconds(1000));
-    client_ = rclcpp_action::create_client<nav2_msgs::action::FollowObject>(
-      node_, "follow_object");
+        // Create the blackboard that will be shared by all of the nodes in the tree
+        config_->blackboard = BT::Blackboard::create();
+        // Put items on the blackboard
+        config_->blackboard->set("node", node_);
+        config_->blackboard->set<std::chrono::milliseconds>("server_timeout", std::chrono::milliseconds(20));
+        config_->blackboard->set<std::chrono::milliseconds>("bt_loop_duration", std::chrono::milliseconds(10));
+        config_->blackboard->set<std::chrono::milliseconds>("wait_for_service_timeout", std::chrono::milliseconds(1000));
+        client_ = rclcpp_action::create_client<nav2_msgs::action::FollowObject>(node_, "follow_object");
 
-    BT::NodeBuilder builder =
-      [](const std::string & name, const BT::NodeConfiguration & config)
-      {
-        return std::make_unique<nav2_behavior_tree::FollowObjectCancel>(
-          name, "follow_object", config);
-      };
+        BT::NodeBuilder builder = [](const std::string& name, const BT::NodeConfiguration& config) {
+            return std::make_unique<nav2_behavior_tree::FollowObjectCancel>(name, "follow_object", config);
+        };
 
-    factory_->registerBuilder<nav2_behavior_tree::FollowObjectCancel>(
-      "CancelFollowObject", builder);
-  }
+        factory_->registerBuilder<nav2_behavior_tree::FollowObjectCancel>("CancelFollowObject", builder);
+    }
 
-  static void TearDownTestCase()
-  {
-    delete config_;
-    config_ = nullptr;
-    node_.reset();
-    action_server_.reset();
-    client_.reset();
-    factory_.reset();
-  }
+    static void TearDownTestCase() {
+        delete config_;
+        config_ = nullptr;
+        node_.reset();
+        action_server_.reset();
+        client_.reset();
+        factory_.reset();
+    }
 
-  void TearDown() override
-  {
-    tree_.reset();
-  }
+    void TearDown() override { tree_.reset(); }
 
-  static std::shared_ptr<CancelFollowObjectServer> action_server_;
-  static std::shared_ptr<nav2::ActionClient<nav2_msgs::action::FollowObject>> client_;
+    static std::shared_ptr<CancelFollowObjectServer> action_server_;
+    static std::shared_ptr<nav2::ActionClient<nav2_msgs::action::FollowObject>> client_;
 
-protected:
-  static nav2::LifecycleNode::SharedPtr node_;
-  static BT::NodeConfiguration * config_;
-  static std::shared_ptr<BT::BehaviorTreeFactory> factory_;
-  static std::shared_ptr<BT::Tree> tree_;
+   protected:
+    static nav2::LifecycleNode::SharedPtr node_;
+    static BT::NodeConfiguration* config_;
+    static std::shared_ptr<BT::BehaviorTreeFactory> factory_;
+    static std::shared_ptr<BT::Tree> tree_;
 };
 
 nav2::LifecycleNode::SharedPtr CancelFollowObjectActionTestFixture::node_ = nullptr;
-std::shared_ptr<CancelFollowObjectServer>
-CancelFollowObjectActionTestFixture::action_server_ = nullptr;
-std::shared_ptr<nav2::ActionClient<nav2_msgs::action::FollowObject>>
-CancelFollowObjectActionTestFixture::client_ = nullptr;
+std::shared_ptr<CancelFollowObjectServer> CancelFollowObjectActionTestFixture::action_server_ = nullptr;
+std::shared_ptr<nav2::ActionClient<nav2_msgs::action::FollowObject>> CancelFollowObjectActionTestFixture::client_ = nullptr;
 
-BT::NodeConfiguration * CancelFollowObjectActionTestFixture::config_ = nullptr;
-std::shared_ptr<BT::BehaviorTreeFactory>
-CancelFollowObjectActionTestFixture::factory_ = nullptr;
+BT::NodeConfiguration* CancelFollowObjectActionTestFixture::config_ = nullptr;
+std::shared_ptr<BT::BehaviorTreeFactory> CancelFollowObjectActionTestFixture::factory_ = nullptr;
 std::shared_ptr<BT::Tree> CancelFollowObjectActionTestFixture::tree_ = nullptr;
 
-TEST_F(CancelFollowObjectActionTestFixture, test_ports)
-{
-  std::string xml_txt =
-    R"(
+TEST_F(CancelFollowObjectActionTestFixture, test_ports) {
+    std::string xml_txt =
+        R"(
       <root BTCPP_format="4">
         <BehaviorTree ID="MainTree">
              <CancelFollowObject name="FollowObjectCancel"/>
         </BehaviorTree>
       </root>)";
 
-  tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
-  auto send_goal_options = nav2::ActionClient<
-    nav2_msgs::action::FollowObject>::SendGoalOptions();
+    tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
+    auto send_goal_options = nav2::ActionClient<nav2_msgs::action::FollowObject>::SendGoalOptions();
 
-  // Creating a dummy goal_msg
-  auto goal_msg = nav2_msgs::action::FollowObject::Goal();
+    // Creating a dummy goal_msg
+    auto goal_msg = nav2_msgs::action::FollowObject::Goal();
 
-  // BackUping for server and sending a goal
-  client_->wait_for_action_server();
-  client_->async_send_goal(goal_msg, send_goal_options);
+    // BackUping for server and sending a goal
+    client_->wait_for_action_server();
+    client_->async_send_goal(goal_msg, send_goal_options);
 
-  // Adding a sleep so that the goal is indeed older than 10ms as described in our abstract class
-  std::this_thread::sleep_for(std::chrono::milliseconds(15));
+    // Adding a sleep so that the goal is indeed older than 10ms as described in our abstract class
+    std::this_thread::sleep_for(std::chrono::milliseconds(15));
 
-  // Executing tick
-  tree_->rootNode()->executeTick();
+    // Executing tick
+    tree_->rootNode()->executeTick();
 
-  // BT node should return success, once when the goal is cancelled
-  EXPECT_EQ(tree_->rootNode()->status(), BT::NodeStatus::SUCCESS);
+    // BT node should return success, once when the goal is cancelled
+    EXPECT_EQ(tree_->rootNode()->status(), BT::NodeStatus::SUCCESS);
 
-  // Adding another test case to check if the goal is in fact cancelling
-  EXPECT_EQ(action_server_->isGoalCancelled(), true);
+    // Adding another test case to check if the goal is in fact cancelling
+    EXPECT_EQ(action_server_->isGoalCancelled(), true);
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  // initialize ROS
-  rclcpp::init(argc, argv);
+    // initialize ROS
+    rclcpp::init(argc, argv);
 
-  // initialize action server and back_up on new thread
-  CancelFollowObjectActionTestFixture::action_server_ =
-    std::make_shared<CancelFollowObjectServer>();
-  std::thread server_thread([]() {
-      rclcpp::spin(CancelFollowObjectActionTestFixture::action_server_);
-    });
+    // initialize action server and back_up on new thread
+    CancelFollowObjectActionTestFixture::action_server_ = std::make_shared<CancelFollowObjectServer>();
+    std::thread server_thread([]() { rclcpp::spin(CancelFollowObjectActionTestFixture::action_server_); });
 
-  int all_successful = RUN_ALL_TESTS();
+    int all_successful = RUN_ALL_TESTS();
 
-  // shutdown ROS
-  rclcpp::shutdown();
-  server_thread.join();
+    // shutdown ROS
+    rclcpp::shutdown();
+    server_thread.join();
 
-  return all_successful;
+    return all_successful;
 }

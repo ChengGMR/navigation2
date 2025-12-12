@@ -12,35 +12,34 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. Reserved.
 
-#include <vector>
-#include <string>
-#include <fstream>
+#include "plugins_list.hpp"
 
 #include "behaviortree_cpp/behavior_tree.h"
 #include "behaviortree_cpp/bt_factory.h"
 #include "behaviortree_cpp/utils/shared_library.h"
 #include "behaviortree_cpp/xml_parsing.h"
-
-#include "plugins_list.hpp"
 #include "nav2_util/string_utils.hpp"
 
-int main()
-{
-  BT::BehaviorTreeFactory factory;
+#include <fstream>
+#include <string>
+#include <vector>
 
-  std::vector<std::string> plugins_list = nav2_util::split(nav2::details::BT_BUILTIN_PLUGINS, ';');
+int main() {
+    BT::BehaviorTreeFactory factory;
 
-  for (const auto & plugin : plugins_list) {
-    std::cout << "Loading: " << plugin << "\n";
-    factory.registerFromPlugin(BT::SharedLibrary::getOSName(plugin));
-  }
-  std::cout << "\nGenerating file: nav2_tree_nodes.xml\n"
-            << "\nCompare it with the one in the git repo and update the latter if necessary.\n";
+    std::vector<std::string> plugins_list = nav2_util::split(nav2::details::BT_BUILTIN_PLUGINS, ';');
 
-  std::ofstream xml_file;
-  xml_file.open("nav2_tree_nodes.xml");
-  xml_file << BT::writeTreeNodesModelXML(factory) << std::endl;
-  xml_file.close();
+    for (const auto& plugin : plugins_list) {
+        std::cout << "Loading: " << plugin << "\n";
+        factory.registerFromPlugin(BT::SharedLibrary::getOSName(plugin));
+    }
+    std::cout << "\nGenerating file: nav2_tree_nodes.xml\n"
+              << "\nCompare it with the one in the git repo and update the latter if necessary.\n";
 
-  return 0;
+    std::ofstream xml_file;
+    xml_file.open("nav2_tree_nodes.xml");
+    xml_file << BT::writeTreeNodesModelXML(factory) << std::endl;
+    xml_file.close();
+
+    return 0;
 }

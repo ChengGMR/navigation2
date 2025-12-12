@@ -16,67 +16,59 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__DECORATOR__DISTANCE_CONTROLLER_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__DECORATOR__DISTANCE_CONTROLLER_HPP_
 
-#include <memory>
-#include <string>
+#include "behaviortree_cpp/decorator_node.h"
+#include "nav2_behavior_tree/bt_utils.hpp"
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "tf2_ros/buffer.hpp"
 
-#include "behaviortree_cpp/decorator_node.h"
-#include "nav2_behavior_tree/bt_utils.hpp"
+#include <memory>
+#include <string>
 
-namespace nav2_behavior_tree
-{
+namespace nav2_behavior_tree {
 
 /**
  * @brief A BT::DecoratorNode that ticks its child every time the robot
  * travels a specified distance
  * @note It will re-initialize when halted.
  */
-class DistanceController : public BT::DecoratorNode
-{
-public:
-  /**
-   * @brief A constructor for nav2_behavior_tree::DistanceController
-   * @param name Name for the XML tag for this node
-   * @param conf BT node configuration
-   */
-  DistanceController(
-    const std::string & name,
-    const BT::NodeConfiguration & conf);
+class DistanceController : public BT::DecoratorNode {
+   public:
+    /**
+     * @brief A constructor for nav2_behavior_tree::DistanceController
+     * @param name Name for the XML tag for this node
+     * @param conf BT node configuration
+     */
+    DistanceController(const std::string& name, const BT::NodeConfiguration& conf);
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing node-specific ports
-   */
-  static BT::PortsList providedPorts()
-  {
-    return {
-      BT::InputPort<double>("distance", 1.0, "Distance"),
-      BT::InputPort<std::string>("global_frame", "Global frame"),
-      BT::InputPort<std::string>("robot_base_frame", "Robot base frame")
-    };
-  }
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing node-specific ports
+     */
+    static BT::PortsList providedPorts() {
+        return {BT::InputPort<double>("distance", 1.0, "Distance"), BT::InputPort<std::string>("global_frame", "Global frame"),
+                BT::InputPort<std::string>("robot_base_frame", "Robot base frame")};
+    }
 
-private:
-  /**
-   * @brief The main override required by a BT action
-   * @return BT::NodeStatus Status of tick execution
-   */
-  BT::NodeStatus tick() override;
+   private:
+    /**
+     * @brief The main override required by a BT action
+     * @return BT::NodeStatus Status of tick execution
+     */
+    BT::NodeStatus tick() override;
 
-  nav2::LifecycleNode::SharedPtr node_;
+    nav2::LifecycleNode::SharedPtr node_;
 
-  std::shared_ptr<tf2_ros::Buffer> tf_;
-  double transform_tolerance_;
+    std::shared_ptr<tf2_ros::Buffer> tf_;
+    double transform_tolerance_;
 
-  geometry_msgs::msg::PoseStamped start_pose_;
-  double distance_;
-  std::string global_frame_, robot_base_frame_;
+    geometry_msgs::msg::PoseStamped start_pose_;
+    double distance_;
+    std::string global_frame_, robot_base_frame_;
 
-  bool first_time_;
+    bool first_time_;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__DECORATOR__DISTANCE_CONTROLLER_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__DECORATOR__DISTANCE_CONTROLLER_HPP_

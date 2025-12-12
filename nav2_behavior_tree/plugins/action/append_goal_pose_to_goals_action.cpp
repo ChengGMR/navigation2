@@ -12,45 +12,36 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
-#include <memory>
-#include <limits>
+#include "nav2_behavior_tree/plugins/action/append_goal_pose_to_goals_action.hpp"
 
 #include "nav2_util/geometry_utils.hpp"
 
-#include "nav2_behavior_tree/plugins/action/append_goal_pose_to_goals_action.hpp"
+#include <limits>
+#include <memory>
+#include <string>
 
-namespace nav2_behavior_tree
-{
+namespace nav2_behavior_tree {
 
-AppendGoalPoseToGoals::AppendGoalPoseToGoals(
-  const std::string & name,
-  const BT::NodeConfiguration & conf)
-: BT::ActionNodeBase(name, conf)
-{
+AppendGoalPoseToGoals::AppendGoalPoseToGoals(const std::string& name, const BT::NodeConfiguration& conf) : BT::ActionNodeBase(name, conf) {}
+
+inline BT::NodeStatus AppendGoalPoseToGoals::tick() {
+    setStatus(BT::NodeStatus::RUNNING);
+
+    geometry_msgs::msg::PoseStamped goal_pose;
+    getInput("goal_pose", goal_pose);
+    nav_msgs::msg::Goals input, output;
+    getInput("input_goals", input);
+
+    output = input;
+    output.goals.push_back(goal_pose);
+
+    setOutput("output_goals", output);
+    return BT::NodeStatus::SUCCESS;
 }
 
-inline BT::NodeStatus AppendGoalPoseToGoals::tick()
-{
-  setStatus(BT::NodeStatus::RUNNING);
-
-  geometry_msgs::msg::PoseStamped goal_pose;
-  getInput("goal_pose", goal_pose);
-  nav_msgs::msg::Goals input, output;
-  getInput("input_goals", input);
-
-  output = input;
-  output.goals.push_back(goal_pose);
-
-  setOutput("output_goals", output);
-  return BT::NodeStatus::SUCCESS;
-}
-
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
 #include "behaviortree_cpp/bt_factory.h"
-BT_REGISTER_NODES(factory)
-{
-  factory.registerNodeType<nav2_behavior_tree::AppendGoalPoseToGoals>(
-    "AppendGoalPoseToGoals");
+BT_REGISTER_NODES(factory) {
+    factory.registerNodeType<nav2_behavior_tree::AppendGoalPoseToGoals>("AppendGoalPoseToGoals");
 }

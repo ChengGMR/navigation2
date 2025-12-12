@@ -14,92 +14,75 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. Reserved.
 
+#include "server_handler.hpp"
+
 #include <memory>
 #include <thread>
 
-#include "server_handler.hpp"
+using namespace std::chrono_literals; // NOLINT
+using namespace std::chrono; // NOLINT
 
-using namespace std::chrono_literals;  // NOLINT
-using namespace std::chrono;  // NOLINT
+namespace nav2_system_tests {
 
-namespace nav2_system_tests
-{
+ServerHandler::ServerHandler() : is_active_(false) {
+    node_ = rclcpp::Node::make_shared("behavior_tree_tester");
 
-
-ServerHandler::ServerHandler()
-: is_active_(false)
-{
-  node_ = rclcpp::Node::make_shared("behavior_tree_tester");
-
-  clear_local_costmap_server = std::make_unique<DummyService<nav2_msgs::srv::ClearEntireCostmap>>(
-    node_, "local_costmap/clear_entirely_local_costmap");
-  clear_global_costmap_server = std::make_unique<DummyService<nav2_msgs::srv::ClearEntireCostmap>>(
-    node_, "global_costmap/clear_entirely_global_costmap");
-  compute_path_to_pose_server = std::make_unique<DummyComputePathToPoseActionServer>(node_);
-  follow_path_server = std::make_unique<DummyFollowPathActionServer>(node_);
-  spin_server = std::make_unique<DummyActionServer<nav2_msgs::action::Spin>>(
-    node_, "spin");
-  wait_server = std::make_unique<DummyActionServer<nav2_msgs::action::Wait>>(
-    node_, "wait");
-  backup_server = std::make_unique<DummyActionServer<nav2_msgs::action::BackUp>>(
-    node_, "backup");
-  compute_route_server = std::make_unique<DummyActionServer<nav2_msgs::action::ComputeRoute>>(
-    node_, "compute_route");
-  smoother_server = std::make_unique<DummyActionServer<nav2_msgs::action::SmoothPath>>(
-    node_, "smooth_path");
-  drive_on_heading_server = std::make_unique<DummyActionServer<nav2_msgs::action::DriveOnHeading>>(
-    node_, "drive_on_heading");
-  ntp_server = std::make_unique<DummyActionServer<nav2_msgs::action::ComputePathThroughPoses>>(
-    node_, "compute_path_through_poses");
+    clear_local_costmap_server =
+        std::make_unique<DummyService<nav2_msgs::srv::ClearEntireCostmap>>(node_, "local_costmap/clear_entirely_local_costmap");
+    clear_global_costmap_server =
+        std::make_unique<DummyService<nav2_msgs::srv::ClearEntireCostmap>>(node_, "global_costmap/clear_entirely_global_costmap");
+    compute_path_to_pose_server = std::make_unique<DummyComputePathToPoseActionServer>(node_);
+    follow_path_server = std::make_unique<DummyFollowPathActionServer>(node_);
+    spin_server = std::make_unique<DummyActionServer<nav2_msgs::action::Spin>>(node_, "spin");
+    wait_server = std::make_unique<DummyActionServer<nav2_msgs::action::Wait>>(node_, "wait");
+    backup_server = std::make_unique<DummyActionServer<nav2_msgs::action::BackUp>>(node_, "backup");
+    compute_route_server = std::make_unique<DummyActionServer<nav2_msgs::action::ComputeRoute>>(node_, "compute_route");
+    smoother_server = std::make_unique<DummyActionServer<nav2_msgs::action::SmoothPath>>(node_, "smooth_path");
+    drive_on_heading_server = std::make_unique<DummyActionServer<nav2_msgs::action::DriveOnHeading>>(node_, "drive_on_heading");
+    ntp_server = std::make_unique<DummyActionServer<nav2_msgs::action::ComputePathThroughPoses>>(node_, "compute_path_through_poses");
 }
 
-ServerHandler::~ServerHandler()
-{
-  if (is_active_) {
-    deactivate();
-  }
+ServerHandler::~ServerHandler() {
+    if (is_active_) {
+        deactivate();
+    }
 }
 
-void ServerHandler::activate()
-{
-  if (is_active_) {
-    throw std::runtime_error("Trying to activate while already activated");
-  }
+void ServerHandler::activate() {
+    if (is_active_) {
+        throw std::runtime_error("Trying to activate while already activated");
+    }
 
-  is_active_ = true;
-  server_thread_ =
-    std::make_shared<std::thread>(std::bind(&ServerHandler::spinThread, this));
+    is_active_ = true;
+    server_thread_ = std::make_shared<std::thread>(std::bind(&ServerHandler::spinThread, this));
 
-  std::cout << "Server handler is active!" << std::endl;
+    std::cout << "Server handler is active!" << std::endl;
 }
 
-void ServerHandler::deactivate()
-{
-  if (!is_active_) {
-    throw std::runtime_error("Trying to deactivate while already inactive");
-  }
+void ServerHandler::deactivate() {
+    if (!is_active_) {
+        throw std::runtime_error("Trying to deactivate while already inactive");
+    }
 
-  is_active_ = false;
-  server_thread_->join();
+    is_active_ = false;
+    server_thread_->join();
 
-  std::cout << "Server handler has been deactivated!" << std::endl;
+    std::cout << "Server handler has been deactivated!" << std::endl;
 }
 
-void ServerHandler::reset() const
-{
-  clear_global_costmap_server->reset();
-  clear_local_costmap_server->reset();
-  compute_path_to_pose_server->reset();
-  follow_path_server->reset();
-  spin_server->reset();
-  wait_server->reset();
-  backup_server->reset();
-  drive_on_heading_server->reset();
+void ServerHandler::reset() const {
+    clear_global_costmap_server->reset();
+    clear_local_costmap_server->reset();
+    compute_path_to_pose_server->reset();
+    follow_path_server->reset();
+    spin_server->reset();
+    wait_server->reset();
+    backup_server->reset();
+    drive_on_heading_server->reset();
 }
 
-void ServerHandler::spinThread()
-{
-  rclcpp::spin(node_);
+void ServerHandler::spinThread() {
+    rclcpp::spin(node_);
 }
 
-}  // namespace nav2_system_tests
+} // namespace nav2_system_tests

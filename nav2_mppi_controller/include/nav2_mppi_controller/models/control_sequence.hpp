@@ -17,36 +17,32 @@
 
 #include <Eigen/Dense>
 
-namespace mppi::models
-{
+namespace mppi::models {
 
 /**
  * @struct mppi::models::Control
  * @brief A set of controls
  */
-struct Control
-{
-  float vx, vy, wz;
+struct Control {
+    float vx, vy, wz;
 };
 
 /**
  * @struct mppi::models::ControlSequence
  * @brief A control sequence over time (e.g. trajectory)
  */
-struct ControlSequence
-{
-  Eigen::ArrayXf vx;
-  Eigen::ArrayXf vy;
-  Eigen::ArrayXf wz;
+struct ControlSequence {
+    Eigen::ArrayXf vx;
+    Eigen::ArrayXf vy;
+    Eigen::ArrayXf wz;
 
-  void reset(unsigned int time_steps)
-  {
-    vx.setZero(time_steps);
-    vy.setZero(time_steps);
-    wz.setZero(time_steps);
-  }
+    void reset(unsigned int time_steps) {
+        vx.setZero(time_steps);
+        vy.setZero(time_steps);
+        wz.setZero(time_steps);
+    }
 };
 
-}  // namespace mppi::models
+} // namespace mppi::models
 
-#endif  // NAV2_MPPI_CONTROLLER__MODELS__CONTROL_SEQUENCE_HPP_
+#endif // NAV2_MPPI_CONTROLLER__MODELS__CONTROL_SEQUENCE_HPP_

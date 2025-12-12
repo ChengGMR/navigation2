@@ -13,58 +13,48 @@
 // limitations under the License.
 
 #include "nav2_behavior_tree/plugins/condition/is_path_valid_condition.hpp"
+
 #include <chrono>
 #include <memory>
 #include <string>
 
-namespace nav2_behavior_tree
-{
+namespace nav2_behavior_tree {
 
-IsPathValidCondition::IsPathValidCondition(
-  const std::string & condition_name,
-  const BT::NodeConfiguration & conf)
-: BT::ConditionNode(condition_name, conf),
-  max_cost_(254), consider_unknown_as_obstacle_(false)
-{
-  node_ = config().blackboard->get<nav2::LifecycleNode::SharedPtr>("node");
-  client_ =
-    node_->create_client<nav2_msgs::srv::IsPathValid>(
-    "is_path_valid",
-    false /* Does not create and spin an internal executor*/);
+IsPathValidCondition::IsPathValidCondition(const std::string& condition_name, const BT::NodeConfiguration& conf)
+    : BT::ConditionNode(condition_name, conf), max_cost_(254), consider_unknown_as_obstacle_(false) {
+    node_ = config().blackboard->get<nav2::LifecycleNode::SharedPtr>("node");
+    client_ = node_->create_client<nav2_msgs::srv::IsPathValid>("is_path_valid", false /* Does not create and spin an internal executor*/);
 }
 
-void IsPathValidCondition::initialize()
-{
-  getInputOrBlackboard("server_timeout", server_timeout_);
-  getInput<unsigned int>("max_cost", max_cost_);
-  getInput<bool>("consider_unknown_as_obstacle", consider_unknown_as_obstacle_);
+void IsPathValidCondition::initialize() {
+    getInputOrBlackboard("server_timeout", server_timeout_);
+    getInput<unsigned int>("max_cost", max_cost_);
+    getInput<bool>("consider_unknown_as_obstacle", consider_unknown_as_obstacle_);
 }
 
-BT::NodeStatus IsPathValidCondition::tick()
-{
-  if (!BT::isStatusActive(status())) {
-    initialize();
-  }
+BT::NodeStatus IsPathValidCondition::tick() {
+    if (!BT::isStatusActive(status())) {
+        initialize();
+    }
 
-  nav_msgs::msg::Path path;
-  getInput("path", path);
+    nav_msgs::msg::Path path;
+    getInput("path", path);
 
-  auto request = std::make_shared<nav2_msgs::srv::IsPathValid::Request>();
+    auto request = std::make_shared<nav2_msgs::srv::IsPathValid::Request>();
 
-  request->path = path;
-  request->max_cost = max_cost_;
-  request->consider_unknown_as_obstacle = consider_unknown_as_obstacle_;
-  auto response = client_->invoke(request, server_timeout_);
-  if (response->is_valid) {
-    return BT::NodeStatus::SUCCESS;
-  }
-  return BT::NodeStatus::FAILURE;
+    request->path = path;
+    request->max_cost = max_cost_;
+    request->consider_unknown_as_obstacle = consider_unknown_as_obstacle_;
+    auto response = client_->invoke(request, server_timeout_);
+    if (response->is_valid) {
+        return BT::NodeStatus::SUCCESS;
+    }
+    return BT::NodeStatus::FAILURE;
 }
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
 #include "behaviortree_cpp/bt_factory.h"
-BT_REGISTER_NODES(factory)
-{
-  factory.registerNodeType<nav2_behavior_tree::IsPathValidCondition>("IsPathValid");
+BT_REGISTER_NODES(factory) {
+    factory.registerNodeType<nav2_behavior_tree::IsPathValidCondition>("IsPathValid");
 }

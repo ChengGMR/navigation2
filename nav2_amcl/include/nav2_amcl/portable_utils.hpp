@@ -21,21 +21,20 @@ extern "C" {
 #endif
 
 #ifndef HAVE_DRAND48
-// Some system (e.g., Windows) doesn't come with drand48(), srand48().
-// Use rand, and srand for such system.
-static double drand48(void)
-{
-  return ((double)rand()) / RAND_MAX;// NOLINT
-}
+    // Some system (e.g., Windows) doesn't come with drand48(), srand48().
+    // Use rand, and srand for such system.
+    static double drand48(void) {
+        return ((double)rand()) / RAND_MAX; // NOLINT
+    }
 
-static void srand48(long int seedval)// NOLINT
-{
-  srand(seedval);
-}
+    static void srand48(long int seedval) // NOLINT
+    {
+        srand(seedval);
+    }
 #endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif  // NAV2_AMCL__PORTABLE_UTILS_HPP_
+#endif // NAV2_AMCL__PORTABLE_UTILS_HPP_

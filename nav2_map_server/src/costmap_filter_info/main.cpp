@@ -12,21 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
-
 #include "nav2_map_server/costmap_filter_info_server.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-int main(int argc, char * argv[])
-{
-  auto logger = rclcpp::get_logger("costmap_filter_info_server");
+#include <memory>
 
-  RCLCPP_INFO(logger, "This is costmap filter info publisher");
+int main(int argc, char* argv[]) {
+    auto logger = rclcpp::get_logger("costmap_filter_info_server");
 
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<nav2_map_server::CostmapFilterInfoServer>();
-  rclcpp::spin(node->get_node_base_interface());
-  rclcpp::shutdown();
+    RCLCPP_INFO(logger, "This is costmap filter info publisher");
 
-  return 0;
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<nav2_map_server::CostmapFilterInfoServer>();
+    rclcpp::spin(node->get_node_base_interface());
+    rclcpp::shutdown();
+
+    return 0;
 }

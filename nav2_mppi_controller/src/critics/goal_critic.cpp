@@ -15,47 +15,39 @@
 
 #include "nav2_mppi_controller/critics/goal_critic.hpp"
 
-namespace mppi::critics
-{
+namespace mppi::critics {
 
+void GoalCritic::initialize() {
+    auto getParentParam = parameters_handler_->getParamGetter(parent_name_);
+    auto getParam = parameters_handler_->getParamGetter(name_);
+    getParam(power_, "cost_power", 1);
+    getParam(weight_, "cost_weight", 5.0f);
+    getParam(threshold_to_consider_, "threshold_to_consider", 1.4f);
 
-void GoalCritic::initialize()
-{
-  auto getParentParam = parameters_handler_->getParamGetter(parent_name_);
-  auto getParam = parameters_handler_->getParamGetter(name_);
-  getParam(power_, "cost_power", 1);
-  getParam(weight_, "cost_weight", 5.0f);
-  getParam(threshold_to_consider_, "threshold_to_consider", 1.4f);
-
-  RCLCPP_INFO(
-    logger_, "GoalCritic instantiated with %d power and %f weight.",
-    power_, weight_);
+    RCLCPP_INFO(logger_, "GoalCritic instantiated with %d power and %f weight.", power_, weight_);
 }
 
-void GoalCritic::score(CriticData & data)
-{
-  if (!enabled_ || data.state.local_path_length > threshold_to_consider_) {
-    return;
-  }
+void GoalCritic::score(CriticData& data) {
+    if (!enabled_ || data.state.local_path_length > threshold_to_consider_) {
+        return;
+    }
 
-  geometry_msgs::msg::Pose goal = utils::getLastPathPose(data.path);
+    geometry_msgs::msg::Pose goal = utils::getLastPathPose(data.path);
 
-  auto goal_x = goal.position.x;
-  auto goal_y = goal.position.y;
+    auto goal_x = goal.position.x;
+    auto goal_y = goal.position.y;
 
-  const auto delta_x = data.trajectories.x - goal_x;
-  const auto delta_y = data.trajectories.y - goal_y;
+    const auto delta_x = data.trajectories.x - goal_x;
+    const auto delta_y = data.trajectories.y - goal_y;
 
-  if (power_ > 1u) {
-    data.costs += (((delta_x.square() + delta_y.square()).sqrt()).rowwise().mean() *
-      weight_).pow(power_);
-  } else {
-    data.costs += (((delta_x.square() + delta_y.square()).sqrt()).rowwise().mean() *
-      weight_).eval();
-  }
+    if (power_ > 1u) {
+        data.costs += (((delta_x.square() + delta_y.square()).sqrt()).rowwise().mean() * weight_).pow(power_);
+    } else {
+        data.costs += (((delta_x.square() + delta_y.square()).sqrt()).rowwise().mean() * weight_).eval();
+    }
 }
 
-}  // namespace mppi::critics
+} // namespace mppi::critics
 
 #include <pluginlib/class_list_macros.hpp>
 

@@ -38,88 +38,82 @@
 #ifndef NAV2_COSTMAP_2D__COSTMAP_FILTERS__BINARY_FILTER_HPP_
 #define NAV2_COSTMAP_2D__COSTMAP_FILTERS__BINARY_FILTER_HPP_
 
+#include "nav2_costmap_2d/costmap_filters/costmap_filter.hpp"
+#include "nav2_msgs/msg/costmap_filter_info.hpp"
+
+#include "std_msgs/msg/bool.hpp"
+
 #include <memory>
 #include <string>
 
-#include "nav2_costmap_2d/costmap_filters/costmap_filter.hpp"
-
-#include "std_msgs/msg/bool.hpp"
-#include "nav2_msgs/msg/costmap_filter_info.hpp"
-
-namespace nav2_costmap_2d
-{
+namespace nav2_costmap_2d {
 /**
  * @class BinaryFilter
  * @brief Reads in a speed restriction mask and enables a robot to
  * dynamically adjust speed based on pose in map to slow in dangerous
  * areas. Done via absolute speed setting or percentage of maximum speed
  */
-class BinaryFilter : public CostmapFilter
-{
-public:
-  /**
-   * @brief A constructor
-   */
-  BinaryFilter();
+class BinaryFilter : public CostmapFilter {
+   public:
+    /**
+     * @brief A constructor
+     */
+    BinaryFilter();
 
-  /**
-   * @brief Initialize the filter and subscribe to the info topic
-   */
-  void initializeFilter(
-    const std::string & filter_info_topic);
+    /**
+     * @brief Initialize the filter and subscribe to the info topic
+     */
+    void initializeFilter(const std::string& filter_info_topic);
 
-  /**
-   * @brief Process the keepout layer at the current pose / bounds / grid
-   */
-  void process(
-    nav2_costmap_2d::Costmap2D & master_grid,
-    int min_i, int min_j, int max_i, int max_j,
-    const geometry_msgs::msg::Pose & pose);
+    /**
+     * @brief Process the keepout layer at the current pose / bounds / grid
+     */
+    void process(nav2_costmap_2d::Costmap2D& master_grid, int min_i, int min_j, int max_i, int max_j, const geometry_msgs::msg::Pose& pose);
 
-  /**
-   * @brief Reset the costmap filter / topic / info
-   */
-  void resetFilter();
+    /**
+     * @brief Reset the costmap filter / topic / info
+     */
+    void resetFilter();
 
-  /**
-   * @brief If this filter is active
-   */
-  bool isActive();
+    /**
+     * @brief If this filter is active
+     */
+    bool isActive();
 
-private:
-  /**
-   * @brief Callback for the filter information
-   */
-  void filterInfoCallback(const nav2_msgs::msg::CostmapFilterInfo::SharedPtr msg);
-  /**
-   * @brief Callback for the filter mask
-   */
-  void maskCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg);
-  /**
-   * @brief Changes binary state of filter. Sends a message with new state.
-   * @param state New binary state
-   */
-  void changeState(const bool state);
+   private:
+    /**
+     * @brief Callback for the filter information
+     */
+    void filterInfoCallback(const nav2_msgs::msg::CostmapFilterInfo::SharedPtr msg);
+    /**
+     * @brief Callback for the filter mask
+     */
+    void maskCallback(const nav_msgs::msg::OccupancyGrid::SharedPtr msg);
+    /**
+     * @brief Changes binary state of filter. Sends a message with new state.
+     * @param state New binary state
+     */
+    void changeState(const bool state);
 
-  // Working with filter info and mask
-  nav2::Subscription<nav2_msgs::msg::CostmapFilterInfo>::SharedPtr filter_info_sub_;
-  nav2::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr mask_sub_;
+    // Working with filter info and mask
+    nav2::Subscription<nav2_msgs::msg::CostmapFilterInfo>::SharedPtr filter_info_sub_;
+    nav2::Subscription<nav_msgs::msg::OccupancyGrid>::SharedPtr mask_sub_;
 
-  nav2::Publisher<std_msgs::msg::Bool>::SharedPtr binary_state_pub_;
+    nav2::Publisher<std_msgs::msg::Bool>::SharedPtr binary_state_pub_;
 
-  nav_msgs::msg::OccupancyGrid::SharedPtr filter_mask_;
+    nav_msgs::msg::OccupancyGrid::SharedPtr filter_mask_;
 
-  std::string global_frame_;  // Frame of current layer (master_grid)
+    std::string global_frame_; // Frame of current layer (master_grid)
 
-  double base_, multiplier_;
-  // Filter values higher than this threshold,
-  // will set binary state to non-default
-  double flip_threshold_;
+    double base_, multiplier_;
+    // Filter values higher than this threshold,
+    // will set binary state to non-default
+    double flip_threshold_;
 
-  bool default_state_;  // Default Binary Filter state
-  bool binary_state_;  // Current Binary Filter state
+    bool default_state_; // Default Binary Filter state
+    bool binary_state_; // Current Binary Filter state
 };
 
-}  // namespace nav2_costmap_2d
+} // namespace nav2_costmap_2d
 
-#endif  // NAV2_COSTMAP_2D__COSTMAP_FILTERS__BINARY_FILTER_HPP_
+#endif // NAV2_COSTMAP_2D__COSTMAP_FILTERS__BINARY_FILTER_HPP_

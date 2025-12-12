@@ -40,8 +40,7 @@
 
 #include "nav_msgs/msg/occupancy_grid.hpp"
 
-namespace nav2_util
-{
+namespace nav2_util {
 
 /**
  * @brief: Convert from world coordinates to map coordinates.
@@ -53,27 +52,24 @@ namespace nav2_util
  * @param  my Will be set to the associated map y coordinate
  * @return True if the conversion was successful (legal bounds) false otherwise
  */
-inline bool worldToMap(
-  nav_msgs::msg::OccupancyGrid::ConstSharedPtr map,
-  const double wx, const double wy, unsigned int & mx, unsigned int & my)
-{
-  const double origin_x = map->info.origin.position.x;
-  const double origin_y = map->info.origin.position.y;
-  const double resolution = map->info.resolution;
-  const unsigned int size_x = map->info.width;
-  const unsigned int size_y = map->info.height;
+inline bool worldToMap(nav_msgs::msg::OccupancyGrid::ConstSharedPtr map, const double wx, const double wy, unsigned int& mx, unsigned int& my) {
+    const double origin_x = map->info.origin.position.x;
+    const double origin_y = map->info.origin.position.y;
+    const double resolution = map->info.resolution;
+    const unsigned int size_x = map->info.width;
+    const unsigned int size_y = map->info.height;
 
-  if (wx < origin_x || wy < origin_y) {
-    return false;
-  }
+    if (wx < origin_x || wy < origin_y) {
+        return false;
+    }
 
-  mx = static_cast<unsigned int>((wx - origin_x) / resolution);
-  my = static_cast<unsigned int>((wy - origin_y) / resolution);
-  if (mx >= size_x || my >= size_y) {
-    return false;
-  }
+    mx = static_cast<unsigned int>((wx - origin_x) / resolution);
+    my = static_cast<unsigned int>((wy - origin_y) / resolution);
+    if (mx >= size_x || my >= size_y) {
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 /**
@@ -83,18 +79,15 @@ inline bool worldToMap(
  * @param  wx Will be set to the associated world x coordinate
  * @param  wy Will be set to the associated world y coordinate
  */
-inline void mapToWorld(
-  nav_msgs::msg::OccupancyGrid::ConstSharedPtr map,
-  const unsigned int mx, const unsigned int my, double & wx, double & wy)
-{
-  const double origin_x = map->info.origin.position.x;
-  const double origin_y = map->info.origin.position.y;
-  const double resolution = map->info.resolution;
+inline void mapToWorld(nav_msgs::msg::OccupancyGrid::ConstSharedPtr map, const unsigned int mx, const unsigned int my, double& wx, double& wy) {
+    const double origin_x = map->info.origin.position.x;
+    const double origin_y = map->info.origin.position.y;
+    const double resolution = map->info.resolution;
 
-  wx = origin_x + (mx + 0.5) * resolution;
-  wy = origin_y + (my + 0.5) * resolution;
+    wx = origin_x + (mx + 0.5) * resolution;
+    wy = origin_y + (my + 0.5) * resolution;
 }
 
-}  // namespace nav2_util
+} // namespace nav2_util
 
-#endif  // NAV2_UTIL__OCC_GRID_UTILS_HPP_
+#endif // NAV2_UTIL__OCC_GRID_UTILS_HPP_

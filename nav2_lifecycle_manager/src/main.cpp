@@ -12,17 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
-
 #include "nav2_lifecycle_manager/lifecycle_manager.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-int main(int argc, char ** argv)
-{
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<nav2_lifecycle_manager::LifecycleManager>();
-  rclcpp::spin(node);
-  rclcpp::shutdown();
+#include <memory>
 
-  return 0;
+int main(int argc, char** argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<nav2_lifecycle_manager::LifecycleManager>();
+    rclcpp::spin(node);
+    rclcpp::shutdown();
+
+    return 0;
 }

@@ -14,72 +14,59 @@
 
 #include "nav2_util/path_utils.hpp"
 
-#include <limits>
-#include <cmath>
-#include <stdexcept>
-
 #include "nav2_util/geometry_utils.hpp"
-namespace nav2_util
-{
 
-PathSearchResult distance_from_path(
-  const nav_msgs::msg::Path & path,
-  const geometry_msgs::msg::Pose & robot_pose,
-  const size_t start_index,
-  const double search_window_length)
-{
-  PathSearchResult result;
-  result.closest_segment_index = start_index;
-  result.distance = std::numeric_limits<double>::max();
+#include <cmath>
+#include <limits>
+#include <stdexcept>
+namespace nav2_util {
 
-  if (path.poses.empty()) {
-    return result;
-  }
+PathSearchResult distance_from_path(const nav_msgs::msg::Path& path, const geometry_msgs::msg::Pose& robot_pose, const size_t start_index,
+                                    const double search_window_length) {
+    PathSearchResult result;
+    result.closest_segment_index = start_index;
+    result.distance = std::numeric_limits<double>::max();
 
-  if (path.poses.size() == 1) {
-    result.distance = nav2_util::geometry_utils::euclidean_distance(
-      robot_pose, path.poses.front().pose);
-    result.closest_segment_index = 0;
-    return result;
-  }
-
-  if (start_index >= path.poses.size()) {
-    throw std::runtime_error(
-            "Invalid operation: requested start index (" + std::to_string(start_index) +
-            ") is greater than or equal to path size (" + std::to_string(path.poses.size()) +
-            "). Application is not properly managing state.");
-  }
-
-  double distance_traversed = 0.0;
-  for (size_t i = start_index; i < path.poses.size() - 1; ++i) {
-    if (distance_traversed > search_window_length) {
-      break;
+    if (path.poses.empty()) {
+        return result;
     }
 
-    const double current_distance = geometry_utils::distance_to_path_segment(
-      robot_pose.position,
-      path.poses[i].pose,
-      path.poses[i + 1].pose);
-
-    if (current_distance < result.distance) {
-      result.distance = current_distance;
-      result.closest_segment_index = i;
+    if (path.poses.size() == 1) {
+        result.distance = nav2_util::geometry_utils::euclidean_distance(robot_pose, path.poses.front().pose);
+        result.closest_segment_index = 0;
+        return result;
     }
 
-    distance_traversed += geometry_utils::euclidean_distance(
-      path.poses[i],
-      path.poses[i + 1]);
-  }
+    if (start_index >= path.poses.size()) {
+        throw std::runtime_error("Invalid operation: requested start index (" + std::to_string(start_index)
+                                 + ") is greater than or equal to path size (" + std::to_string(path.poses.size())
+                                 + "). Application is not properly managing state.");
+    }
 
-  const auto & segment_start = path.poses[result.closest_segment_index];
-  const auto & segment_end = path.poses[result.closest_segment_index + 1];
+    double distance_traversed = 0.0;
+    for (size_t i = start_index; i < path.poses.size() - 1; ++i) {
+        if (distance_traversed > search_window_length) {
+            break;
+        }
 
-  // Obtain the signed direction of the cross track error
-  const double cross_product = geometry_utils::cross_product_2d(
-    robot_pose.position, segment_start.pose, segment_end.pose);
-  result.distance *= (cross_product >= 0.0 ? 1.0 : -1.0);
+        const double current_distance = geometry_utils::distance_to_path_segment(robot_pose.position, path.poses[i].pose, path.poses[i + 1].pose);
 
-  return result;
+        if (current_distance < result.distance) {
+            result.distance = current_distance;
+            result.closest_segment_index = i;
+        }
+
+        distance_traversed += geometry_utils::euclidean_distance(path.poses[i], path.poses[i + 1]);
+    }
+
+    const auto& segment_start = path.poses[result.closest_segment_index];
+    const auto& segment_end = path.poses[result.closest_segment_index + 1];
+
+    // Obtain the signed direction of the cross track error
+    const double cross_product = geometry_utils::cross_product_2d(robot_pose.position, segment_start.pose, segment_end.pose);
+    result.distance *= (cross_product >= 0.0 ? 1.0 : -1.0);
+
+    return result;
 }
 
-}  // namespace nav2_util
+} // namespace nav2_util

@@ -35,24 +35,24 @@
 #ifndef DWB_CORE__PUBLISHER_HPP_
 #define DWB_CORE__PUBLISHER_HPP_
 
+#include "builtin_interfaces/msg/duration.hpp"
+#include "dwb_core/trajectory_critic.hpp"
+#include "dwb_msgs/msg/local_plan_evaluation.hpp"
+#include "nav2_costmap_2d/costmap_2d_ros.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav_msgs/msg/path.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "visualization_msgs/msg/marker_array.hpp"
+
+#include "sensor_msgs/msg/point_cloud2.hpp"
+
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "nav2_costmap_2d/costmap_2d_ros.hpp"
-#include "dwb_core/trajectory_critic.hpp"
-#include "dwb_msgs/msg/local_plan_evaluation.hpp"
-#include "nav_msgs/msg/path.hpp"
-#include "rclcpp/rclcpp.hpp"
-#include "sensor_msgs/msg/point_cloud2.hpp"
-#include "visualization_msgs/msg/marker_array.hpp"
-#include "nav2_ros_common/lifecycle_node.hpp"
-#include "builtin_interfaces/msg/duration.hpp"
-
 using nav2::Publisher;
 
-namespace dwb_core
-{
+namespace dwb_core {
 
 /**
  * @class DWBPublisher
@@ -66,71 +66,62 @@ namespace dwb_core
  *   5) Markers representing the different trajectories evaluated
  *   6) The CostGrid (in the form of a complex PointCloud2)
  */
-class DWBPublisher
-{
-public:
-  explicit DWBPublisher(
-    const nav2::LifecycleNode::WeakPtr & parent,
-    const std::string & plugin_name);
+class DWBPublisher {
+   public:
+    explicit DWBPublisher(const nav2::LifecycleNode::WeakPtr& parent, const std::string& plugin_name);
 
-  nav2::CallbackReturn on_configure();
-  nav2::CallbackReturn on_activate();
-  nav2::CallbackReturn on_deactivate();
-  nav2::CallbackReturn on_cleanup();
+    nav2::CallbackReturn on_configure();
+    nav2::CallbackReturn on_activate();
+    nav2::CallbackReturn on_deactivate();
+    nav2::CallbackReturn on_cleanup();
 
-  /**
-   * @brief Does the publisher require that the LocalPlanEvaluation be saved
-   * @return True if the Evaluation is needed to publish either directly or as trajectories
-   */
-  bool shouldRecordEvaluation() {return publish_evaluation_ || publish_trajectories_;}
+    /**
+     * @brief Does the publisher require that the LocalPlanEvaluation be saved
+     * @return True if the Evaluation is needed to publish either directly or as trajectories
+     */
+    bool shouldRecordEvaluation() { return publish_evaluation_ || publish_trajectories_; }
 
-  /**
-   * @brief If the pointer is not null, publish the evaluation and trajectories as needed
-   */
-  void publishEvaluation(std::shared_ptr<dwb_msgs::msg::LocalPlanEvaluation> results);
-  void publishLocalPlan(
-    const std_msgs::msg::Header & header,
-    const dwb_msgs::msg::Trajectory2D & traj);
-  void publishCostGrid(
-    const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros,
-    const std::vector<TrajectoryCritic::Ptr> critics);
-  void publishGlobalPlan(const nav_msgs::msg::Path plan);
-  void publishTransformedPlan(const nav_msgs::msg::Path plan);
-  void publishLocalPlan(const nav_msgs::msg::Path plan);
+    /**
+     * @brief If the pointer is not null, publish the evaluation and trajectories as needed
+     */
+    void publishEvaluation(std::shared_ptr<dwb_msgs::msg::LocalPlanEvaluation> results);
+    void publishLocalPlan(const std_msgs::msg::Header& header, const dwb_msgs::msg::Trajectory2D& traj);
+    void publishCostGrid(const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros, const std::vector<TrajectoryCritic::Ptr> critics);
+    void publishGlobalPlan(const nav_msgs::msg::Path plan);
+    void publishTransformedPlan(const nav_msgs::msg::Path plan);
+    void publishLocalPlan(const nav_msgs::msg::Path plan);
 
-protected:
-  void publishTrajectories(const dwb_msgs::msg::LocalPlanEvaluation & results);
+   protected:
+    void publishTrajectories(const dwb_msgs::msg::LocalPlanEvaluation& results);
 
-  // Helper function for publishing other plans
-  void publishGenericPlan(
-    const nav_msgs::msg::Path plan,
-    rclcpp::Publisher<nav_msgs::msg::Path> & pub, bool flag);
+    // Helper function for publishing other plans
+    void publishGenericPlan(const nav_msgs::msg::Path plan, rclcpp::Publisher<nav_msgs::msg::Path>& pub, bool flag);
 
-  // Flags for turning on/off publishing specific components
-  bool publish_evaluation_;
-  bool publish_global_plan_;
-  bool publish_transformed_;
-  bool publish_local_plan_;
-  bool publish_trajectories_;
-  bool publish_cost_grid_pc_;
-  bool publish_input_params_;
+    // Flags for turning on/off publishing specific components
+    bool publish_evaluation_;
+    bool publish_global_plan_;
+    bool publish_transformed_;
+    bool publish_local_plan_;
+    bool publish_trajectories_;
+    bool publish_cost_grid_pc_;
+    bool publish_input_params_;
 
-  // Marker Lifetime
-  builtin_interfaces::msg::Duration marker_lifetime_;
+    // Marker Lifetime
+    builtin_interfaces::msg::Duration marker_lifetime_;
 
-  // Publisher Objects
-  std::shared_ptr<Publisher<dwb_msgs::msg::LocalPlanEvaluation>> eval_pub_;
-  std::shared_ptr<Publisher<nav_msgs::msg::Path>> global_pub_;
-  std::shared_ptr<Publisher<nav_msgs::msg::Path>> transformed_pub_;
-  std::shared_ptr<Publisher<nav_msgs::msg::Path>> local_pub_;
-  std::shared_ptr<Publisher<visualization_msgs::msg::MarkerArray>> marker_pub_;
-  std::shared_ptr<Publisher<sensor_msgs::msg::PointCloud2>> cost_grid_pc_pub_;
+    // Publisher Objects
+    std::shared_ptr<Publisher<dwb_msgs::msg::LocalPlanEvaluation>> eval_pub_;
+    std::shared_ptr<Publisher<nav_msgs::msg::Path>> global_pub_;
+    std::shared_ptr<Publisher<nav_msgs::msg::Path>> transformed_pub_;
+    std::shared_ptr<Publisher<nav_msgs::msg::Path>> local_pub_;
+    std::shared_ptr<Publisher<visualization_msgs::msg::MarkerArray>> marker_pub_;
+    std::shared_ptr<Publisher<sensor_msgs::msg::PointCloud2>> cost_grid_pc_pub_;
 
-  nav2::LifecycleNode::WeakPtr node_;
-  rclcpp::Clock::SharedPtr clock_;
-  std::string plugin_name_;
+    nav2::LifecycleNode::WeakPtr node_;
+    rclcpp::Clock::SharedPtr clock_;
+    std::string plugin_name_;
 };
 
-}  // namespace dwb_core
+} // namespace dwb_core
 
-#endif  // DWB_CORE__PUBLISHER_HPP_
+#endif // DWB_CORE__PUBLISHER_HPP_

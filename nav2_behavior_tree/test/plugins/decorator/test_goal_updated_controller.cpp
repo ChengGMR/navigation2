@@ -13,95 +13,88 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "nav2_behavior_tree/plugins/decorator/goal_updated_controller.hpp"
+#include "utils/test_behavior_tree_fixture.hpp"
+
 #include <gtest/gtest.h>
+
 #include <chrono>
 #include <memory>
 #include <set>
 
-#include "utils/test_behavior_tree_fixture.hpp"
-#include "nav2_behavior_tree/plugins/decorator/goal_updated_controller.hpp"
+using namespace std::chrono; // NOLINT
+using namespace std::chrono_literals; // NOLINT
 
-using namespace std::chrono;  // NOLINT
-using namespace std::chrono_literals;  // NOLINT
+class GoalUpdatedControllerTestFixture : public nav2_behavior_tree::BehaviorTreeTestFixture {
+   public:
+    void SetUp() {
+        // Setting fake goals on blackboard
+        geometry_msgs::msg::PoseStamped goal1;
+        goal1.header.stamp = node_->now();
+        nav_msgs::msg::Goals poses1;
+        poses1.goals.push_back(goal1);
+        config_->blackboard->set("goal", goal1);
+        config_->blackboard->set("goals", poses1);
+        bt_node_ = std::make_shared<nav2_behavior_tree::GoalUpdatedController>("goal_updated_controller", *config_);
+        dummy_node_ = std::make_shared<nav2_behavior_tree::DummyNode>();
+        bt_node_->setChild(dummy_node_.get());
+    }
 
-class GoalUpdatedControllerTestFixture : public nav2_behavior_tree::BehaviorTreeTestFixture
-{
-public:
-  void SetUp()
-  {
-    // Setting fake goals on blackboard
-    geometry_msgs::msg::PoseStamped goal1;
-    goal1.header.stamp = node_->now();
-    nav_msgs::msg::Goals poses1;
-    poses1.goals.push_back(goal1);
-    config_->blackboard->set("goal", goal1);
-    config_->blackboard->set("goals", poses1);
-    bt_node_ = std::make_shared<nav2_behavior_tree::GoalUpdatedController>(
-      "goal_updated_controller", *config_);
-    dummy_node_ = std::make_shared<nav2_behavior_tree::DummyNode>();
-    bt_node_->setChild(dummy_node_.get());
-  }
+    void TearDown() {
+        dummy_node_.reset();
+        bt_node_.reset();
+    }
 
-  void TearDown()
-  {
-    dummy_node_.reset();
-    bt_node_.reset();
-  }
-
-protected:
-  static std::shared_ptr<nav2_behavior_tree::GoalUpdatedController> bt_node_;
-  static std::shared_ptr<nav2_behavior_tree::DummyNode> dummy_node_;
+   protected:
+    static std::shared_ptr<nav2_behavior_tree::GoalUpdatedController> bt_node_;
+    static std::shared_ptr<nav2_behavior_tree::DummyNode> dummy_node_;
 };
 
-std::shared_ptr<nav2_behavior_tree::GoalUpdatedController>
-GoalUpdatedControllerTestFixture::bt_node_ = nullptr;
-std::shared_ptr<nav2_behavior_tree::DummyNode>
-GoalUpdatedControllerTestFixture::dummy_node_ = nullptr;
+std::shared_ptr<nav2_behavior_tree::GoalUpdatedController> GoalUpdatedControllerTestFixture::bt_node_ = nullptr;
+std::shared_ptr<nav2_behavior_tree::DummyNode> GoalUpdatedControllerTestFixture::dummy_node_ = nullptr;
 
-TEST_F(GoalUpdatedControllerTestFixture, test_behavior)
-{
-  // Creating updated fake-goals
-  geometry_msgs::msg::PoseStamped goal2;
-  goal2.header.stamp = node_->now();
-  nav_msgs::msg::Goals poses2;
-  poses2.goals.push_back(goal2);
+TEST_F(GoalUpdatedControllerTestFixture, test_behavior) {
+    // Creating updated fake-goals
+    geometry_msgs::msg::PoseStamped goal2;
+    goal2.header.stamp = node_->now();
+    nav_msgs::msg::Goals poses2;
+    poses2.goals.push_back(goal2);
 
-  // starting in idle
-  EXPECT_EQ(bt_node_->status(), BT::NodeStatus::IDLE);
+    // starting in idle
+    EXPECT_EQ(bt_node_->status(), BT::NodeStatus::IDLE);
 
-  // tick for the first time, dummy node should be ticked
-  dummy_node_->changeStatus(BT::NodeStatus::SUCCESS);
-  EXPECT_EQ(bt_node_->executeTick(), BT::NodeStatus::SUCCESS);
-  EXPECT_EQ(dummy_node_->status(), BT::NodeStatus::IDLE);
+    // tick for the first time, dummy node should be ticked
+    dummy_node_->changeStatus(BT::NodeStatus::SUCCESS);
+    EXPECT_EQ(bt_node_->executeTick(), BT::NodeStatus::SUCCESS);
+    EXPECT_EQ(dummy_node_->status(), BT::NodeStatus::IDLE);
 
-  // tick again with updated goal, dummy node should be ticked
-  config_->blackboard->set("goal", goal2);
-  dummy_node_->changeStatus(BT::NodeStatus::SUCCESS);
-  EXPECT_EQ(bt_node_->executeTick(), BT::NodeStatus::SUCCESS);
-  EXPECT_EQ(dummy_node_->status(), BT::NodeStatus::IDLE);
+    // tick again with updated goal, dummy node should be ticked
+    config_->blackboard->set("goal", goal2);
+    dummy_node_->changeStatus(BT::NodeStatus::SUCCESS);
+    EXPECT_EQ(bt_node_->executeTick(), BT::NodeStatus::SUCCESS);
+    EXPECT_EQ(dummy_node_->status(), BT::NodeStatus::IDLE);
 
-  // tick again without update, dummy node should not be ticked
-  EXPECT_EQ(bt_node_->executeTick(), BT::NodeStatus::RUNNING);
-  EXPECT_EQ(dummy_node_->status(), BT::NodeStatus::IDLE);
+    // tick again without update, dummy node should not be ticked
+    EXPECT_EQ(bt_node_->executeTick(), BT::NodeStatus::RUNNING);
+    EXPECT_EQ(dummy_node_->status(), BT::NodeStatus::IDLE);
 
-  // tick again with updated goals, dummy node should be ticked
-  config_->blackboard->set("goals", poses2);
-  dummy_node_->changeStatus(BT::NodeStatus::SUCCESS);
-  EXPECT_EQ(bt_node_->executeTick(), BT::NodeStatus::SUCCESS);
-  EXPECT_EQ(dummy_node_->status(), BT::NodeStatus::IDLE);
+    // tick again with updated goals, dummy node should be ticked
+    config_->blackboard->set("goals", poses2);
+    dummy_node_->changeStatus(BT::NodeStatus::SUCCESS);
+    EXPECT_EQ(bt_node_->executeTick(), BT::NodeStatus::SUCCESS);
+    EXPECT_EQ(dummy_node_->status(), BT::NodeStatus::IDLE);
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  // initialize ROS
-  rclcpp::init(argc, argv);
+    // initialize ROS
+    rclcpp::init(argc, argv);
 
-  bool all_successful = RUN_ALL_TESTS();
+    bool all_successful = RUN_ALL_TESTS();
 
-  // shutdown ROS
-  rclcpp::shutdown();
+    // shutdown ROS
+    rclcpp::shutdown();
 
-  return all_successful;
+    return all_successful;
 }

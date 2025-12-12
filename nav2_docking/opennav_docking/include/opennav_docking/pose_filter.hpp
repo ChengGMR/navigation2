@@ -17,37 +17,35 @@
 
 #include "geometry_msgs/msg/pose_stamped.hpp"
 
-namespace opennav_docking
-{
+namespace opennav_docking {
 
 /**
  * @class opennav_docking::PoseFilter
  * @brief Filter for a sequence of pose measurements.
  */
-class PoseFilter
-{
-public:
-  /**
-   * @brief Create a pose filter instance.
-   * @param coef Filtering coefficient. Valid range is 0-1, where 0 means take the new measurement
-   * @param timeout If time between measurements exceeds this value, take the new measurement.
-   */
-  PoseFilter(double coef, double timeout);
+class PoseFilter {
+   public:
+    /**
+     * @brief Create a pose filter instance.
+     * @param coef Filtering coefficient. Valid range is 0-1, where 0 means take the new measurement
+     * @param timeout If time between measurements exceeds this value, take the new measurement.
+     */
+    PoseFilter(double coef, double timeout);
 
-  /**
-   * @brief Update the filter.
-   * @param measurement The new pose measurement.
-   * @returns Filtered measurement
-   */
-  geometry_msgs::msg::PoseStamped update(const geometry_msgs::msg::PoseStamped & measurement);
+    /**
+     * @brief Update the filter.
+     * @param measurement The new pose measurement.
+     * @returns Filtered measurement
+     */
+    geometry_msgs::msg::PoseStamped update(const geometry_msgs::msg::PoseStamped& measurement);
 
-protected:
-  void filter(double & filt, double meas);
+   protected:
+    void filter(double& filt, double meas);
 
-  double coef_, timeout_;
-  geometry_msgs::msg::PoseStamped pose_;
+    double coef_, timeout_;
+    geometry_msgs::msg::PoseStamped pose_;
 };
 
-}  // namespace opennav_docking
+} // namespace opennav_docking
 
-#endif  // OPENNAV_DOCKING__POSE_FILTER_HPP_
+#endif // OPENNAV_DOCKING__POSE_FILTER_HPP_

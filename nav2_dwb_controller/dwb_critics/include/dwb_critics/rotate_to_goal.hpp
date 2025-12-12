@@ -34,12 +34,12 @@
 #ifndef DWB_CRITICS__ROTATE_TO_GOAL_HPP_
 #define DWB_CRITICS__ROTATE_TO_GOAL_HPP_
 
-#include <string>
-#include <vector>
 #include "dwb_core/trajectory_critic.hpp"
 
-namespace dwb_critics
-{
+#include <string>
+#include <vector>
+
+namespace dwb_critics {
 
 /**
  * @class RotateToGoalCritic
@@ -67,35 +67,33 @@ namespace dwb_critics
  *    time shorter than sim_time, the critic will be less concerned about overshooting the goal yaw and thus will
  *    continue to turn faster for longer.
  */
-class RotateToGoalCritic : public dwb_core::TrajectoryCritic
-{
-public:
-  void onInit() override;
-  void reset() override;
-  bool prepare(
-    const geometry_msgs::msg::Pose & pose, const nav_2d_msgs::msg::Twist2D & vel,
-    const geometry_msgs::msg::Pose & goal, const nav_msgs::msg::Path & global_plan) override;
-  double scoreTrajectory(const dwb_msgs::msg::Trajectory2D & traj) override;
-  /**
-   * @brief Assuming that this is an actual rotation when near the goal, score the trajectory.
-   *
-   * This (easily overridden) method assumes that the critic is in the third phase (as described above)
-   * and returns a numeric score for the trajectory relative to the goal yaw.
-   * @param traj Trajectory to score
-   * @return numeric score
-   */
-  virtual double scoreRotation(const dwb_msgs::msg::Trajectory2D & traj);
+class RotateToGoalCritic : public dwb_core::TrajectoryCritic {
+   public:
+    void onInit() override;
+    void reset() override;
+    bool prepare(const geometry_msgs::msg::Pose& pose, const nav_2d_msgs::msg::Twist2D& vel, const geometry_msgs::msg::Pose& goal,
+                 const nav_msgs::msg::Path& global_plan) override;
+    double scoreTrajectory(const dwb_msgs::msg::Trajectory2D& traj) override;
+    /**
+     * @brief Assuming that this is an actual rotation when near the goal, score the trajectory.
+     *
+     * This (easily overridden) method assumes that the critic is in the third phase (as described above)
+     * and returns a numeric score for the trajectory relative to the goal yaw.
+     * @param traj Trajectory to score
+     * @return numeric score
+     */
+    virtual double scoreRotation(const dwb_msgs::msg::Trajectory2D& traj);
 
-private:
-  bool in_window_;
-  bool rotating_;
-  double goal_yaw_;
-  double xy_goal_tolerance_;
-  double xy_goal_tolerance_sq_;  ///< Cached squared tolerance
-  double current_xy_speed_sq_, stopped_xy_velocity_sq_;
-  double slowing_factor_;
-  double lookahead_time_;
+   private:
+    bool in_window_;
+    bool rotating_;
+    double goal_yaw_;
+    double xy_goal_tolerance_;
+    double xy_goal_tolerance_sq_; ///< Cached squared tolerance
+    double current_xy_speed_sq_, stopped_xy_velocity_sq_;
+    double slowing_factor_;
+    double lookahead_time_;
 };
 
-}  // namespace dwb_critics
-#endif  // DWB_CRITICS__ROTATE_TO_GOAL_HPP_
+} // namespace dwb_critics
+#endif // DWB_CRITICS__ROTATE_TO_GOAL_HPP_

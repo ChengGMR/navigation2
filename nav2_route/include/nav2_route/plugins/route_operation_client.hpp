@@ -15,22 +15,22 @@
 #ifndef NAV2_ROUTE__PLUGINS__ROUTE_OPERATION_CLIENT_HPP_
 #define NAV2_ROUTE__PLUGINS__ROUTE_OPERATION_CLIENT_HPP_
 
-#include <memory>
-#include <chrono>
-#include <string>
-
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
-#include "nav2_route/interfaces/route_operation.hpp"
 #include "nav2_core/route_exceptions.hpp"
 #include "nav2_ros_common/node_utils.hpp"
 #include "nav2_ros_common/service_client.hpp"
+#include "nav2_route/interfaces/route_operation.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
+
 #include "std_srvs/srv/trigger.hpp"
 
-namespace nav2_route
-{
+#include <chrono>
+#include <memory>
+#include <string>
 
-using namespace std::chrono_literals;  // NOLINT
+namespace nav2_route {
+
+using namespace std::chrono_literals; // NOLINT
 
 /**
  * @class RouteOperationClient
@@ -58,148 +58,125 @@ using namespace std::chrono_literals;  // NOLINT
  * configureEvent, populateRequest, processResponse appropriately. The std_srvs/Trigger
  * example TriggerEvent can be thought of as a useful entry level demo and useful working primitive
  */
-template<typename SrvT>
-class RouteOperationClient : public RouteOperation
-{
-public:
-  /**
-   * @brief Constructor
-   */
-  RouteOperationClient() = default;
+template <typename SrvT>
+class RouteOperationClient : public RouteOperation {
+   public:
+    /**
+     * @brief Constructor
+     */
+    RouteOperationClient() = default;
 
-  /**
-   * @brief destructor
-   */
-  virtual ~RouteOperationClient() = default;
+    /**
+     * @brief destructor
+     */
+    virtual ~RouteOperationClient() = default;
 
-  /**
-   * @brief Configure client with any necessary parameters, etc.
-   * May change or reset `main_srv_name_` variable to control
-   * main service name and existence.
-   */
-  virtual void configureEvent(
-    const nav2::LifecycleNode::SharedPtr /*node*/,
-    const std::string & /*name*/) {}
+    /**
+     * @brief Configure client with any necessary parameters, etc.
+     * May change or reset `main_srv_name_` variable to control
+     * main service name and existence.
+     */
+    virtual void configureEvent(const nav2::LifecycleNode::SharedPtr /*node*/, const std::string& /*name*/) {}
 
-  /**
-   * @brief Populate request with details for service, if necessary
-   */
-  virtual void populateRequest(
-    std::shared_ptr<typename SrvT::Request>/*request*/, const Metadata * /*mdata*/) {}
+    /**
+     * @brief Populate request with details for service, if necessary
+     */
+    virtual void populateRequest(std::shared_ptr<typename SrvT::Request> /*request*/, const Metadata* /*mdata*/) {}
 
-  /**
-   * @brief Process response from service to populate a result, if necessary
-   */
-  virtual OperationResult processResponse(
-    std::shared_ptr<typename SrvT::Response>/*response*/) {return OperationResult();}
+    /**
+     * @brief Process response from service to populate a result, if necessary
+     */
+    virtual OperationResult processResponse(std::shared_ptr<typename SrvT::Response> /*response*/) { return OperationResult(); }
 
-protected:
-  /**
-   * @brief Configure
-   */
-  void configure(
-    const nav2::LifecycleNode::SharedPtr node,
-    std::shared_ptr<nav2_costmap_2d::CostmapSubscriber>,
-    const std::string & name) final
-  {
-    RCLCPP_INFO(node->get_logger(), "Configuring route operation client: %s.", name.c_str());
-    name_ = name;
-    logger_ = node->get_logger();
-    node_ = node;
+   protected:
+    /**
+     * @brief Configure
+     */
+    void configure(const nav2::LifecycleNode::SharedPtr node, std::shared_ptr<nav2_costmap_2d::CostmapSubscriber>, const std::string& name) final {
+        RCLCPP_INFO(node->get_logger(), "Configuring route operation client: %s.", name.c_str());
+        name_ = name;
+        logger_ = node->get_logger();
+        node_ = node;
 
-    nav2::declare_parameter_if_not_declared(
-      node, getName() + ".service_name", rclcpp::ParameterValue(""));
-    main_srv_name_ = node->get_parameter(getName() + ".service_name").as_string();
+        nav2::declare_parameter_if_not_declared(node, getName() + ".service_name", rclcpp::ParameterValue(""));
+        main_srv_name_ = node->get_parameter(getName() + ".service_name").as_string();
 
-    configureEvent(node, name);
+        configureEvent(node, name);
 
-    // There exists a single central service to use, create client.
-    // If this is set to empty string after configuration, then the individual nodes will
-    // indicate the endpoint for the particular service call.
-    if (!main_srv_name_.empty()) {
-      main_client_ =
-        node->create_client<SrvT>(main_srv_name_, true);
+        // There exists a single central service to use, create client.
+        // If this is set to empty string after configuration, then the individual nodes will
+        // indicate the endpoint for the particular service call.
+        if (!main_srv_name_.empty()) {
+            main_client_ = node->create_client<SrvT>(main_srv_name_, true);
+        }
     }
-  }
 
-  /**
-   * @brief The main operation to call a service of arbitrary type and arbitrary name
-   * @param mdata Metadata corresponding to the operation in the navigation graph.
-   * If metadata is invalid or irrelevant, a nullptr is given
-   * @param node_achieved Node achieved, for additional context
-   * @param edge_entered Edge entered by node achievement, for additional context
-   * @param edge_exited Edge exited by node achievement, for additional context
-   * @param route Current route being tracked in full, for additional context
-   * @param curr_pose Current robot pose in the route frame, for additional context
-   * @return Whether to perform rerouting and report blocked edges in that case
-   */
-  OperationResult perform(
-    NodePtr node_achieved,
-    EdgePtr /*edge_entered*/,
-    EdgePtr /*edge_exited*/,
-    const Route & /*route*/,
-    const geometry_msgs::msg::PoseStamped & /*curr_pose*/,
-    const Metadata * mdata) final
-  {
-    auto req = std::make_shared<typename SrvT::Request>();
-    std::shared_ptr<typename SrvT::Response> response;
-    populateRequest(req, mdata);
+    /**
+     * @brief The main operation to call a service of arbitrary type and arbitrary name
+     * @param mdata Metadata corresponding to the operation in the navigation graph.
+     * If metadata is invalid or irrelevant, a nullptr is given
+     * @param node_achieved Node achieved, for additional context
+     * @param edge_entered Edge entered by node achievement, for additional context
+     * @param edge_exited Edge exited by node achievement, for additional context
+     * @param route Current route being tracked in full, for additional context
+     * @param curr_pose Current robot pose in the route frame, for additional context
+     * @return Whether to perform rerouting and report blocked edges in that case
+     */
+    OperationResult perform(NodePtr node_achieved, EdgePtr /*edge_entered*/, EdgePtr /*edge_exited*/, const Route& /*route*/,
+                            const geometry_msgs::msg::PoseStamped& /*curr_pose*/, const Metadata* mdata) final {
+        auto req = std::make_shared<typename SrvT::Request>();
+        std::shared_ptr<typename SrvT::Response> response;
+        populateRequest(req, mdata);
 
-    std::string srv_name;
-    srv_name = mdata->getValue<std::string>("service_name", srv_name);
-    if (srv_name.empty() && !main_client_) {
-      throw nav2_core::OperationFailed(
+        std::string srv_name;
+        srv_name = mdata->getValue<std::string>("service_name", srv_name);
+        if (srv_name.empty() && !main_client_) {
+            throw nav2_core::OperationFailed(
               "Route operation service (" + getName() + ") needs 'server_name' "
               "set in the param file or in the operation's metadata!");
-    }
-
-    try {
-      if (srv_name.empty()) {
-        srv_name = main_srv_name_;
-        response = main_client_->invoke(req, std::chrono::nanoseconds(500ms));
-      } else {
-        auto node = node_.lock();
-        if (!node) {
-          throw nav2_core::OperationFailed(
-                  "Route operation service (" + getName() + ") failed to lock node.");
         }
-        auto client =
-          node->template create_client<SrvT>(srv_name, true);
-        response = client->invoke(req, std::chrono::nanoseconds(500ms));
-      }
-    } catch (const std::exception & e) {
-      throw nav2_core::OperationFailed(
-              "Route operation service (" + getName() + ") failed to call service: " +
-              srv_name + " at Node " + std::to_string(node_achieved->nodeid));
+
+        try {
+            if (srv_name.empty()) {
+                srv_name = main_srv_name_;
+                response = main_client_->invoke(req, std::chrono::nanoseconds(500ms));
+            } else {
+                auto node = node_.lock();
+                if (!node) {
+                    throw nav2_core::OperationFailed("Route operation service (" + getName() + ") failed to lock node.");
+                }
+                auto client = node->template create_client<SrvT>(srv_name, true);
+                response = client->invoke(req, std::chrono::nanoseconds(500ms));
+            }
+        } catch (const std::exception& e) {
+            throw nav2_core::OperationFailed("Route operation service (" + getName() + ") failed to call service: " + srv_name + " at Node "
+                                             + std::to_string(node_achieved->nodeid));
+        }
+
+        RCLCPP_INFO(logger_, "%s: Processed operation at Node %i with service %s.", name_.c_str(), node_achieved->nodeid, srv_name.c_str());
+        return processResponse(response);
     }
 
-    RCLCPP_INFO(
-      logger_,
-      "%s: Processed operation at Node %i with service %s.",
-      name_.c_str(), node_achieved->nodeid, srv_name.c_str());
-    return processResponse(response);
-  }
+    /**
+     * @brief Get name of the plugin for parameter scope mapping
+     * @return Name
+     */
+    std::string getName() override { return name_; }
 
-  /**
-   * @brief Get name of the plugin for parameter scope mapping
-   * @return Name
-   */
-  std::string getName() override {return name_;}
+    /**
+     * @brief Indication that the adjust speed limit route operation is performed
+     * on all state changes
+     * @return The type of operation (on graph call, on status changes, or constantly)
+     */
+    RouteOperationType processType() final { return RouteOperationType::ON_GRAPH; }
 
-  /**
-   * @brief Indication that the adjust speed limit route operation is performed
-   * on all state changes
-   * @return The type of operation (on graph call, on status changes, or constantly)
-   */
-  RouteOperationType processType() final {return RouteOperationType::ON_GRAPH;}
-
-  std::string name_, main_srv_name_;
-  std::atomic_bool reroute_;
-  rclcpp::Logger logger_{rclcpp::get_logger("RouteOperationClient")};
-  typename nav2::ServiceClient<SrvT>::SharedPtr main_client_;
-  nav2::LifecycleNode::WeakPtr node_;
+    std::string name_, main_srv_name_;
+    std::atomic_bool reroute_;
+    rclcpp::Logger logger_{rclcpp::get_logger("RouteOperationClient")};
+    typename nav2::ServiceClient<SrvT>::SharedPtr main_client_;
+    nav2::LifecycleNode::WeakPtr node_;
 };
 
-}  // namespace nav2_route
+} // namespace nav2_route
 
-#endif  // NAV2_ROUTE__PLUGINS__ROUTE_OPERATION_CLIENT_HPP_
+#endif // NAV2_ROUTE__PLUGINS__ROUTE_OPERATION_CLIENT_HPP_

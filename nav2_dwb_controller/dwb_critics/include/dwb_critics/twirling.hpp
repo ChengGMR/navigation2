@@ -37,8 +37,7 @@
 
 #include "dwb_core/trajectory_critic.hpp"
 
-namespace dwb_critics
-{
+namespace dwb_critics {
 /**
  * @class TwirlingCritic
  * @brief Penalize trajectories with rotational velocities
@@ -48,12 +47,11 @@ namespace dwb_critics
  * sometimes a robot spins more than you'd like on its way to a goal. This class provides a way
  * to assign a penalty purely to rotational velocities.
  */
-class TwirlingCritic : public dwb_core::TrajectoryCritic
-{
-public:
-  void onInit() override;
-  double scoreTrajectory(const dwb_msgs::msg::Trajectory2D & traj) override;
+class TwirlingCritic : public dwb_core::TrajectoryCritic {
+   public:
+    void onInit() override;
+    double scoreTrajectory(const dwb_msgs::msg::Trajectory2D& traj) override;
 };
-}  // namespace dwb_critics
+} // namespace dwb_critics
 
-#endif  // DWB_CRITICS__TWIRLING_HPP_
+#endif // DWB_CRITICS__TWIRLING_HPP_

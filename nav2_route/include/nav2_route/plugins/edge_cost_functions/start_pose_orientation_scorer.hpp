@@ -15,22 +15,22 @@
 #ifndef NAV2_ROUTE__PLUGINS__EDGE_COST_FUNCTIONS__START_POSE_ORIENTATION_SCORER_HPP_
 #define NAV2_ROUTE__PLUGINS__EDGE_COST_FUNCTIONS__START_POSE_ORIENTATION_SCORER_HPP_
 
+#include "angles/angles.h"
+#include "nav2_core/route_exceptions.hpp"
+#include "nav2_costmap_2d/costmap_subscriber.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav2_ros_common/node_utils.hpp"
+#include "nav2_route/interfaces/edge_cost_function.hpp"
+#include "nav2_util/line_iterator.hpp"
+#include "nav2_util/robot_utils.hpp"
+
+#include "tf2/utils.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+
 #include <memory>
 #include <string>
 
-#include "nav2_ros_common/lifecycle_node.hpp"
-#include "nav2_core/route_exceptions.hpp"
-#include "nav2_route/interfaces/edge_cost_function.hpp"
-#include "nav2_util/line_iterator.hpp"
-#include "nav2_ros_common/node_utils.hpp"
-#include "nav2_util/robot_utils.hpp"
-#include "nav2_costmap_2d/costmap_subscriber.hpp"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-#include "tf2/utils.hpp"
-#include "angles/angles.h"
-
-namespace nav2_route
-{
+namespace nav2_route {
 
 /**
  * @class StartPoseOrientationScorer
@@ -40,54 +40,48 @@ namespace nav2_route
  * the use_orientation_threshold flag, which rejects the edge it is greater than some
  * tolerance
  */
-class StartPoseOrientationScorer : public EdgeCostFunction
-{
-public:
-  /**
-   * @brief Constructor
-   */
-  StartPoseOrientationScorer() = default;
+class StartPoseOrientationScorer : public EdgeCostFunction {
+   public:
+    /**
+     * @brief Constructor
+     */
+    StartPoseOrientationScorer() = default;
 
-  /**
-   * @brief destructor
-   */
-  virtual ~StartPoseOrientationScorer() = default;
+    /**
+     * @brief destructor
+     */
+    virtual ~StartPoseOrientationScorer() = default;
 
-  /**
-   * @brief Configure
-   */
-  void configure(
-    const nav2::LifecycleNode::SharedPtr node,
-    const std::shared_ptr<tf2_ros::Buffer> tf_buffer,
-    std::shared_ptr<nav2_costmap_2d::CostmapSubscriber> costmap_subscriber,
-    const std::string & name) override;
+    /**
+     * @brief Configure
+     */
+    void configure(const nav2::LifecycleNode::SharedPtr node, const std::shared_ptr<tf2_ros::Buffer> tf_buffer,
+                   std::shared_ptr<nav2_costmap_2d::CostmapSubscriber> costmap_subscriber, const std::string& name) override;
 
-  /**
-   * @brief Main scoring plugin API
-   * @param edge The edge pointer to score, which has access to the
-   * start/end nodes and their associated metadata and actions
-   * @param cost of the edge scored
-   * @return bool if this edge is open valid to traverse
-   */
-  bool score(
-    const EdgePtr edge, const RouteRequest & route_request,
-    const EdgeType & edge_type, float & cost) override;
+    /**
+     * @brief Main scoring plugin API
+     * @param edge The edge pointer to score, which has access to the
+     * start/end nodes and their associated metadata and actions
+     * @param cost of the edge scored
+     * @return bool if this edge is open valid to traverse
+     */
+    bool score(const EdgePtr edge, const RouteRequest& route_request, const EdgeType& edge_type, float& cost) override;
 
-  /**
-   * @brief Get name of the plugin for parameter scope mapping
-   * @return Name
-   */
-  std::string getName() override;
+    /**
+     * @brief Get name of the plugin for parameter scope mapping
+     * @return Name
+     */
+    std::string getName() override;
 
-protected:
-  rclcpp::Logger logger_{rclcpp::get_logger("StartPoseOrientationScorer")};
-  std::string name_;
-  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-  double orientation_tolerance_;
-  float orientation_weight_;
-  bool use_orientation_threshold_;
+   protected:
+    rclcpp::Logger logger_{rclcpp::get_logger("StartPoseOrientationScorer")};
+    std::string name_;
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+    double orientation_tolerance_;
+    float orientation_weight_;
+    bool use_orientation_threshold_;
 };
 
-}  // namespace nav2_route
+} // namespace nav2_route
 
-#endif  // NAV2_ROUTE__PLUGINS__EDGE_COST_FUNCTIONS__START_POSE_ORIENTATION_SCORER_HPP_
+#endif // NAV2_ROUTE__PLUGINS__EDGE_COST_FUNCTIONS__START_POSE_ORIENTATION_SCORER_HPP_

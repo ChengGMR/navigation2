@@ -12,171 +12,143 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. Reserved.
 
+#include "nav2_costmap_2d/cost_values.hpp"
+#include "nav2_costmap_2d/costmap_2d.hpp"
+#include "nav2_costmap_2d/costmap_2d_ros.hpp"
+#include "nav2_costmap_2d/costmap_subscriber.hpp"
+
+#include "tf2_ros/transform_listener.hpp"
+
 #include <gtest/gtest.h>
 
 #include <future>
 
-#include "nav2_costmap_2d/costmap_2d.hpp"
-#include "nav2_costmap_2d/costmap_subscriber.hpp"
-#include "nav2_costmap_2d/cost_values.hpp"
-#include "tf2_ros/transform_listener.hpp"
-#include "nav2_costmap_2d/costmap_2d_ros.hpp"
+class CostmapRosLifecycleNode : public nav2::LifecycleNode {
+   public:
+    explicit CostmapRosLifecycleNode(const std::string& name) : LifecycleNode(name), name_(name) {}
 
-class CostmapRosLifecycleNode : public nav2::LifecycleNode
-{
-public:
-  explicit CostmapRosLifecycleNode(const std::string & name)
-  : LifecycleNode(name),
-    name_(name) {}
+    ~CostmapRosLifecycleNode() override = default;
 
-  ~CostmapRosLifecycleNode() override = default;
+    nav2::CallbackReturn on_configure(const rclcpp_lifecycle::State&) override {
+        costmap_ros_ = std::make_shared<nav2_costmap_2d::Costmap2DROS>(name_, std::string{get_namespace()}, get_parameter("use_sim_time").as_bool());
+        costmap_thread_ = std::make_unique<nav2::NodeThread>(costmap_ros_);
 
-  nav2::CallbackReturn
-  on_configure(const rclcpp_lifecycle::State &) override
-  {
-    costmap_ros_ = std::make_shared<nav2_costmap_2d::Costmap2DROS>(
-      name_,
-      std::string{get_namespace()},
-      get_parameter("use_sim_time").as_bool());
-    costmap_thread_ = std::make_unique<nav2::NodeThread>(costmap_ros_);
+        costmap_ros_->configure();
 
-    costmap_ros_->configure();
-
-    return nav2::CallbackReturn::SUCCESS;
-  }
-
-  nav2::CallbackReturn
-  on_activate(const rclcpp_lifecycle::State &) override
-  {
-    costmap_ros_->activate();
-    return nav2::CallbackReturn::SUCCESS;
-  }
-
-  nav2::CallbackReturn
-  on_deactivate(const rclcpp_lifecycle::State &) override
-  {
-    costmap_ros_->deactivate();
-    return nav2::CallbackReturn::SUCCESS;
-  }
-
-  nav2::CallbackReturn
-  on_cleanup(const rclcpp_lifecycle::State &) override
-  {
-    costmap_thread_.reset();
-    costmap_ros_->deactivate();
-    return nav2::CallbackReturn::SUCCESS;
-  }
-
-protected:
-  std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
-  std::unique_ptr<nav2::NodeThread> costmap_thread_;
-  const std::string name_;
-};
-
-class LayerSubscriber
-{
-public:
-  explicit LayerSubscriber(const nav2::LifecycleNode::WeakPtr & parent)
-  {
-    auto node = parent.lock();
-
-    callback_group_ = node->create_callback_group(
-      rclcpp::CallbackGroupType::MutuallyExclusive, false);
-
-    std::string topic_name = "/fake_costmap/static_layer_raw";
-    layer_sub_ = node->create_subscription<nav2_msgs::msg::Costmap>(
-      topic_name,
-      std::bind(&LayerSubscriber::layerCallback, this, std::placeholders::_1),
-      nav2::qos::LatchedSubscriptionQoS(3),
-      callback_group_);
-
-    executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-    executor_->add_callback_group(callback_group_, node->get_node_base_interface());
-    executor_thread_ = std::make_unique<nav2::NodeThread>(executor_);
-  }
-
-  ~LayerSubscriber()
-  {
-    executor_thread_.reset();
-  }
-
-  std::promise<nav2_msgs::msg::Costmap::SharedPtr> layer_promise_;
-
-protected:
-  void layerCallback(const nav2_msgs::msg::Costmap::SharedPtr layer)
-  {
-    if (!callback_hit_ && (layer->data.size() == 100)) {
-      layer_promise_.set_value(layer);
-      callback_hit_ = true;
+        return nav2::CallbackReturn::SUCCESS;
     }
-  }
 
-  nav2::Subscription<nav2_msgs::msg::Costmap>::SharedPtr layer_sub_;
-  rclcpp::CallbackGroup::SharedPtr callback_group_;
-  rclcpp::executors::SingleThreadedExecutor::SharedPtr executor_;
-  std::unique_ptr<nav2::NodeThread> executor_thread_;
-  bool callback_hit_{false};
+    nav2::CallbackReturn on_activate(const rclcpp_lifecycle::State&) override {
+        costmap_ros_->activate();
+        return nav2::CallbackReturn::SUCCESS;
+    }
+
+    nav2::CallbackReturn on_deactivate(const rclcpp_lifecycle::State&) override {
+        costmap_ros_->deactivate();
+        return nav2::CallbackReturn::SUCCESS;
+    }
+
+    nav2::CallbackReturn on_cleanup(const rclcpp_lifecycle::State&) override {
+        costmap_thread_.reset();
+        costmap_ros_->deactivate();
+        return nav2::CallbackReturn::SUCCESS;
+    }
+
+   protected:
+    std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
+    std::unique_ptr<nav2::NodeThread> costmap_thread_;
+    const std::string name_;
 };
 
-class CostmapRosTestFixture : public ::testing::Test
-{
-public:
-  CostmapRosTestFixture()
-  {
-    costmap_lifecycle_node_ = std::make_shared<CostmapRosLifecycleNode>("fake_costmap");
-    layer_subscriber_ = std::make_shared<LayerSubscriber>(
-      costmap_lifecycle_node_->shared_from_this());
-    costmap_lifecycle_node_->on_configure(costmap_lifecycle_node_->get_current_state());
-    costmap_lifecycle_node_->on_activate(costmap_lifecycle_node_->get_current_state());
-  }
+class LayerSubscriber {
+   public:
+    explicit LayerSubscriber(const nav2::LifecycleNode::WeakPtr& parent) {
+        auto node = parent.lock();
 
-  ~CostmapRosTestFixture() override
-  {
-    costmap_lifecycle_node_->on_deactivate(costmap_lifecycle_node_->get_current_state());
-    costmap_lifecycle_node_->on_cleanup(costmap_lifecycle_node_->get_current_state());
-  }
+        callback_group_ = node->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive, false);
 
-protected:
-  std::shared_ptr<CostmapRosLifecycleNode> costmap_lifecycle_node_;
-  std::shared_ptr<LayerSubscriber> layer_subscriber_;
+        std::string topic_name = "/fake_costmap/static_layer_raw";
+        layer_sub_ =
+            node->create_subscription<nav2_msgs::msg::Costmap>(topic_name, std::bind(&LayerSubscriber::layerCallback, this, std::placeholders::_1),
+                                                               nav2::qos::LatchedSubscriptionQoS(3), callback_group_);
+
+        executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+        executor_->add_callback_group(callback_group_, node->get_node_base_interface());
+        executor_thread_ = std::make_unique<nav2::NodeThread>(executor_);
+    }
+
+    ~LayerSubscriber() { executor_thread_.reset(); }
+
+    std::promise<nav2_msgs::msg::Costmap::SharedPtr> layer_promise_;
+
+   protected:
+    void layerCallback(const nav2_msgs::msg::Costmap::SharedPtr layer) {
+        if (!callback_hit_ && (layer->data.size() == 100)) {
+            layer_promise_.set_value(layer);
+            callback_hit_ = true;
+        }
+    }
+
+    nav2::Subscription<nav2_msgs::msg::Costmap>::SharedPtr layer_sub_;
+    rclcpp::CallbackGroup::SharedPtr callback_group_;
+    rclcpp::executors::SingleThreadedExecutor::SharedPtr executor_;
+    std::unique_ptr<nav2::NodeThread> executor_thread_;
+    bool callback_hit_{false};
 };
 
-TEST_F(CostmapRosTestFixture, costmap_pub_test)
-{
-  auto future = layer_subscriber_->layer_promise_.get_future();
-  auto status = future.wait_for(std::chrono::seconds(5));
-  ASSERT_TRUE(status == std::future_status::ready);
+class CostmapRosTestFixture : public ::testing::Test {
+   public:
+    CostmapRosTestFixture() {
+        costmap_lifecycle_node_ = std::make_shared<CostmapRosLifecycleNode>("fake_costmap");
+        layer_subscriber_ = std::make_shared<LayerSubscriber>(costmap_lifecycle_node_->shared_from_this());
+        costmap_lifecycle_node_->on_configure(costmap_lifecycle_node_->get_current_state());
+        costmap_lifecycle_node_->on_activate(costmap_lifecycle_node_->get_current_state());
+    }
 
-  auto costmap_raw = future.get();
+    ~CostmapRosTestFixture() override {
+        costmap_lifecycle_node_->on_deactivate(costmap_lifecycle_node_->get_current_state());
+        costmap_lifecycle_node_->on_cleanup(costmap_lifecycle_node_->get_current_state());
+    }
 
-  // Check first 20 cells of the 10by10 map
-  ASSERT_EQ(costmap_raw->data.size(), 100u);
-  unsigned int i = 0;
-  for (; i < 7; ++i) {
-    EXPECT_EQ(costmap_raw->data.at(i), nav2_costmap_2d::FREE_SPACE);
-  }
-  for (; i < 10; ++i) {
-    EXPECT_EQ(costmap_raw->data.at(i), nav2_costmap_2d::LETHAL_OBSTACLE);
-  }
-  for (; i < 17; ++i) {
-    EXPECT_EQ(costmap_raw->data.at(i), nav2_costmap_2d::FREE_SPACE);
-  }
-  for (; i < 20; ++i) {
-    EXPECT_EQ(costmap_raw->data.at(i), nav2_costmap_2d::LETHAL_OBSTACLE);
-  }
+   protected:
+    std::shared_ptr<CostmapRosLifecycleNode> costmap_lifecycle_node_;
+    std::shared_ptr<LayerSubscriber> layer_subscriber_;
+};
 
-  SUCCEED();
+TEST_F(CostmapRosTestFixture, costmap_pub_test) {
+    auto future = layer_subscriber_->layer_promise_.get_future();
+    auto status = future.wait_for(std::chrono::seconds(5));
+    ASSERT_TRUE(status == std::future_status::ready);
+
+    auto costmap_raw = future.get();
+
+    // Check first 20 cells of the 10by10 map
+    ASSERT_EQ(costmap_raw->data.size(), 100u);
+    unsigned int i = 0;
+    for (; i < 7; ++i) {
+        EXPECT_EQ(costmap_raw->data.at(i), nav2_costmap_2d::FREE_SPACE);
+    }
+    for (; i < 10; ++i) {
+        EXPECT_EQ(costmap_raw->data.at(i), nav2_costmap_2d::LETHAL_OBSTACLE);
+    }
+    for (; i < 17; ++i) {
+        EXPECT_EQ(costmap_raw->data.at(i), nav2_costmap_2d::FREE_SPACE);
+    }
+    for (; i < 20; ++i) {
+        EXPECT_EQ(costmap_raw->data.at(i), nav2_costmap_2d::LETHAL_OBSTACLE);
+    }
+
+    SUCCEED();
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  rclcpp::init(0, nullptr);
+    rclcpp::init(0, nullptr);
 
-  int result = RUN_ALL_TESTS();
+    int result = RUN_ALL_TESTS();
 
-  rclcpp::shutdown();
+    rclcpp::shutdown();
 
-  return result;
+    return result;
 }

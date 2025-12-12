@@ -16,33 +16,35 @@
 #ifndef NAV2_ROS_COMMON__NODE_UTILS_HPP_
 #define NAV2_ROS_COMMON__NODE_UTILS_HPP_
 
-#include <vector>
-#include <string>
-#include <chrono>
-#include <algorithm>
-#include <cctype>
-#include "rclcpp/version.h"
-#include "rclcpp/rclcpp.hpp"
 #include "rcl_interfaces/srv/list_parameters.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp/version.h"
+
 #include "pluginlib/exceptions.hpp"
 
+#include <algorithm>
+#include <cctype>
+#include <chrono>
+#include <string>
+#include <vector>
+
 #ifdef __APPLE__
-  #include <pthread.h>
-  #include <mach/mach.h>
-  #include <mach/thread_policy.h>
+    #include <pthread.h>
+
+    #include <mach/mach.h>
+    #include <mach/thread_policy.h>
 #else
-  #include <sched.h>
-  #include <errno.h>
+    #include <errno.h>
+    #include <sched.h>
 #endif
 
-using std::chrono::high_resolution_clock;
-using std::to_string;
-using std::string;
-using std::replace_if;
 using std::isalnum;
+using std::replace_if;
+using std::string;
+using std::to_string;
+using std::chrono::high_resolution_clock;
 
-namespace nav2
-{
+namespace nav2 {
 
 /// Replace invalid characters in a potential node name
 /**
@@ -54,16 +56,12 @@ namespace nav2
  * \param[in] potential_node_name Potential name but possibly with invalid characters.
  * \return A copy of the input string but with non-alphanumeric characters replaced with '_'
  */
-inline std::string sanitize_node_name(const std::string & potential_node_name)
-{
-  string node_name(potential_node_name);
-  // read this as `replace` characters in `node_name` `if` not alphanumeric.
-  // replace with '_'
-  replace_if(
-    begin(node_name), end(node_name),
-    [](auto c) {return !isalnum(c);},
-    '_');
-  return node_name;
+inline std::string sanitize_node_name(const std::string& potential_node_name) {
+    string node_name(potential_node_name);
+    // read this as `replace` characters in `node_name` `if` not alphanumeric.
+    // replace with '_'
+    replace_if(begin(node_name), end(node_name), [](auto c) { return !isalnum(c); }, '_');
+    return node_name;
 }
 
 /// Concatenate two namespaces to produce an absolute namespace
@@ -71,18 +69,17 @@ inline std::string sanitize_node_name(const std::string & potential_node_name)
  * \param[in] top_ns The namespace to place first
  * \param[in] sub_ns The namespace to place after top_ns
  * \return An absolute namespace starting with "/"
-*/
-inline std::string add_namespaces(const std::string & top_ns, const std::string & sub_ns = "")
-{
-  if (!top_ns.empty() && top_ns.back() == '/') {
-    if (top_ns.front() == '/') {
-      return top_ns + sub_ns;
-    } else {
-      return "/" + top_ns + sub_ns;
+ */
+inline std::string add_namespaces(const std::string& top_ns, const std::string& sub_ns = "") {
+    if (!top_ns.empty() && top_ns.back() == '/') {
+        if (top_ns.front() == '/') {
+            return top_ns + sub_ns;
+        } else {
+            return "/" + top_ns + sub_ns;
+        }
     }
-  }
 
-  return top_ns + "/" + sub_ns;
+    return top_ns + "/" + sub_ns;
 }
 
 /// Generates a pseudo random string of digits.
@@ -94,26 +91,19 @@ inline std::string add_namespaces(const std::string & top_ns, const std::string 
  * \param[in] len Length of the output string
  * \return A string containing random digits
  */
-inline std::string time_to_string(size_t len)
-{
-  string output(len, '0');  // prefill the string with zeros
-  auto timepoint = high_resolution_clock::now();
-  auto timecount = timepoint.time_since_epoch().count();
-  auto timestring = to_string(timecount);
-  if (timestring.length() >= len) {
-    // if `timestring` is shorter, put it at the end of `output`
-    output.replace(
-      0, len,
-      timestring,
-      timestring.length() - len, len);
-  } else {
-    // if `output` is shorter, just copy in the end of `timestring`
-    output.replace(
-      len - timestring.length(), timestring.length(),
-      timestring,
-      0, timestring.length());
-  }
-  return output;
+inline std::string time_to_string(size_t len) {
+    string output(len, '0'); // prefill the string with zeros
+    auto timepoint = high_resolution_clock::now();
+    auto timecount = timepoint.time_since_epoch().count();
+    auto timestring = to_string(timecount);
+    if (timestring.length() >= len) {
+        // if `timestring` is shorter, put it at the end of `output`
+        output.replace(0, len, timestring, timestring.length() - len, len);
+    } else {
+        // if `output` is shorter, just copy in the end of `timestring`
+        output.replace(len - timestring.length(), timestring.length(), timestring, 0, timestring.length());
+    }
+    return output;
 }
 
 /// Add some random characters to a node name to ensure it is unique in the system
@@ -127,9 +117,8 @@ inline std::string time_to_string(size_t len)
  * \param[in] prefix A string to help understand the purpose of the node.
  * \return A copy of the prefix + '_' + 8 random digits. eg. prefix_12345678
  */
-inline std::string generate_internal_node_name(const std::string & prefix = "")
-{
-  return sanitize_node_name(prefix) + "_" + time_to_string(8);
+inline std::string generate_internal_node_name(const std::string& prefix = "") {
+    return sanitize_node_name(prefix) + "_" + time_to_string(8);
 }
 
 /// Creates a node with a name as generated by generate_internal_node_name
@@ -142,14 +131,10 @@ inline std::string generate_internal_node_name(const std::string & prefix = "")
  * \param[in] prefix A string to help understand the purpose of the node.
  * \return A shared_ptr to the node.
  */
-inline rclcpp::Node::SharedPtr generate_internal_node(const std::string & prefix = "")
-{
-  auto options =
-    rclcpp::NodeOptions()
-    .start_parameter_services(false)
-    .start_parameter_event_publisher(false)
-    .arguments({"--ros-args", "-r", "__node:=" + generate_internal_node_name(prefix), "--"});
-  return rclcpp::Node::make_shared("_", options);
+inline rclcpp::Node::SharedPtr generate_internal_node(const std::string& prefix = "") {
+    auto options = rclcpp::NodeOptions().start_parameter_services(false).start_parameter_event_publisher(false).arguments(
+        {"--ros-args", "-r", "__node:=" + generate_internal_node_name(prefix), "--"});
+    return rclcpp::Node::make_shared("_", options);
 }
 
 using ParameterDescriptor = rcl_interfaces::msg::ParameterDescriptor;
@@ -163,16 +148,12 @@ using ParameterDescriptor = rcl_interfaces::msg::ParameterDescriptor;
  * \param[in] default_value Parameter value to initialize with
  * \param[in] parameter_descriptor Parameter descriptor (optional)
  */
-template<typename NodeT>
-inline void declare_parameter_if_not_declared(
-  NodeT node,
-  const std::string & parameter_name,
-  const rclcpp::ParameterValue & default_value,
-  const ParameterDescriptor & parameter_descriptor = ParameterDescriptor())
-{
-  if (!node->has_parameter(parameter_name)) {
-    node->declare_parameter(parameter_name, default_value, parameter_descriptor);
-  }
+template <typename NodeT>
+inline void declare_parameter_if_not_declared(NodeT node, const std::string& parameter_name, const rclcpp::ParameterValue& default_value,
+                                              const ParameterDescriptor& parameter_descriptor = ParameterDescriptor()) {
+    if (!node->has_parameter(parameter_name)) {
+        node->declare_parameter(parameter_name, default_value, parameter_descriptor);
+    }
 }
 
 /// Declares static ROS2 parameter with given type if it was not already declared
@@ -183,16 +164,12 @@ inline void declare_parameter_if_not_declared(
  * \param[in] param_type The type of parameter
  * \param[in] parameter_descriptor Parameter descriptor (optional)
  */
-template<typename NodeT>
-inline void declare_parameter_if_not_declared(
-  NodeT node,
-  const std::string & parameter_name,
-  const rclcpp::ParameterType & param_type,
-  const ParameterDescriptor & parameter_descriptor = ParameterDescriptor())
-{
-  if (!node->has_parameter(parameter_name)) {
-    node->declare_parameter(parameter_name, param_type, parameter_descriptor);
-  }
+template <typename NodeT>
+inline void declare_parameter_if_not_declared(NodeT node, const std::string& parameter_name, const rclcpp::ParameterType& param_type,
+                                              const ParameterDescriptor& parameter_descriptor = ParameterDescriptor()) {
+    if (!node->has_parameter(parameter_name)) {
+        node->declare_parameter(parameter_name, param_type, parameter_descriptor);
+    }
 }
 
 /// Declares a parameter with the specified type if it was not already declared
@@ -206,22 +183,19 @@ inline void declare_parameter_if_not_declared(
  * \param[in] parameter_descriptor Parameter descriptor (optional)
  * \return The value of the parameter or an exception
  */
-template<typename ParameterT, typename NodeT>
-inline ParameterT declare_or_get_parameter(
-  NodeT node,
-  const std::string & parameter_name,
-  const ParameterDescriptor & parameter_descriptor = ParameterDescriptor())
-{
-  if (node->has_parameter(parameter_name)) {
-    return node->get_parameter(parameter_name).template get_value<ParameterT>();
-  }
-  auto param_type = rclcpp::ParameterValue{ParameterT{}}.get_type();
-  auto parameter = node->declare_parameter(parameter_name, param_type, parameter_descriptor);
-  if (parameter.get_type() == rclcpp::ParameterType::PARAMETER_NOT_SET) {
-    std::string description = "Parameter " + parameter_name + " not in overrides";
-    throw rclcpp::exceptions::InvalidParameterValueException(description.c_str());
-  }
-  return parameter.template get<ParameterT>();
+template <typename ParameterT, typename NodeT>
+inline ParameterT declare_or_get_parameter(NodeT node, const std::string& parameter_name,
+                                           const ParameterDescriptor& parameter_descriptor = ParameterDescriptor()) {
+    if (node->has_parameter(parameter_name)) {
+        return node->get_parameter(parameter_name).template get_value<ParameterT>();
+    }
+    auto param_type = rclcpp::ParameterValue{ParameterT{}}.get_type();
+    auto parameter = node->declare_parameter(parameter_name, param_type, parameter_descriptor);
+    if (parameter.get_type() == rclcpp::ParameterType::PARAMETER_NOT_SET) {
+        std::string description = "Parameter " + parameter_name + " not in overrides";
+        throw rclcpp::exceptions::InvalidParameterValueException(description.c_str());
+    }
+    return parameter.template get<ParameterT>();
 }
 
 using NodeParamInterfacePtr = rclcpp::node_interfaces::NodeParametersInterface::SharedPtr;
@@ -242,41 +216,32 @@ using NodeParamInterfacePtr = rclcpp::node_interfaces::NodeParametersInterface::
  * \param[in] parameter_descriptor Optional parameter descriptor
  * \return The value of the param from the override if existent, otherwise the default value
  */
-template<typename ParamType>
-inline ParamType declare_or_get_parameter(
-  const rclcpp::Logger & logger, NodeParamInterfacePtr param_interface,
-  const std::string & parameter_name, const ParamType & default_value,
-  bool warn_if_no_override = false, bool strict_param_loading = false,
-  const ParameterDescriptor & parameter_descriptor = ParameterDescriptor())
-{
-  if (param_interface->has_parameter(parameter_name)) {
-    rclcpp::Parameter param(parameter_name, default_value);
-    param_interface->get_parameter(parameter_name, param);
-    return param.get_value<ParamType>();
-  }
-
-  auto return_value = param_interface
-    ->declare_parameter(
-    parameter_name, rclcpp::ParameterValue{default_value},
-    parameter_descriptor)
-    .get<ParamType>();
-
-  const bool no_param_override = param_interface->get_parameter_overrides().find(parameter_name) ==
-    param_interface->get_parameter_overrides().end();
-  if (no_param_override) {
-    if (warn_if_no_override) {
-      RCLCPP_WARN_STREAM(
-        logger,
-        "Failed to get param " << parameter_name << " from overrides, using default value.");
+template <typename ParamType>
+inline ParamType declare_or_get_parameter(const rclcpp::Logger& logger, NodeParamInterfacePtr param_interface, const std::string& parameter_name,
+                                          const ParamType& default_value, bool warn_if_no_override = false, bool strict_param_loading = false,
+                                          const ParameterDescriptor& parameter_descriptor = ParameterDescriptor()) {
+    if (param_interface->has_parameter(parameter_name)) {
+        rclcpp::Parameter param(parameter_name, default_value);
+        param_interface->get_parameter(parameter_name, param);
+        return param.get_value<ParamType>();
     }
-    if (strict_param_loading) {
-      std::string description = "Parameter " + parameter_name +
-        " not in overrides and strict_param_loading is True";
-      throw rclcpp::exceptions::InvalidParameterValueException(description.c_str());
-    }
-  }
 
-  return return_value;
+    auto return_value =
+        param_interface->declare_parameter(parameter_name, rclcpp::ParameterValue{default_value}, parameter_descriptor).get<ParamType>();
+
+    const bool no_param_override =
+        param_interface->get_parameter_overrides().find(parameter_name) == param_interface->get_parameter_overrides().end();
+    if (no_param_override) {
+        if (warn_if_no_override) {
+            RCLCPP_WARN_STREAM(logger, "Failed to get param " << parameter_name << " from overrides, using default value.");
+        }
+        if (strict_param_loading) {
+            std::string description = "Parameter " + parameter_name + " not in overrides and strict_param_loading is True";
+            throw rclcpp::exceptions::InvalidParameterValueException(description.c_str());
+        }
+    }
+
+    return return_value;
 }
 
 /// If the parameter is already declared, returns its value,
@@ -294,21 +259,17 @@ inline ParamType declare_or_get_parameter(
  * \param[in] parameter_descriptor Optional parameter descriptor
  * \return The value of the param from the override if existent, otherwise the default value
  */
-template<typename ParamType, typename NodeT>
-inline ParamType declare_or_get_parameter(
-  NodeT node, const std::string & parameter_name,
-  const ParamType & default_value,
-  const ParameterDescriptor & parameter_descriptor = ParameterDescriptor())
-{
-  declare_parameter_if_not_declared(node, "warn_on_missing_params", rclcpp::ParameterValue(false));
-  bool warn_if_no_override{false};
-  node->get_parameter("warn_on_missing_params", warn_if_no_override);
-  declare_parameter_if_not_declared(node, "strict_param_loading", rclcpp::ParameterValue(false));
-  bool strict_param_loading{false};
-  node->get_parameter("strict_param_loading", strict_param_loading);
-  return declare_or_get_parameter(
-    node->get_logger(), node->get_node_parameters_interface(),
-    parameter_name, default_value, warn_if_no_override, strict_param_loading, parameter_descriptor);
+template <typename ParamType, typename NodeT>
+inline ParamType declare_or_get_parameter(NodeT node, const std::string& parameter_name, const ParamType& default_value,
+                                          const ParameterDescriptor& parameter_descriptor = ParameterDescriptor()) {
+    declare_parameter_if_not_declared(node, "warn_on_missing_params", rclcpp::ParameterValue(false));
+    bool warn_if_no_override{false};
+    node->get_parameter("warn_on_missing_params", warn_if_no_override);
+    declare_parameter_if_not_declared(node, "strict_param_loading", rclcpp::ParameterValue(false));
+    bool strict_param_loading{false};
+    node->get_parameter("strict_param_loading", strict_param_loading);
+    return declare_or_get_parameter(node->get_logger(), node->get_node_parameters_interface(), parameter_name, default_value, warn_if_no_override,
+                                    strict_param_loading, parameter_descriptor);
 }
 
 /// Gets the type of plugin for the selected node and its plugin
@@ -320,25 +281,21 @@ inline ParamType declare_or_get_parameter(
  * \param[in] plugin_name The name of plugin the type of which is being searched for
  * \return A string containing the type of plugin (the value of "<plugin_name>.plugin" parameter)
  */
-template<typename NodeT>
-inline std::string get_plugin_type_param(
-  NodeT node,
-  const std::string & plugin_name)
-{
-  declare_parameter_if_not_declared(node, plugin_name + ".plugin", rclcpp::PARAMETER_STRING);
-  std::string plugin_type;
-  try {
-    if (!node->get_parameter(plugin_name + ".plugin", plugin_type)) {
-      RCLCPP_FATAL(
-        node->get_logger(), "Can not get 'plugin' param value for %s", plugin_name.c_str());
-      throw pluginlib::PluginlibException("No 'plugin' param for param ns!");
+template <typename NodeT>
+inline std::string get_plugin_type_param(NodeT node, const std::string& plugin_name) {
+    declare_parameter_if_not_declared(node, plugin_name + ".plugin", rclcpp::PARAMETER_STRING);
+    std::string plugin_type;
+    try {
+        if (!node->get_parameter(plugin_name + ".plugin", plugin_type)) {
+            RCLCPP_FATAL(node->get_logger(), "Can not get 'plugin' param value for %s", plugin_name.c_str());
+            throw pluginlib::PluginlibException("No 'plugin' param for param ns!");
+        }
+    } catch (rclcpp::exceptions::ParameterUninitializedException& ex) {
+        RCLCPP_FATAL(node->get_logger(), "'plugin' param not defined for %s", plugin_name.c_str());
+        throw pluginlib::PluginlibException("No 'plugin' param for param ns!");
     }
-  } catch (rclcpp::exceptions::ParameterUninitializedException & ex) {
-    RCLCPP_FATAL(node->get_logger(), "'plugin' param not defined for %s", plugin_name.c_str());
-    throw pluginlib::PluginlibException("No 'plugin' param for param ns!");
-  }
 
-  return plugin_type;
+    return plugin_type;
 }
 
 /**
@@ -346,95 +303,81 @@ inline std::string get_plugin_type_param(
  * increasing the priority level of the host thread.
  * May throw exception if unable to set prioritization successfully
  */
-inline void setSoftRealTimePriority()
-{
+inline void setSoftRealTimePriority() {
 #ifdef __APPLE__
-  // macOS: Use Mach thread API to approximate real-time scheduling
-  thread_port_t thread = pthread_mach_thread_np(pthread_self());
+    // macOS: Use Mach thread API to approximate real-time scheduling
+    thread_port_t thread = pthread_mach_thread_np(pthread_self());
 
-  thread_time_constraint_policy_data_t policy;
-  policy.period = 1000;       // in microseconds (1 kHz loop)
-  policy.computation = 800;   // expected compute time per period
-  policy.constraint = 1000;   // max latency
-  policy.preemptible = 1;     // allow preemption by higher-priority threads
+    thread_time_constraint_policy_data_t policy;
+    policy.period = 1000; // in microseconds (1 kHz loop)
+    policy.computation = 800; // expected compute time per period
+    policy.constraint = 1000; // max latency
+    policy.preemptible = 1; // allow preemption by higher-priority threads
 
-  kern_return_t result = thread_policy_set(
-    thread,
-    THREAD_TIME_CONSTRAINT_POLICY,
-    (thread_policy_t)&policy,
-    THREAD_TIME_CONSTRAINT_POLICY_COUNT
-  );
+    kern_return_t result = thread_policy_set(thread, THREAD_TIME_CONSTRAINT_POLICY, (thread_policy_t)&policy, THREAD_TIME_CONSTRAINT_POLICY_COUNT);
 
-  if (result != KERN_SUCCESS) {
-    std::string errmsg =
-      "Failed to set THREAD_TIME_CONSTRAINT_POLICY on macOS. "
-      "Thread remains at default priority. Mach Error Code: " +
-      std::to_string(result);
-    throw std::runtime_error(errmsg);
-  }
+    if (result != KERN_SUCCESS) {
+        std::string errmsg =
+            "Failed to set THREAD_TIME_CONSTRAINT_POLICY on macOS. "
+            "Thread remains at default priority. Mach Error Code: "
+            + std::to_string(result);
+        throw std::runtime_error(errmsg);
+    }
 #else
-  // Linux: True real-time scheduling (requires privileges)
-  sched_param sch;
-  sch.sched_priority = 49;
-  if (sched_setscheduler(0, SCHED_FIFO, &sch) == -1) {
-    std::string errmsg(
-      "Cannot set as real-time thread. Users must set: <username> hard rtprio 99 and "
-      "<username> soft rtprio 99 in /etc/security/limits.conf to enable "
-      "realtime prioritization! Error: ");
-    throw std::runtime_error(errmsg + std::strerror(errno));
-  }
+    // Linux: True real-time scheduling (requires privileges)
+    sched_param sch;
+    sch.sched_priority = 49;
+    if (sched_setscheduler(0, SCHED_FIFO, &sch) == -1) {
+        std::string errmsg(
+            "Cannot set as real-time thread. Users must set: <username> hard rtprio 99 and "
+            "<username> soft rtprio 99 in /etc/security/limits.conf to enable "
+            "realtime prioritization! Error: ");
+        throw std::runtime_error(errmsg + std::strerror(errno));
+    }
 #endif
 }
 
-template<typename InterfaceT>
-inline void setIntrospectionMode(
-  InterfaceT & ros_interface,
-  rclcpp::node_interfaces::NodeParametersInterface::SharedPtr node_parameters_interface,
-  rclcpp::Clock::SharedPtr clock)
-{
-  #if RCLCPP_VERSION_GTE(29, 0, 0)
-  rcl_service_introspection_state_t introspection_state = RCL_SERVICE_INTROSPECTION_OFF;
-  if (!node_parameters_interface->has_parameter("introspection_mode")) {
-    node_parameters_interface->declare_parameter(
-      "introspection_mode", rclcpp::ParameterValue("disabled"));
-  }
-  std::string introspection_mode =
-    node_parameters_interface->get_parameter("introspection_mode").as_string();
-  if (introspection_mode == "metadata") {
-    introspection_state = RCL_SERVICE_INTROSPECTION_METADATA;
-  } else if (introspection_mode == "contents") {
-    introspection_state = RCL_SERVICE_INTROSPECTION_CONTENTS;
-  }
+template <typename InterfaceT>
+inline void setIntrospectionMode(InterfaceT& ros_interface, rclcpp::node_interfaces::NodeParametersInterface::SharedPtr node_parameters_interface,
+                                 rclcpp::Clock::SharedPtr clock) {
+#if RCLCPP_VERSION_GTE(29, 0, 0)
+    rcl_service_introspection_state_t introspection_state = RCL_SERVICE_INTROSPECTION_OFF;
+    if (!node_parameters_interface->has_parameter("introspection_mode")) {
+        node_parameters_interface->declare_parameter("introspection_mode", rclcpp::ParameterValue("disabled"));
+    }
+    std::string introspection_mode = node_parameters_interface->get_parameter("introspection_mode").as_string();
+    if (introspection_mode == "metadata") {
+        introspection_state = RCL_SERVICE_INTROSPECTION_METADATA;
+    } else if (introspection_mode == "contents") {
+        introspection_state = RCL_SERVICE_INTROSPECTION_CONTENTS;
+    }
 
-  ros_interface->configure_introspection(clock, rclcpp::ServicesQoS(), introspection_state);
-  #else
-  (void)ros_interface;
-  (void)node_parameters_interface;
-  (void)clock;
-  #endif
+    ros_interface->configure_introspection(clock, rclcpp::ServicesQoS(), introspection_state);
+#else
+    (void)ros_interface;
+    (void)node_parameters_interface;
+    (void)clock;
+#endif
 }
 
 /**
-  * @brief Given a specified argument name, replaces it with the specified
-  * new value. If the argument is not in the existing list, a new argument
-  * is created with the specified option.
-  */
-inline void replaceOrAddArgument(
-  std::vector<std::string> & arguments, const std::string & option,
-  const std::string & arg_name, const std::string & new_argument)
-{
-  auto argument = std::find_if(
-    arguments.begin(), arguments.end(),
-    [arg_name](const std::string & value) {return value.find(arg_name) != std::string::npos;});
-  if (argument != arguments.end()) {
-    *argument = new_argument;
-  } else {
-    arguments.push_back("--ros-args");
-    arguments.push_back(option);
-    arguments.push_back(new_argument);
-  }
+ * @brief Given a specified argument name, replaces it with the specified
+ * new value. If the argument is not in the existing list, a new argument
+ * is created with the specified option.
+ */
+inline void replaceOrAddArgument(std::vector<std::string>& arguments, const std::string& option, const std::string& arg_name,
+                                 const std::string& new_argument) {
+    auto argument =
+        std::find_if(arguments.begin(), arguments.end(), [arg_name](const std::string& value) { return value.find(arg_name) != std::string::npos; });
+    if (argument != arguments.end()) {
+        *argument = new_argument;
+    } else {
+        arguments.push_back("--ros-args");
+        arguments.push_back(option);
+        arguments.push_back(new_argument);
+    }
 }
 
-}  // namespace nav2
+} // namespace nav2
 
-#endif  // NAV2_ROS_COMMON__NODE_UTILS_HPP_
+#endif // NAV2_ROS_COMMON__NODE_UTILS_HPP_

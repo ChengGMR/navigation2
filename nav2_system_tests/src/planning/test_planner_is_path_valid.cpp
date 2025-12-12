@@ -12,83 +12,84 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. Reserved.
 
-#include <gtest/gtest.h>
-#include <memory>
-#include <vector>
+#include "planner_tester.hpp"
 
-#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav2_msgs/srv/is_path_valid.hpp"
 #include "rclcpp/rclcpp.hpp"
-#include "planner_tester.hpp"
+
+#include "geometry_msgs/msg/pose_stamped.hpp"
+
+#include <gtest/gtest.h>
+
+#include <memory>
+#include <vector>
 
 using nav2_system_tests::PlannerTester;
 using nav2_util::TestCostmap;
 
-TEST(testIsPathValid, testIsPathValid)
-{
-  auto planner_tester = std::make_shared<PlannerTester>();
-  planner_tester->activate();
-  planner_tester->loadSimpleCostmap(TestCostmap::top_left_obstacle);
+TEST(testIsPathValid, testIsPathValid) {
+    auto planner_tester = std::make_shared<PlannerTester>();
+    planner_tester->activate();
+    planner_tester->loadSimpleCostmap(TestCostmap::top_left_obstacle);
 
-  nav_msgs::msg::Path path;
-  unsigned int max_cost = 253;
-  bool consider_unknown_as_obstacle = false;
+    nav_msgs::msg::Path path;
+    unsigned int max_cost = 253;
+    bool consider_unknown_as_obstacle = false;
 
-  // empty path
-  bool is_path_valid = planner_tester->isPathValid(path, max_cost, consider_unknown_as_obstacle);
-  EXPECT_FALSE(is_path_valid);
+    // empty path
+    bool is_path_valid = planner_tester->isPathValid(path, max_cost, consider_unknown_as_obstacle);
+    EXPECT_FALSE(is_path_valid);
 
-  // invalid path
-  for (float i = 0; i < 10; i += 1.0) {
-    for (float j = 0; j < 10; j += 1.0) {
-      geometry_msgs::msg::PoseStamped pose;
-      pose.pose.position.x = i;
-      pose.pose.position.y = j;
-      path.poses.push_back(pose);
+    // invalid path
+    for (float i = 0; i < 10; i += 1.0) {
+        for (float j = 0; j < 10; j += 1.0) {
+            geometry_msgs::msg::PoseStamped pose;
+            pose.pose.position.x = i;
+            pose.pose.position.y = j;
+            path.poses.push_back(pose);
+        }
     }
-  }
-  is_path_valid = planner_tester->isPathValid(path, max_cost, consider_unknown_as_obstacle);
-  EXPECT_FALSE(is_path_valid);
+    is_path_valid = planner_tester->isPathValid(path, max_cost, consider_unknown_as_obstacle);
+    EXPECT_FALSE(is_path_valid);
 
-  // valid path
-  path.poses.clear();
-  for (float i = 0; i < 10; i += 1.0) {
-    geometry_msgs::msg::PoseStamped pose;
-    pose.pose.position.x = 1.0;
-    pose.pose.position.y = i;
-    path.poses.push_back(pose);
-  }
-  is_path_valid = planner_tester->isPathValid(path, max_cost, consider_unknown_as_obstacle);
-  EXPECT_TRUE(is_path_valid);
+    // valid path
+    path.poses.clear();
+    for (float i = 0; i < 10; i += 1.0) {
+        geometry_msgs::msg::PoseStamped pose;
+        pose.pose.position.x = 1.0;
+        pose.pose.position.y = i;
+        path.poses.push_back(pose);
+    }
+    is_path_valid = planner_tester->isPathValid(path, max_cost, consider_unknown_as_obstacle);
+    EXPECT_TRUE(is_path_valid);
 
-  // valid path, but contains NO_INFORMATION(255)
-  path.poses.clear();
-  consider_unknown_as_obstacle = true;
-  for (float i = 0; i < 10; i += 1.0) {
-    geometry_msgs::msg::PoseStamped pose;
-    pose.pose.position.x = 1.0;
-    pose.pose.position.y = i;
-    path.poses.push_back(pose);
-  }
-  is_path_valid = planner_tester->isPathValid(path, max_cost, consider_unknown_as_obstacle);
-  EXPECT_FALSE(is_path_valid);
+    // valid path, but contains NO_INFORMATION(255)
+    path.poses.clear();
+    consider_unknown_as_obstacle = true;
+    for (float i = 0; i < 10; i += 1.0) {
+        geometry_msgs::msg::PoseStamped pose;
+        pose.pose.position.x = 1.0;
+        pose.pose.position.y = i;
+        path.poses.push_back(pose);
+    }
+    is_path_valid = planner_tester->isPathValid(path, max_cost, consider_unknown_as_obstacle);
+    EXPECT_FALSE(is_path_valid);
 
-  // valid path but higher than max cost
-  max_cost = 0;
-  is_path_valid = planner_tester->isPathValid(path, max_cost, consider_unknown_as_obstacle);
-  EXPECT_FALSE(is_path_valid);
+    // valid path but higher than max cost
+    max_cost = 0;
+    is_path_valid = planner_tester->isPathValid(path, max_cost, consider_unknown_as_obstacle);
+    EXPECT_FALSE(is_path_valid);
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  // initialize ROS
-  rclcpp::init(argc, argv);
+    // initialize ROS
+    rclcpp::init(argc, argv);
 
-  bool all_successful = RUN_ALL_TESTS();
+    bool all_successful = RUN_ALL_TESTS();
 
-  // shutdown ROS
-  rclcpp::shutdown();
-  return all_successful;
+    // shutdown ROS
+    rclcpp::shutdown();
+    return all_successful;
 }

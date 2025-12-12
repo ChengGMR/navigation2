@@ -13,76 +13,68 @@
 // limitations under the License.
 
 #include "nav2_behavior_tree/plugins/control/persistent_sequence.hpp"
+
 #include "behaviortree_cpp/action_node.h"
 #include "behaviortree_cpp/bt_factory.h"
 
-namespace nav2_behavior_tree
-{
+namespace nav2_behavior_tree {
 
-PersistentSequenceNode::PersistentSequenceNode(
-  const std::string & name,
-  const BT::NodeConfiguration & conf)
-: BT::ControlNode::ControlNode(name, conf) {}
+PersistentSequenceNode::PersistentSequenceNode(const std::string& name, const BT::NodeConfiguration& conf)
+    : BT::ControlNode::ControlNode(name, conf) {}
 
-BT::NodeStatus PersistentSequenceNode::tick()
-{
-  const int children_count = children_nodes_.size();
+BT::NodeStatus PersistentSequenceNode::tick() {
+    const int children_count = children_nodes_.size();
 
-  int current_child_idx;
-  if (!getInput("current_child_idx", current_child_idx)) {
-    throw BT::RuntimeError(
+    int current_child_idx;
+    if (!getInput("current_child_idx", current_child_idx)) {
+        throw BT::RuntimeError(
             "Missing required input [current_child_idx] in PersistentSequenceNode. "
             "Set via <Script code=\"current_child_idx := 0\" />");
-  }
+    }
 
-  setStatus(BT::NodeStatus::RUNNING);
+    setStatus(BT::NodeStatus::RUNNING);
 
-  while (current_child_idx < children_count) {
-    TreeNode * current_child_node = children_nodes_[current_child_idx];
-    const BT::NodeStatus child_status = current_child_node->executeTick();
+    while (current_child_idx < children_count) {
+        TreeNode* current_child_node = children_nodes_[current_child_idx];
+        const BT::NodeStatus child_status = current_child_node->executeTick();
 
-    switch (child_status) {
-      case BT::NodeStatus::RUNNING:
-        return child_status;
+        switch (child_status) {
+            case BT::NodeStatus::RUNNING:
+                return child_status;
 
-      case BT::NodeStatus::FAILURE:
-        // Reset on failure
+            case BT::NodeStatus::FAILURE:
+                // Reset on failure
+                resetChildren();
+                current_child_idx = 0;
+                setOutput("current_child_idx", 0);
+                return child_status;
+
+            case BT::NodeStatus::SUCCESS:
+            case BT::NodeStatus::SKIPPED:
+                // Skip the child node
+                current_child_idx++;
+                setOutput("current_child_idx", current_child_idx);
+                break;
+
+            case BT::NodeStatus::IDLE:
+                throw std::runtime_error("A child node must never return IDLE");
+        } // end switch
+    } // end while loop
+
+    // The entire while loop completed. This means that all the children returned SUCCESS.
+    if (current_child_idx >= children_count) {
         resetChildren();
-        current_child_idx = 0;
         setOutput("current_child_idx", 0);
-        return child_status;
-
-      case BT::NodeStatus::SUCCESS:
-      case BT::NodeStatus::SKIPPED:
-        // Skip the child node
-        current_child_idx++;
-        setOutput("current_child_idx", current_child_idx);
-        break;
-
-      case BT::NodeStatus::IDLE:
-        throw std::runtime_error("A child node must never return IDLE");
-    }  // end switch
-  }  // end while loop
-
-  // The entire while loop completed. This means that all the children returned SUCCESS.
-  if (current_child_idx >= children_count) {
-    resetChildren();
-    setOutput("current_child_idx", 0);
-  }
-  return BT::NodeStatus::SUCCESS;
+    }
+    return BT::NodeStatus::SUCCESS;
 }
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-BT_REGISTER_NODES(factory)
-{
-  BT::NodeBuilder builder =
-    [](const std::string & name, const BT::NodeConfiguration & config)
-    {
-      return std::make_unique<nav2_behavior_tree::PersistentSequenceNode>(
-        name, config);
+BT_REGISTER_NODES(factory) {
+    BT::NodeBuilder builder = [](const std::string& name, const BT::NodeConfiguration& config) {
+        return std::make_unique<nav2_behavior_tree::PersistentSequenceNode>(name, config);
     };
 
-  factory.registerBuilder<nav2_behavior_tree::PersistentSequenceNode>(
-    "PersistentSequence", builder);
+    factory.registerBuilder<nav2_behavior_tree::PersistentSequenceNode>("PersistentSequence", builder);
 }

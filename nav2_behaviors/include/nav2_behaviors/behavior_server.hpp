@@ -12,101 +12,99 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. Reserved.
 
+#include "nav2_core/behavior.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+
+#include "pluginlib/class_list_macros.hpp"
+#include "pluginlib/class_loader.hpp"
+#include "tf2_ros/create_timer_ros.hpp"
+#include "tf2_ros/transform_listener.hpp"
 
 #include <chrono>
-#include <string>
 #include <memory>
+#include <string>
 #include <vector>
 
-#include "nav2_ros_common/lifecycle_node.hpp"
-#include "tf2_ros/transform_listener.hpp"
-#include "tf2_ros/create_timer_ros.hpp"
-#include "pluginlib/class_loader.hpp"
-#include "pluginlib/class_list_macros.hpp"
-#include "nav2_core/behavior.hpp"
-
 #ifndef NAV2_BEHAVIORS__BEHAVIOR_SERVER_HPP_
-#define NAV2_BEHAVIORS__BEHAVIOR_SERVER_HPP_
+    #define NAV2_BEHAVIORS__BEHAVIOR_SERVER_HPP_
 
-namespace behavior_server
-{
+namespace behavior_server {
 
 /**
  * @class behavior_server::BehaviorServer
  * @brief An server hosting a map of behavior plugins
  */
-class BehaviorServer : public nav2::LifecycleNode
-{
-public:
-  /**
-   * @brief A constructor for behavior_server::BehaviorServer
-   * @param options Additional options to control creation of the node.
-   */
-  explicit BehaviorServer(const rclcpp::NodeOptions & options = rclcpp::NodeOptions());
-  ~BehaviorServer();
+class BehaviorServer : public nav2::LifecycleNode {
+   public:
+    /**
+     * @brief A constructor for behavior_server::BehaviorServer
+     * @param options Additional options to control creation of the node.
+     */
+    explicit BehaviorServer(const rclcpp::NodeOptions& options = rclcpp::NodeOptions());
+    ~BehaviorServer();
 
-protected:
-  /**
-   * @brief Loads behavior plugins from parameter file
-   * @return bool if successfully loaded the plugins
-   */
-  bool loadBehaviorPlugins();
+   protected:
+    /**
+     * @brief Loads behavior plugins from parameter file
+     * @return bool if successfully loaded the plugins
+     */
+    bool loadBehaviorPlugins();
 
-  /**
-   * @brief configures behavior plugins
-   */
-  void configureBehaviorPlugins();
+    /**
+     * @brief configures behavior plugins
+     */
+    void configureBehaviorPlugins();
 
-  /**
-   * @brief configures behavior plugins
-   */
-  void setupResourcesForBehaviorPlugins();
-  /**
-   * @brief Configure lifecycle server
-   */
-  nav2::CallbackReturn on_configure(const rclcpp_lifecycle::State & state) override;
+    /**
+     * @brief configures behavior plugins
+     */
+    void setupResourcesForBehaviorPlugins();
+    /**
+     * @brief Configure lifecycle server
+     */
+    nav2::CallbackReturn on_configure(const rclcpp_lifecycle::State& state) override;
 
-  /**
-   * @brief Activate lifecycle server
-   */
-  nav2::CallbackReturn on_activate(const rclcpp_lifecycle::State & state) override;
+    /**
+     * @brief Activate lifecycle server
+     */
+    nav2::CallbackReturn on_activate(const rclcpp_lifecycle::State& state) override;
 
-  /**
-   * @brief Deactivate lifecycle server
-   */
-  nav2::CallbackReturn on_deactivate(const rclcpp_lifecycle::State & state) override;
+    /**
+     * @brief Deactivate lifecycle server
+     */
+    nav2::CallbackReturn on_deactivate(const rclcpp_lifecycle::State& state) override;
 
-  /**
-   * @brief Cleanup lifecycle server
-   */
-  nav2::CallbackReturn on_cleanup(const rclcpp_lifecycle::State & state) override;
+    /**
+     * @brief Cleanup lifecycle server
+     */
+    nav2::CallbackReturn on_cleanup(const rclcpp_lifecycle::State& state) override;
 
-  /**
-   * @brief Shutdown lifecycle server
-   */
-  nav2::CallbackReturn on_shutdown(const rclcpp_lifecycle::State & state) override;
+    /**
+     * @brief Shutdown lifecycle server
+     */
+    nav2::CallbackReturn on_shutdown(const rclcpp_lifecycle::State& state) override;
 
-  std::shared_ptr<tf2_ros::Buffer> tf_;
-  std::shared_ptr<tf2_ros::TransformListener> transform_listener_;
+    std::shared_ptr<tf2_ros::Buffer> tf_;
+    std::shared_ptr<tf2_ros::TransformListener> transform_listener_;
 
-  // Plugins
-  pluginlib::ClassLoader<nav2_core::Behavior> plugin_loader_;
-  std::vector<pluginlib::UniquePtr<nav2_core::Behavior>> behaviors_;
-  std::vector<std::string> default_ids_;
-  std::vector<std::string> default_types_;
-  std::vector<std::string> behavior_ids_;
-  std::vector<std::string> behavior_types_;
+    // Plugins
+    pluginlib::ClassLoader<nav2_core::Behavior> plugin_loader_;
+    std::vector<pluginlib::UniquePtr<nav2_core::Behavior>> behaviors_;
+    std::vector<std::string> default_ids_;
+    std::vector<std::string> default_types_;
+    std::vector<std::string> behavior_ids_;
+    std::vector<std::string> behavior_types_;
 
-  // Utilities
-  std::unique_ptr<nav2_costmap_2d::CostmapSubscriber> local_costmap_sub_;
-  std::unique_ptr<nav2_costmap_2d::FootprintSubscriber> local_footprint_sub_;
-  std::shared_ptr<nav2_costmap_2d::CostmapTopicCollisionChecker> local_collision_checker_;
+    // Utilities
+    std::unique_ptr<nav2_costmap_2d::CostmapSubscriber> local_costmap_sub_;
+    std::unique_ptr<nav2_costmap_2d::FootprintSubscriber> local_footprint_sub_;
+    std::shared_ptr<nav2_costmap_2d::CostmapTopicCollisionChecker> local_collision_checker_;
 
-  std::unique_ptr<nav2_costmap_2d::CostmapSubscriber> global_costmap_sub_;
-  std::unique_ptr<nav2_costmap_2d::FootprintSubscriber> global_footprint_sub_;
-  std::shared_ptr<nav2_costmap_2d::CostmapTopicCollisionChecker> global_collision_checker_;
+    std::unique_ptr<nav2_costmap_2d::CostmapSubscriber> global_costmap_sub_;
+    std::unique_ptr<nav2_costmap_2d::FootprintSubscriber> global_footprint_sub_;
+    std::shared_ptr<nav2_costmap_2d::CostmapTopicCollisionChecker> global_collision_checker_;
 };
 
-}  // namespace behavior_server
+} // namespace behavior_server
 
-#endif  // NAV2_BEHAVIORS__BEHAVIOR_SERVER_HPP_
+#endif // NAV2_BEHAVIORS__BEHAVIOR_SERVER_HPP_

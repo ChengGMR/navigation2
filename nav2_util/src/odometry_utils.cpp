@@ -13,70 +13,67 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
-
 #include "nav2_util/odometry_utils.hpp"
 
-using namespace std::chrono;  // NOLINT
-using namespace std::chrono_literals;  // NOLINT
+#include <string>
 
-namespace nav2_util
-{
+using namespace std::chrono; // NOLINT
+using namespace std::chrono_literals; // NOLINT
 
-void OdomSmoother::odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
-{
-  std::lock_guard<std::mutex> lock(odom_mutex_);
-  received_odom_ = true;
+namespace nav2_util {
 
-  // update cumulated odom only if history is not empty
-  if (!odom_history_.empty()) {
-    // to store current time
-    auto current_time = rclcpp::Time(msg->header.stamp);
+void OdomSmoother::odomCallback(const nav_msgs::msg::Odometry::SharedPtr msg) {
+    std::lock_guard<std::mutex> lock(odom_mutex_);
+    received_odom_ = true;
 
-    // to store time of the first odom in history
-    auto front_time = rclcpp::Time(odom_history_.front().header.stamp);
+    // update cumulated odom only if history is not empty
+    if (!odom_history_.empty()) {
+        // to store current time
+        auto current_time = rclcpp::Time(msg->header.stamp);
 
-    // update cumulated odom when duration has exceeded and pop earliest msg
-    while (current_time - front_time > odom_history_duration_) {
-      const auto & odom = odom_history_.front();
-      odom_cumulate_.twist.twist.linear.x -= odom.twist.twist.linear.x;
-      odom_cumulate_.twist.twist.linear.y -= odom.twist.twist.linear.y;
-      odom_cumulate_.twist.twist.linear.z -= odom.twist.twist.linear.z;
-      odom_cumulate_.twist.twist.angular.x -= odom.twist.twist.angular.x;
-      odom_cumulate_.twist.twist.angular.y -= odom.twist.twist.angular.y;
-      odom_cumulate_.twist.twist.angular.z -= odom.twist.twist.angular.z;
-      odom_history_.pop_front();
+        // to store time of the first odom in history
+        auto front_time = rclcpp::Time(odom_history_.front().header.stamp);
 
-      if (odom_history_.empty()) {
-        break;
-      }
+        // update cumulated odom when duration has exceeded and pop earliest msg
+        while (current_time - front_time > odom_history_duration_) {
+            const auto& odom = odom_history_.front();
+            odom_cumulate_.twist.twist.linear.x -= odom.twist.twist.linear.x;
+            odom_cumulate_.twist.twist.linear.y -= odom.twist.twist.linear.y;
+            odom_cumulate_.twist.twist.linear.z -= odom.twist.twist.linear.z;
+            odom_cumulate_.twist.twist.angular.x -= odom.twist.twist.angular.x;
+            odom_cumulate_.twist.twist.angular.y -= odom.twist.twist.angular.y;
+            odom_cumulate_.twist.twist.angular.z -= odom.twist.twist.angular.z;
+            odom_history_.pop_front();
 
-      // update with the timestamp of earliest odom message in history
-      front_time = rclcpp::Time(odom_history_.front().header.stamp);
+            if (odom_history_.empty()) {
+                break;
+            }
+
+            // update with the timestamp of earliest odom message in history
+            front_time = rclcpp::Time(odom_history_.front().header.stamp);
+        }
     }
-  }
 
-  odom_history_.push_back(*msg);
-  updateState();
+    odom_history_.push_back(*msg);
+    updateState();
 }
 
-void OdomSmoother::updateState()
-{
-  const auto & odom = odom_history_.back();
-  odom_cumulate_.twist.twist.linear.x += odom.twist.twist.linear.x;
-  odom_cumulate_.twist.twist.linear.y += odom.twist.twist.linear.y;
-  odom_cumulate_.twist.twist.linear.z += odom.twist.twist.linear.z;
-  odom_cumulate_.twist.twist.angular.x += odom.twist.twist.angular.x;
-  odom_cumulate_.twist.twist.angular.y += odom.twist.twist.angular.y;
-  odom_cumulate_.twist.twist.angular.z += odom.twist.twist.angular.z;
+void OdomSmoother::updateState() {
+    const auto& odom = odom_history_.back();
+    odom_cumulate_.twist.twist.linear.x += odom.twist.twist.linear.x;
+    odom_cumulate_.twist.twist.linear.y += odom.twist.twist.linear.y;
+    odom_cumulate_.twist.twist.linear.z += odom.twist.twist.linear.z;
+    odom_cumulate_.twist.twist.angular.x += odom.twist.twist.angular.x;
+    odom_cumulate_.twist.twist.angular.y += odom.twist.twist.angular.y;
+    odom_cumulate_.twist.twist.angular.z += odom.twist.twist.angular.z;
 
-  vel_smooth_.header = odom.header;
-  vel_smooth_.twist.linear.x = odom_cumulate_.twist.twist.linear.x / odom_history_.size();
-  vel_smooth_.twist.linear.y = odom_cumulate_.twist.twist.linear.y / odom_history_.size();
-  vel_smooth_.twist.linear.z = odom_cumulate_.twist.twist.linear.z / odom_history_.size();
-  vel_smooth_.twist.angular.x = odom_cumulate_.twist.twist.angular.x / odom_history_.size();
-  vel_smooth_.twist.angular.y = odom_cumulate_.twist.twist.angular.y / odom_history_.size();
-  vel_smooth_.twist.angular.z = odom_cumulate_.twist.twist.angular.z / odom_history_.size();
+    vel_smooth_.header = odom.header;
+    vel_smooth_.twist.linear.x = odom_cumulate_.twist.twist.linear.x / odom_history_.size();
+    vel_smooth_.twist.linear.y = odom_cumulate_.twist.twist.linear.y / odom_history_.size();
+    vel_smooth_.twist.linear.z = odom_cumulate_.twist.twist.linear.z / odom_history_.size();
+    vel_smooth_.twist.angular.x = odom_cumulate_.twist.twist.angular.x / odom_history_.size();
+    vel_smooth_.twist.angular.y = odom_cumulate_.twist.twist.angular.y / odom_history_.size();
+    vel_smooth_.twist.angular.z = odom_cumulate_.twist.twist.angular.z / odom_history_.size();
 }
 
-}  // namespace nav2_util
+} // namespace nav2_util

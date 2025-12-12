@@ -34,11 +34,11 @@
 #ifndef DWB_CRITICS__GOAL_DIST_HPP_
 #define DWB_CRITICS__GOAL_DIST_HPP_
 
-#include <vector>
 #include "dwb_critics/map_grid.hpp"
 
-namespace dwb_critics
-{
+#include <vector>
+
+namespace dwb_critics {
 /**
  * @class GoalDistCritic
  * @brief Scores trajectories based on how far along the global path they end up.
@@ -47,18 +47,14 @@ namespace dwb_critics
  * global path farthest from the robot that is still on the costmap, and aims for that point by
  * assigning the lowest cost to the cell corresponding with that farthest pose.
  */
-class GoalDistCritic : public MapGridCritic
-{
-public:
-  bool prepare(
-    const geometry_msgs::msg::Pose & pose, const nav_2d_msgs::msg::Twist2D & vel,
-    const geometry_msgs::msg::Pose & goal, const nav_msgs::msg::Path & global_plan) override;
+class GoalDistCritic : public MapGridCritic {
+   public:
+    bool prepare(const geometry_msgs::msg::Pose& pose, const nav_2d_msgs::msg::Twist2D& vel, const geometry_msgs::msg::Pose& goal,
+                 const nav_msgs::msg::Path& global_plan) override;
 
-protected:
-  bool getLastPoseOnCostmap(
-    const nav_msgs::msg::Path & global_plan, unsigned int & x,
-    unsigned int & y);
+   protected:
+    bool getLastPoseOnCostmap(const nav_msgs::msg::Path& global_plan, unsigned int& x, unsigned int& y);
 };
 
-}  // namespace dwb_critics
-#endif  // DWB_CRITICS__GOAL_DIST_HPP_
+} // namespace dwb_critics
+#endif // DWB_CRITICS__GOAL_DIST_HPP_

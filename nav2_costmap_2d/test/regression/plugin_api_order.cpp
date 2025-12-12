@@ -12,48 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. Reserved.
 
-#include <string>
-#include <vector>
-#include <memory>
-
-#include "gtest/gtest.h"
 #include "nav2_costmap_2d/costmap_2d_ros.hpp"
 
-TEST(CostmapPluginsTester, checkPluginAPIOrder)
-{
-  std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros =
-    std::make_shared<nav2_costmap_2d::Costmap2DROS>("costmap_ros");
+#include "gtest/gtest.h"
 
-  // Workaround to avoid setting base_link->map transform
-  costmap_ros->set_parameter(rclcpp::Parameter("robot_base_frame", "map"));
-  // Specifying order verification plugin in the parameters
-  std::vector<std::string> plugins_str;
-  plugins_str.push_back("order_layer");
-  costmap_ros->set_parameter(rclcpp::Parameter("plugins", plugins_str));
-  costmap_ros->declare_parameter(
-    "order_layer.plugin",
-    rclcpp::ParameterValue(std::string("nav2_costmap_2d::OrderLayer")));
+#include <memory>
+#include <string>
+#include <vector>
 
-  // Do actual test: ensure that plugin->updateBounds()/updateCosts()
-  // will be called after plugin->activate()
-  costmap_ros->on_configure(costmap_ros->get_current_state());
-  costmap_ros->on_activate(costmap_ros->get_current_state());
+TEST(CostmapPluginsTester, checkPluginAPIOrder) {
+    std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros = std::make_shared<nav2_costmap_2d::Costmap2DROS>("costmap_ros");
 
-  // Do cleanup
-  costmap_ros->on_deactivate(costmap_ros->get_current_state());
-  costmap_ros->on_cleanup(costmap_ros->get_current_state());
-  costmap_ros->on_shutdown(costmap_ros->get_current_state());
+    // Workaround to avoid setting base_link->map transform
+    costmap_ros->set_parameter(rclcpp::Parameter("robot_base_frame", "map"));
+    // Specifying order verification plugin in the parameters
+    std::vector<std::string> plugins_str;
+    plugins_str.push_back("order_layer");
+    costmap_ros->set_parameter(rclcpp::Parameter("plugins", plugins_str));
+    costmap_ros->declare_parameter("order_layer.plugin", rclcpp::ParameterValue(std::string("nav2_costmap_2d::OrderLayer")));
+
+    // Do actual test: ensure that plugin->updateBounds()/updateCosts()
+    // will be called after plugin->activate()
+    costmap_ros->on_configure(costmap_ros->get_current_state());
+    costmap_ros->on_activate(costmap_ros->get_current_state());
+
+    // Do cleanup
+    costmap_ros->on_deactivate(costmap_ros->get_current_state());
+    costmap_ros->on_cleanup(costmap_ros->get_current_state());
+    costmap_ros->on_shutdown(costmap_ros->get_current_state());
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  rclcpp::init(0, nullptr);
+    rclcpp::init(0, nullptr);
 
-  int result = RUN_ALL_TESTS();
+    int result = RUN_ALL_TESTS();
 
-  rclcpp::shutdown();
+    rclcpp::shutdown();
 
-  return result;
+    return result;
 }

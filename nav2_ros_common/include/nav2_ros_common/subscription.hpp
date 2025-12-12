@@ -15,20 +15,20 @@
 #ifndef NAV2_ROS_COMMON__SUBSCRIPTION_HPP_
 #define NAV2_ROS_COMMON__SUBSCRIPTION_HPP_
 
-#include <memory>
 #include "rclcpp/rclcpp.hpp"
 
-namespace nav2
-{
+#include <memory>
+
+namespace nav2 {
 
 /**
-  * @brief A ROS 2 subscription for Nav2
-  * This is a convenience type alias to simplify the use of subscriptions in Nav2
-  * which may be further built up on in the future with custom APIs.
-  */
-template<typename MessageT>
+ * @brief A ROS 2 subscription for Nav2
+ * This is a convenience type alias to simplify the use of subscriptions in Nav2
+ * which may be further built up on in the future with custom APIs.
+ */
+template <typename MessageT>
 using Subscription = rclcpp::Subscription<MessageT>;
 
-}  // namespace nav2
+} // namespace nav2
 
-#endif  // NAV2_ROS_COMMON__SUBSCRIPTION_HPP_
+#endif // NAV2_ROS_COMMON__SUBSCRIPTION_HPP_

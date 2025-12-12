@@ -12,15 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. Reserved.
 
-#include <memory>
-#include "rclcpp/rclcpp.hpp"
 #include "dummy_planner.hpp"
 
-int main(int argc, char ** argv)
-{
-  rclcpp::init(argc, argv);
-  rclcpp::spin(std::make_shared<nav2_system_tests::DummyPlanner>());
-  rclcpp::shutdown();
+#include "rclcpp/rclcpp.hpp"
 
-  return 0;
+#include <memory>
+
+int main(int argc, char** argv) {
+    rclcpp::init(argc, argv);
+    rclcpp::spin(std::make_shared<nav2_system_tests::DummyPlanner>());
+    rclcpp::shutdown();
+
+    return 0;
 }

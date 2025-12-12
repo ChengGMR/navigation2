@@ -37,22 +37,20 @@
 
 #include "costmap_queue/costmap_queue.hpp"
 
-namespace costmap_queue
-{
+namespace costmap_queue {
 
 /**
  * @class LimitedCostmapQueue
  * @brief Extension of Costmap Queue where distances are limited to a given distance from source cells.
  */
-class LimitedCostmapQueue : public CostmapQueue
-{
-public:
-  /**
-   * @brief Constructor with limit as an integer number of cells.
-   */
-  LimitedCostmapQueue(nav2_costmap_2d::Costmap2D & costmap, const int cell_distance_limit);
-  bool validCellToQueue(const CellData & cell) override;
+class LimitedCostmapQueue : public CostmapQueue {
+   public:
+    /**
+     * @brief Constructor with limit as an integer number of cells.
+     */
+    LimitedCostmapQueue(nav2_costmap_2d::Costmap2D& costmap, const int cell_distance_limit);
+    bool validCellToQueue(const CellData& cell) override;
 };
-}  // namespace costmap_queue
+} // namespace costmap_queue
 
-#endif  // COSTMAP_QUEUE__LIMITED_COSTMAP_QUEUE_HPP_
+#endif // COSTMAP_QUEUE__LIMITED_COSTMAP_QUEUE_HPP_

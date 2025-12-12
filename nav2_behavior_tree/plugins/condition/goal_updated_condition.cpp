@@ -12,45 +12,40 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
-#include <vector>
 #include "nav2_behavior_tree/plugins/condition/goal_updated_condition.hpp"
 
-namespace nav2_behavior_tree
-{
+#include <string>
+#include <vector>
 
-GoalUpdatedCondition::GoalUpdatedCondition(
-  const std::string & condition_name,
-  const BT::NodeConfiguration & conf)
-: BT::ConditionNode(condition_name, conf)
-{}
+namespace nav2_behavior_tree {
 
-BT::NodeStatus GoalUpdatedCondition::tick()
-{
-  if (!BT::isStatusActive(status())) {
-    BT::getInputOrBlackboard("goals", goals_);
-    BT::getInputOrBlackboard("goal", goal_);
+GoalUpdatedCondition::GoalUpdatedCondition(const std::string& condition_name, const BT::NodeConfiguration& conf)
+    : BT::ConditionNode(condition_name, conf) {}
+
+BT::NodeStatus GoalUpdatedCondition::tick() {
+    if (!BT::isStatusActive(status())) {
+        BT::getInputOrBlackboard("goals", goals_);
+        BT::getInputOrBlackboard("goal", goal_);
+        return BT::NodeStatus::FAILURE;
+    }
+
+    nav_msgs::msg::Goals current_goals;
+    geometry_msgs::msg::PoseStamped current_goal;
+    BT::getInputOrBlackboard("goals", current_goals);
+    BT::getInputOrBlackboard("goal", current_goal);
+
+    if (goal_ != current_goal || goals_ != current_goals) {
+        goal_ = current_goal;
+        goals_ = current_goals;
+        return BT::NodeStatus::SUCCESS;
+    }
+
     return BT::NodeStatus::FAILURE;
-  }
-
-  nav_msgs::msg::Goals current_goals;
-  geometry_msgs::msg::PoseStamped current_goal;
-  BT::getInputOrBlackboard("goals", current_goals);
-  BT::getInputOrBlackboard("goal", current_goal);
-
-  if (goal_ != current_goal || goals_ != current_goals) {
-    goal_ = current_goal;
-    goals_ = current_goals;
-    return BT::NodeStatus::SUCCESS;
-  }
-
-  return BT::NodeStatus::FAILURE;
 }
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
 #include "behaviortree_cpp/bt_factory.h"
-BT_REGISTER_NODES(factory)
-{
-  factory.registerNodeType<nav2_behavior_tree::GoalUpdatedCondition>("GoalUpdated");
+BT_REGISTER_NODES(factory) {
+    factory.registerNodeType<nav2_behavior_tree::GoalUpdatedCondition>("GoalUpdated");
 }

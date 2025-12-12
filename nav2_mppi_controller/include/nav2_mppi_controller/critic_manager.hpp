@@ -15,94 +15,89 @@
 #ifndef NAV2_MPPI_CONTROLLER__CRITIC_MANAGER_HPP_
 #define NAV2_MPPI_CONTROLLER__CRITIC_MANAGER_HPP_
 
-#include <memory>
-#include <string>
-#include <vector>
-#include <pluginlib/class_loader.hpp>
+#include "nav2_costmap_2d/costmap_2d_ros.hpp"
+#include "nav2_mppi_controller/critic_data.hpp"
+#include "nav2_mppi_controller/critic_function.hpp"
+#include "nav2_mppi_controller/tools/parameters_handler.hpp"
+#include "nav2_mppi_controller/tools/utils.hpp"
+#include "nav2_msgs/msg/critics_stats.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
-#include "nav2_msgs/msg/critics_stats.hpp"
+#include <pluginlib/class_loader.hpp>
 
-#include "nav2_costmap_2d/costmap_2d_ros.hpp"
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
+#include <memory>
+#include <string>
+#include <vector>
 
-#include "nav2_mppi_controller/tools/parameters_handler.hpp"
-#include "nav2_mppi_controller/tools/utils.hpp"
-#include "nav2_mppi_controller/critic_data.hpp"
-#include "nav2_mppi_controller/critic_function.hpp"
-
-namespace mppi
-{
+namespace mppi {
 
 /**
  * @class mppi::CriticManager
  * @brief Manager of objective function plugins for scoring trajectories
  */
-class CriticManager
-{
-public:
-  typedef std::vector<std::unique_ptr<critics::CriticFunction>> Critics;
-  /**
-    * @brief Constructor for mppi::CriticManager
-    */
-  CriticManager() = default;
+class CriticManager {
+   public:
+    typedef std::vector<std::unique_ptr<critics::CriticFunction>> Critics;
+    /**
+     * @brief Constructor for mppi::CriticManager
+     */
+    CriticManager() = default;
 
+    /**
+     * @brief Virtual Destructor for mppi::CriticManager
+     */
+    virtual ~CriticManager() = default;
 
-  /**
-    * @brief Virtual Destructor for mppi::CriticManager
-    */
-  virtual ~CriticManager() = default;
+    /**
+     * @brief Configure critic manager on bringup and load plugins
+     * @param parent WeakPtr to node
+     * @param name Name of plugin
+     * @param costmap_ros Costmap2DROS object of environment
+     * @param dynamic_parameter_handler Parameter handler object
+     */
+    void on_configure(nav2::LifecycleNode::WeakPtr parent, const std::string& name, std::shared_ptr<nav2_costmap_2d::Costmap2DROS>,
+                      ParametersHandler*);
 
-  /**
-    * @brief Configure critic manager on bringup and load plugins
-    * @param parent WeakPtr to node
-    * @param name Name of plugin
-    * @param costmap_ros Costmap2DROS object of environment
-    * @param dynamic_parameter_handler Parameter handler object
-    */
-  void on_configure(
-    nav2::LifecycleNode::WeakPtr parent, const std::string & name,
-    std::shared_ptr<nav2_costmap_2d::Costmap2DROS>, ParametersHandler *);
+    /**
+     * @brief Score trajectories by the set of loaded critic functions
+     * @param CriticData Struct of necessary information to pass to the critic functions
+     */
+    void evalTrajectoriesScores(CriticData& data) const;
 
-  /**
-    * @brief Score trajectories by the set of loaded critic functions
-    * @param CriticData Struct of necessary information to pass to the critic functions
-    */
-  void evalTrajectoriesScores(CriticData & data) const;
+   protected:
+    /**
+     * @brief Get parameters (critics to load)
+     */
+    void getParams();
 
-protected:
-  /**
-    * @brief Get parameters (critics to load)
-    */
-  void getParams();
+    /**
+     * @brief Load the critic plugins
+     */
+    virtual void loadCritics();
 
-  /**
-    * @brief Load the critic plugins
-    */
-  virtual void loadCritics();
+    /**
+     * @brief Get full-name namespaced critic IDs
+     */
+    std::string getFullName(const std::string& name);
 
-  /**
-    * @brief Get full-name namespaced critic IDs
-    */
-  std::string getFullName(const std::string & name);
+   protected:
+    nav2::LifecycleNode::WeakPtr parent_;
+    std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
+    std::string name_;
 
-protected:
-  nav2::LifecycleNode::WeakPtr parent_;
-  std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
-  std::string name_;
+    ParametersHandler* parameters_handler_;
+    std::vector<std::string> critic_names_;
+    std::unique_ptr<pluginlib::ClassLoader<critics::CriticFunction>> loader_;
+    Critics critics_;
 
-  ParametersHandler * parameters_handler_;
-  std::vector<std::string> critic_names_;
-  std::unique_ptr<pluginlib::ClassLoader<critics::CriticFunction>> loader_;
-  Critics critics_;
+    nav2::Publisher<nav2_msgs::msg::CriticsStats>::SharedPtr critics_effect_pub_;
+    bool publish_critics_stats_;
 
-  nav2::Publisher<nav2_msgs::msg::CriticsStats>::SharedPtr critics_effect_pub_;
-  bool publish_critics_stats_;
-
-  rclcpp::Logger logger_{rclcpp::get_logger("MPPIController")};
+    rclcpp::Logger logger_{rclcpp::get_logger("MPPIController")};
 };
 
-}  // namespace mppi
+} // namespace mppi
 
-#endif  // NAV2_MPPI_CONTROLLER__CRITIC_MANAGER_HPP_
+#endif // NAV2_MPPI_CONTROLLER__CRITIC_MANAGER_HPP_

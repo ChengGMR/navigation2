@@ -15,119 +15,111 @@
 #ifndef NAV2_MPPI_CONTROLLER__CONTROLLER_HPP_
 #define NAV2_MPPI_CONTROLLER__CONTROLLER_HPP_
 
-#include <string>
-#include <memory>
-
-#include "nav2_mppi_controller/tools/path_handler.hpp"
-#include "nav2_mppi_controller/optimizer.hpp"
-#include "nav2_mppi_controller/tools/trajectory_visualizer.hpp"
-#include "nav2_mppi_controller/models/constraints.hpp"
-#include "nav2_mppi_controller/tools/utils.hpp"
-#include "nav2_ros_common/lifecycle_node.hpp"
 #include "nav2_core/controller.hpp"
 #include "nav2_core/goal_checker.hpp"
+#include "nav2_mppi_controller/models/constraints.hpp"
+#include "nav2_mppi_controller/optimizer.hpp"
+#include "nav2_mppi_controller/tools/path_handler.hpp"
+#include "nav2_mppi_controller/tools/trajectory_visualizer.hpp"
+#include "nav2_mppi_controller/tools/utils.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
 
-namespace nav2_mppi_controller
-{
+#include <memory>
+#include <string>
 
-using namespace mppi;  // NOLINT
+namespace nav2_mppi_controller {
+
+using namespace mppi; // NOLINT
 
 /**
  * @class mppi::MPPIController
  * @brief Main plugin controller for MPPI Controller
  */
-class MPPIController : public nav2_core::Controller
-{
-public:
-  /**
-    * @brief Constructor for mppi::MPPIController
-    */
-  MPPIController() = default;
+class MPPIController : public nav2_core::Controller {
+   public:
+    /**
+     * @brief Constructor for mppi::MPPIController
+     */
+    MPPIController() = default;
 
-  /**
-    * @brief Configure controller on bringup
-    * @param parent WeakPtr to node
-    * @param name Name of plugin
-    * @param tf TF buffer to use
-    * @param costmap_ros Costmap2DROS object of environment
-    */
-  void configure(
-    const nav2::LifecycleNode::WeakPtr & parent,
-    std::string name, const std::shared_ptr<tf2_ros::Buffer> tf,
-    const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
+    /**
+     * @brief Configure controller on bringup
+     * @param parent WeakPtr to node
+     * @param name Name of plugin
+     * @param tf TF buffer to use
+     * @param costmap_ros Costmap2DROS object of environment
+     */
+    void configure(const nav2::LifecycleNode::WeakPtr& parent, std::string name, const std::shared_ptr<tf2_ros::Buffer> tf,
+                   const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
 
-  /**
-    * @brief Cleanup resources
-    */
-  void cleanup() override;
+    /**
+     * @brief Cleanup resources
+     */
+    void cleanup() override;
 
-  /**
-    * @brief Activate controller
-    */
-  void activate() override;
+    /**
+     * @brief Activate controller
+     */
+    void activate() override;
 
-  /**
-    * @brief Deactivate controller
-    */
-  void deactivate() override;
+    /**
+     * @brief Deactivate controller
+     */
+    void deactivate() override;
 
-  /**
-    * @brief Reset the controller state between tasks
-    */
-  void reset() override;
+    /**
+     * @brief Reset the controller state between tasks
+     */
+    void reset() override;
 
-  /**
-    * @brief Main method to compute velocities using the optimizer
-    * @param robot_pose Robot pose
-    * @param robot_speed Robot speed
-    * @param goal_checker Pointer to the goal checker for awareness if completed task
-    */
-  geometry_msgs::msg::TwistStamped computeVelocityCommands(
-    const geometry_msgs::msg::PoseStamped & robot_pose,
-    const geometry_msgs::msg::Twist & robot_speed,
-    nav2_core::GoalChecker * goal_checker) override;
+    /**
+     * @brief Main method to compute velocities using the optimizer
+     * @param robot_pose Robot pose
+     * @param robot_speed Robot speed
+     * @param goal_checker Pointer to the goal checker for awareness if completed task
+     */
+    geometry_msgs::msg::TwistStamped computeVelocityCommands(const geometry_msgs::msg::PoseStamped& robot_pose,
+                                                             const geometry_msgs::msg::Twist& robot_speed,
+                                                             nav2_core::GoalChecker* goal_checker) override;
 
-  /**
-    * @brief Set new reference path to track
-    * @param path Path to track
-    */
-  void setPlan(const nav_msgs::msg::Path & path) override;
+    /**
+     * @brief Set new reference path to track
+     * @param path Path to track
+     */
+    void setPlan(const nav_msgs::msg::Path& path) override;
 
-  /**
-    * @brief Set new speed limit from callback
-    * @param speed_limit Speed limit to use
-    * @param percentage Bool if the speed limit is absolute or relative
-    */
-  void setSpeedLimit(const double & speed_limit, const bool & percentage) override;
+    /**
+     * @brief Set new speed limit from callback
+     * @param speed_limit Speed limit to use
+     * @param percentage Bool if the speed limit is absolute or relative
+     */
+    void setSpeedLimit(const double& speed_limit, const bool& percentage) override;
 
-protected:
-  /**
-    * @brief Visualize trajectories
-    * @param transformed_plan Transformed input plan
-    * @param cmd_stamp Command stamp
-    * @param optimal_trajectory Optimal trajectory, if already computed
-    */
-  void visualize(
-    nav_msgs::msg::Path transformed_plan,
-    const builtin_interfaces::msg::Time & cmd_stamp,
-    const Eigen::ArrayXXf & optimal_trajectory);
+   protected:
+    /**
+     * @brief Visualize trajectories
+     * @param transformed_plan Transformed input plan
+     * @param cmd_stamp Command stamp
+     * @param optimal_trajectory Optimal trajectory, if already computed
+     */
+    void visualize(nav_msgs::msg::Path transformed_plan, const builtin_interfaces::msg::Time& cmd_stamp, const Eigen::ArrayXXf& optimal_trajectory);
 
-  std::string name_;
-  nav2::LifecycleNode::WeakPtr parent_;
-  rclcpp::Logger logger_{rclcpp::get_logger("MPPIController")};
-  std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
-  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-  nav2::Publisher<nav2_msgs::msg::Trajectory>::SharedPtr opt_traj_pub_;
+    std::string name_;
+    nav2::LifecycleNode::WeakPtr parent_;
+    rclcpp::Logger logger_{rclcpp::get_logger("MPPIController")};
+    std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+    nav2::Publisher<nav2_msgs::msg::Trajectory>::SharedPtr opt_traj_pub_;
 
-  std::unique_ptr<ParametersHandler> parameters_handler_;
-  Optimizer optimizer_;
-  PathHandler path_handler_;
-  TrajectoryVisualizer trajectory_visualizer_;
+    std::unique_ptr<ParametersHandler> parameters_handler_;
+    Optimizer optimizer_;
+    PathHandler path_handler_;
+    TrajectoryVisualizer trajectory_visualizer_;
 
-  bool visualize_;
-  bool publish_optimal_trajectory_;
+    bool visualize_;
+    bool publish_optimal_trajectory_;
 };
 
-}  // namespace nav2_mppi_controller
+} // namespace nav2_mppi_controller
 
-#endif  // NAV2_MPPI_CONTROLLER__CONTROLLER_HPP_
+#endif // NAV2_MPPI_CONTROLLER__CONTROLLER_HPP_

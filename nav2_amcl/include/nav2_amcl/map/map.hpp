@@ -34,85 +34,78 @@
 extern "C" {
 #endif
 
-// Forward declarations
-struct _rtk_fig_t;
-
+    // Forward declarations
+    struct _rtk_fig_t;
 
 // Limits
 #define MAP_WIFI_MAX_LEVELS 8
 
 // make sure that the sizeof(map_cell_t) == 5
 #pragma pack(push, 1)
-// Description for a single map cell.
-typedef struct
-{
-  // Occupancy state (-1 = free, 0 = unknown, +1 = occ)
-  int8_t occ_state;
+    // Description for a single map cell.
+    typedef struct {
+        // Occupancy state (-1 = free, 0 = unknown, +1 = occ)
+        int8_t occ_state;
 
-  // Distance to the nearest occupied cell
-  float occ_dist;
+        // Distance to the nearest occupied cell
+        float occ_dist;
 
-  // Wifi levels
-  // int wifi_levels[MAP_WIFI_MAX_LEVELS];
-} map_cell_t;
+        // Wifi levels
+        // int wifi_levels[MAP_WIFI_MAX_LEVELS];
+    } map_cell_t;
 #pragma pack(pop)
 
-// Description for a map
-typedef struct
-{
-  // Map origin; the map is a viewport onto a conceptual larger map.
-  double origin_x, origin_y;
+    // Description for a map
+    typedef struct {
+        // Map origin; the map is a viewport onto a conceptual larger map.
+        double origin_x, origin_y;
 
-  // Map scale (m/cell)
-  double scale;
+        // Map scale (m/cell)
+        double scale;
 
-  // Map dimensions (number of cells)
-  int size_x, size_y;
+        // Map dimensions (number of cells)
+        int size_x, size_y;
 
-  // The map data, stored as a grid
-  map_cell_t * cells;
+        // The map data, stored as a grid
+        map_cell_t* cells;
 
-  // Max distance at which we care about obstacles, for constructing
-  // likelihood field
-  double max_occ_dist;
-} map_t;
+        // Max distance at which we care about obstacles, for constructing
+        // likelihood field
+        double max_occ_dist;
+    } map_t;
 
+    /**************************************************************************
+     * Basic map functions
+     **************************************************************************/
 
-/**************************************************************************
- * Basic map functions
- **************************************************************************/
+    // Create a new (empty) map
+    map_t* map_alloc(void);
 
-// Create a new (empty) map
-map_t * map_alloc(void);
+    // Destroy a map
+    void map_free(map_t* map);
 
-// Destroy a map
-void map_free(map_t * map);
+    // Update the cspace distances
+    void map_update_cspace(map_t* map, double max_occ_dist);
 
-// Update the cspace distances
-void map_update_cspace(map_t * map, double max_occ_dist);
+    /**************************************************************************
+     * Range functions
+     **************************************************************************/
 
+    // Extract a single range reading from the map
+    double map_calc_range(map_t* map, double ox, double oy, double oa, double max_range);
 
-/**************************************************************************
- * Range functions
- **************************************************************************/
+    /**************************************************************************
+     * GUI/diagnostic functions
+     **************************************************************************/
 
-// Extract a single range reading from the map
-double map_calc_range(map_t * map, double ox, double oy, double oa, double max_range);
+    // Draw the occupancy grid
+    void map_draw_occ(map_t* map, struct _rtk_fig_t* fig);
 
+    // Draw the cspace map
+    void map_draw_cspace(map_t* map, struct _rtk_fig_t* fig);
 
-/**************************************************************************
- * GUI/diagnostic functions
- **************************************************************************/
-
-// Draw the occupancy grid
-void map_draw_occ(map_t * map, struct _rtk_fig_t * fig);
-
-// Draw the cspace map
-void map_draw_cspace(map_t * map, struct _rtk_fig_t * fig);
-
-// Draw a wifi map
-void map_draw_wifi(map_t * map, struct _rtk_fig_t * fig, int index);
-
+    // Draw a wifi map
+    void map_draw_wifi(map_t* map, struct _rtk_fig_t* fig, int index);
 
 /**************************************************************************
  * Map manipulation macros
@@ -136,4 +129,4 @@ void map_draw_wifi(map_t * map, struct _rtk_fig_t * fig, int index);
 }
 #endif
 
-#endif  // NAV2_AMCL__MAP__MAP_HPP_
+#endif // NAV2_AMCL__MAP__MAP_HPP_

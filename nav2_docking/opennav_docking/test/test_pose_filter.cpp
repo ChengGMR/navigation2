@@ -12,88 +12,88 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
+#include "opennav_docking/pose_filter.hpp"
+#include "rclcpp/rclcpp.hpp"
+
+#include "tf2/utils.hpp"
+#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
 #include "gtest/gtest.h"
-#include "rclcpp/rclcpp.hpp"
-#include "opennav_docking/pose_filter.hpp"
-#include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-#include "tf2/utils.hpp"
+
+#include <string>
 
 // Testing the pose filter
 
-namespace opennav_docking
-{
+namespace opennav_docking {
 
-TEST(PoseFilterTests, FilterTests)
-{
-  double coef = 0.5;
-  double timeout = 1.0;
-  PoseFilter filter(coef, timeout);
+TEST(PoseFilterTests, FilterTests) {
+    double coef = 0.5;
+    double timeout = 1.0;
+    PoseFilter filter(coef, timeout);
 
-  // First measurement
-  geometry_msgs::msg::PoseStamped meas1;
-  meas1.header.frame_id = "test";
-  meas1.header.stamp = rclcpp::Time(1, 0);
-  meas1.pose.position.x = 1.0;
-  meas1.pose.position.y = 3.0;
-  meas1.pose.position.z = 5.0;
-  meas1.pose.orientation.w = 1.0;
+    // First measurement
+    geometry_msgs::msg::PoseStamped meas1;
+    meas1.header.frame_id = "test";
+    meas1.header.stamp = rclcpp::Time(1, 0);
+    meas1.pose.position.x = 1.0;
+    meas1.pose.position.y = 3.0;
+    meas1.pose.position.z = 5.0;
+    meas1.pose.orientation.w = 1.0;
 
-  // Update filter
-  geometry_msgs::msg::PoseStamped pose = filter.update(meas1);
+    // Update filter
+    geometry_msgs::msg::PoseStamped pose = filter.update(meas1);
 
-  // Header frame_id is inconsistent, so pose = measurement
-  EXPECT_NEAR(pose.pose.position.x, 1.0, 0.0001);
-  EXPECT_NEAR(pose.pose.position.y, 3.0, 0.0001);
-  EXPECT_NEAR(pose.pose.position.z, 5.0, 0.0001);
-  EXPECT_EQ(pose.pose.orientation.w, 1.0);
+    // Header frame_id is inconsistent, so pose = measurement
+    EXPECT_NEAR(pose.pose.position.x, 1.0, 0.0001);
+    EXPECT_NEAR(pose.pose.position.y, 3.0, 0.0001);
+    EXPECT_NEAR(pose.pose.position.z, 5.0, 0.0001);
+    EXPECT_EQ(pose.pose.orientation.w, 1.0);
 
-  // Create a second measurement
-  geometry_msgs::msg::PoseStamped meas2 = meas1;
-  meas2.header.stamp = rclcpp::Time(1, 500);
-  meas2.pose.position.x = 2.0;
-  meas2.pose.position.y = 4.0;
-  meas2.pose.position.z = 6.0;
-  double yaw = 0.5, pitch = 0.0, roll = 0.0;
-  tf2::Quaternion quat;
-  quat.setEuler(pitch, roll, yaw);
-  meas2.pose.orientation = tf2::toMsg(quat);
+    // Create a second measurement
+    geometry_msgs::msg::PoseStamped meas2 = meas1;
+    meas2.header.stamp = rclcpp::Time(1, 500);
+    meas2.pose.position.x = 2.0;
+    meas2.pose.position.y = 4.0;
+    meas2.pose.position.z = 6.0;
+    double yaw = 0.5, pitch = 0.0, roll = 0.0;
+    tf2::Quaternion quat;
+    quat.setEuler(pitch, roll, yaw);
+    meas2.pose.orientation = tf2::toMsg(quat);
 
-  // Update filter, check expectations
-  pose = filter.update(meas2);
-  EXPECT_NEAR(pose.pose.position.x, 1.5, 0.0001);
-  EXPECT_NEAR(pose.pose.position.y, 3.5, 0.0001);
-  EXPECT_NEAR(pose.pose.position.z, 5.5, 0.0001);
+    // Update filter, check expectations
+    pose = filter.update(meas2);
+    EXPECT_NEAR(pose.pose.position.x, 1.5, 0.0001);
+    EXPECT_NEAR(pose.pose.position.y, 3.5, 0.0001);
+    EXPECT_NEAR(pose.pose.position.z, 5.5, 0.0001);
 
-  double pose_yaw = tf2::getYaw(pose.pose.orientation);
-  EXPECT_NEAR(pose_yaw, 0.25, 0.0001);
+    double pose_yaw = tf2::getYaw(pose.pose.orientation);
+    EXPECT_NEAR(pose_yaw, 0.25, 0.0001);
 
-  // Apply same measurement again
-  pose = filter.update(meas2);
-  EXPECT_NEAR(pose.pose.position.x, 1.75, 0.0001);
-  EXPECT_NEAR(pose.pose.position.y, 3.75, 0.0001);
-  EXPECT_NEAR(pose.pose.position.z, 5.75, 0.0001);
+    // Apply same measurement again
+    pose = filter.update(meas2);
+    EXPECT_NEAR(pose.pose.position.x, 1.75, 0.0001);
+    EXPECT_NEAR(pose.pose.position.y, 3.75, 0.0001);
+    EXPECT_NEAR(pose.pose.position.z, 5.75, 0.0001);
 
-  pose_yaw = tf2::getYaw(pose.pose.orientation);
-  EXPECT_NEAR(pose_yaw, 0.375, 0.0001);
+    pose_yaw = tf2::getYaw(pose.pose.orientation);
+    EXPECT_NEAR(pose_yaw, 0.375, 0.0001);
 
-  // Check timeout
-  meas2.header.stamp = rclcpp::Time(3, 0);
-  pose = filter.update(meas2);
-  EXPECT_NEAR(pose.pose.position.x, 2.0, 0.0001);
-  EXPECT_NEAR(pose.pose.position.y, 4.0, 0.0001);
-  EXPECT_NEAR(pose.pose.position.z, 6.0, 0.0001);
+    // Check timeout
+    meas2.header.stamp = rclcpp::Time(3, 0);
+    pose = filter.update(meas2);
+    EXPECT_NEAR(pose.pose.position.x, 2.0, 0.0001);
+    EXPECT_NEAR(pose.pose.position.y, 4.0, 0.0001);
+    EXPECT_NEAR(pose.pose.position.z, 6.0, 0.0001);
 
-  // Create a non-filtering pose filter
-  PoseFilter no_filter(0.0, 1.0);
-  // Update with the first measurement
-  pose = no_filter.update(meas1);
-  // Check that the pose is the same as the measurement
-  EXPECT_NEAR(pose.pose.position.x, 1.0, 0.0001);
-  EXPECT_NEAR(pose.pose.position.y, 3.0, 0.0001);
-  EXPECT_NEAR(pose.pose.position.z, 5.0, 0.0001);
-  EXPECT_EQ(pose.pose.orientation.w, 1.0);
+    // Create a non-filtering pose filter
+    PoseFilter no_filter(0.0, 1.0);
+    // Update with the first measurement
+    pose = no_filter.update(meas1);
+    // Check that the pose is the same as the measurement
+    EXPECT_NEAR(pose.pose.position.x, 1.0, 0.0001);
+    EXPECT_NEAR(pose.pose.position.y, 3.0, 0.0001);
+    EXPECT_NEAR(pose.pose.position.z, 5.0, 0.0001);
+    EXPECT_EQ(pose.pose.orientation.w, 1.0);
 }
 
-}  // namespace opennav_docking
+} // namespace opennav_docking

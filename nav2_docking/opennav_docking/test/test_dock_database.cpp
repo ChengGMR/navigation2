@@ -12,11 +12,13 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <chrono>
-#include "gtest/gtest.h"
-#include "rclcpp/rclcpp.hpp"
-#include "opennav_docking/dock_database.hpp"
 #include "ament_index_cpp/get_package_share_directory.hpp"
+#include "opennav_docking/dock_database.hpp"
+#include "rclcpp/rclcpp.hpp"
+
+#include "gtest/gtest.h"
+
+#include <chrono>
 
 // These sets of tests are admittedly incomplete without a dummy docking plugin.
 // Integration tests handle coverage more fully than the database lookups and population.
@@ -24,195 +26,159 @@
 
 using namespace std::chrono_literals;
 
-namespace opennav_docking
-{
+namespace opennav_docking {
 
-class DbShim : public opennav_docking::DockDatabase
-{
-public:
-  DbShim()
-  : DockDatabase()
-  {}
+class DbShim : public opennav_docking::DockDatabase {
+   public:
+    DbShim() : DockDatabase() {}
 
-  void populateOne()
-  {
-    Dock dock;
-    dock.type = "first_dock_t";
-    dock_plugins_.insert({"first_dock_t", nullptr});
-    dock_instances_.insert({"first_dock", dock});
-  }
+    void populateOne() {
+        Dock dock;
+        dock.type = "first_dock_t";
+        dock_plugins_.insert({"first_dock_t", nullptr});
+        dock_instances_.insert({"first_dock", dock});
+    }
 
-  void populateTwo()
-  {
-    Dock dock;
-    dock.type = "second_dock_t";
-    dock_plugins_.insert({"second_dock_t", nullptr});
-    dock_instances_.insert({"second_dock", dock});
-  }
+    void populateTwo() {
+        Dock dock;
+        dock.type = "second_dock_t";
+        dock_plugins_.insert({"second_dock_t", nullptr});
+        dock_instances_.insert({"second_dock", dock});
+    }
 };
 
-TEST(DatabaseTests, ObjectLifecycle)
-{
-  auto node = std::make_shared<nav2::LifecycleNode>("test");
-  opennav_docking::DockDatabase db;
-  db.initialize(node, nullptr);
-  db.activate();
-  db.deactivate();
+TEST(DatabaseTests, ObjectLifecycle) {
+    auto node = std::make_shared<nav2::LifecycleNode>("test");
+    opennav_docking::DockDatabase db;
+    db.initialize(node, nullptr);
+    db.activate();
+    db.deactivate();
 
-  EXPECT_EQ(db.plugin_size(), 0u);
-  EXPECT_EQ(db.instance_size(), 0u);
+    EXPECT_EQ(db.plugin_size(), 0u);
+    EXPECT_EQ(db.instance_size(), 0u);
 }
 
-TEST(DatabaseTests, initializeBogusPlugins)
-{
-  auto node = std::make_shared<nav2::LifecycleNode>("test");
-  std::vector<std::string> plugins{"dockv1", "dockv2"};
-  node->declare_parameter("dock_plugins", rclcpp::ParameterValue(plugins));
-  opennav_docking::DockDatabase db;
-  db.initialize(node, nullptr);
+TEST(DatabaseTests, initializeBogusPlugins) {
+    auto node = std::make_shared<nav2::LifecycleNode>("test");
+    std::vector<std::string> plugins{"dockv1", "dockv2"};
+    node->declare_parameter("dock_plugins", rclcpp::ParameterValue(plugins));
+    opennav_docking::DockDatabase db;
+    db.initialize(node, nullptr);
 
-  plugins.clear();
-  node->set_parameter(rclcpp::Parameter("dock_plugins", rclcpp::ParameterValue(plugins)));
-  db.initialize(node, nullptr);
+    plugins.clear();
+    node->set_parameter(rclcpp::Parameter("dock_plugins", rclcpp::ParameterValue(plugins)));
+    db.initialize(node, nullptr);
 }
 
-TEST(DatabaseTests, findTests)
-{
-  auto node = std::make_shared<nav2::LifecycleNode>("test");
-  DbShim db;
-  db.populateOne();
+TEST(DatabaseTests, findTests) {
+    auto node = std::make_shared<nav2::LifecycleNode>("test");
+    DbShim db;
+    db.populateOne();
 
-  db.findDockPlugin("");
-  db.findDockPlugin("first_dock_t");
-  EXPECT_THROW(db.findDock("first_dock"), opennav_docking_core::DockNotValid);
-  EXPECT_THROW(db.findDock("bogus_dock"), opennav_docking_core::DockNotInDB);
+    db.findDockPlugin("");
+    db.findDockPlugin("first_dock_t");
+    EXPECT_THROW(db.findDock("first_dock"), opennav_docking_core::DockNotValid);
+    EXPECT_THROW(db.findDock("bogus_dock"), opennav_docking_core::DockNotInDB);
 
-  db.populateTwo();
-  db.findDockPlugin("");
+    db.populateTwo();
+    db.findDockPlugin("");
 }
 
-TEST(DatabaseTests, getDockInstancesBadConversionFile)
-{
-  auto node = std::make_shared<nav2::LifecycleNode>("test");
-  std::vector<std::string> plugins{"dockv1"};
-  node->declare_parameter("dock_plugins", rclcpp::ParameterValue(plugins));
-  node->declare_parameter(
-    "dockv1.plugin",
-    rclcpp::ParameterValue("opennav_docking::SimpleChargingDock"));
+TEST(DatabaseTests, getDockInstancesBadConversionFile) {
+    auto node = std::make_shared<nav2::LifecycleNode>("test");
+    std::vector<std::string> plugins{"dockv1"};
+    node->declare_parameter("dock_plugins", rclcpp::ParameterValue(plugins));
+    node->declare_parameter("dockv1.plugin", rclcpp::ParameterValue("opennav_docking::SimpleChargingDock"));
 
-  // Set a valid path with a malformed file
-  node->declare_parameter(
-    "dock_database",
-    rclcpp::ParameterValue(
-      ament_index_cpp::get_package_share_directory("opennav_docking") +
-      "/dock_files/test_dock_bad_conversion_file.yaml"));
+    // Set a valid path with a malformed file
+    node->declare_parameter("dock_database", rclcpp::ParameterValue(ament_index_cpp::get_package_share_directory("opennav_docking")
+                                                                    + "/dock_files/test_dock_bad_conversion_file.yaml"));
 
-  opennav_docking::DockDatabase db;
-  db.initialize(node, nullptr);
+    opennav_docking::DockDatabase db;
+    db.initialize(node, nullptr);
 
-  EXPECT_EQ(db.plugin_size(), 1u);
-  EXPECT_EQ(db.instance_size(), 0u);
+    EXPECT_EQ(db.plugin_size(), 1u);
+    EXPECT_EQ(db.instance_size(), 0u);
 }
 
-TEST(DatabaseTests, getDockInstancesWrongPath)
-{
-  auto node = std::make_shared<nav2::LifecycleNode>("test");
-  std::vector<std::string> plugins{"dockv1"};
-  node->declare_parameter("dock_plugins", rclcpp::ParameterValue(plugins));
-  node->declare_parameter(
-    "dockv1.plugin",
-    rclcpp::ParameterValue("opennav_docking::SimpleChargingDock"));
+TEST(DatabaseTests, getDockInstancesWrongPath) {
+    auto node = std::make_shared<nav2::LifecycleNode>("test");
+    std::vector<std::string> plugins{"dockv1"};
+    node->declare_parameter("dock_plugins", rclcpp::ParameterValue(plugins));
+    node->declare_parameter("dockv1.plugin", rclcpp::ParameterValue("opennav_docking::SimpleChargingDock"));
 
-  // Set a wrong path
-  node->declare_parameter("dock_database", rclcpp::ParameterValue("file_does_not_exist.yaml"));
+    // Set a wrong path
+    node->declare_parameter("dock_database", rclcpp::ParameterValue("file_does_not_exist.yaml"));
 
-  opennav_docking::DockDatabase db;
-  db.initialize(node, nullptr);
+    opennav_docking::DockDatabase db;
+    db.initialize(node, nullptr);
 
-  EXPECT_EQ(db.plugin_size(), 1u);
-  EXPECT_EQ(db.instance_size(), 0u);
+    EXPECT_EQ(db.plugin_size(), 1u);
+    EXPECT_EQ(db.instance_size(), 0u);
 }
 
-TEST(DatabaseTests, reloadDbService)
-{
-  auto node = std::make_shared<nav2::LifecycleNode>("test");
-  std::vector<std::string> plugins{"dockv1"};
-  node->declare_parameter("dock_plugins", rclcpp::ParameterValue(plugins));
-  node->declare_parameter(
-    "dockv1.plugin",
-    rclcpp::ParameterValue("opennav_docking::SimpleChargingDock"));
-  opennav_docking::DockDatabase db;
-  db.initialize(node, nullptr);
+TEST(DatabaseTests, reloadDbService) {
+    auto node = std::make_shared<nav2::LifecycleNode>("test");
+    std::vector<std::string> plugins{"dockv1"};
+    node->declare_parameter("dock_plugins", rclcpp::ParameterValue(plugins));
+    node->declare_parameter("dockv1.plugin", rclcpp::ParameterValue("opennav_docking::SimpleChargingDock"));
+    opennav_docking::DockDatabase db;
+    db.initialize(node, nullptr);
 
-  // Call service with a filepath
-  auto client =
-    node->create_client<nav2_msgs::srv::ReloadDockDatabase>("test/reload_database");
+    // Call service with a filepath
+    auto client = node->create_client<nav2_msgs::srv::ReloadDockDatabase>("test/reload_database");
 
-  auto request = std::make_shared<nav2_msgs::srv::ReloadDockDatabase::Request>();
-  request->filepath = ament_index_cpp::get_package_share_directory("opennav_docking") +
-    "/dock_files/test_dock_file.yaml";
-  EXPECT_TRUE(client->wait_for_service(1s));
-  auto result = client->async_call(request);
-  EXPECT_EQ(
-    rclcpp::spin_until_future_complete(node, result, 2s),
-    rclcpp::FutureReturnCode::SUCCESS);
-  EXPECT_TRUE(result.get()->success);
+    auto request = std::make_shared<nav2_msgs::srv::ReloadDockDatabase::Request>();
+    request->filepath = ament_index_cpp::get_package_share_directory("opennav_docking") + "/dock_files/test_dock_file.yaml";
+    EXPECT_TRUE(client->wait_for_service(1s));
+    auto result = client->async_call(request);
+    EXPECT_EQ(rclcpp::spin_until_future_complete(node, result, 2s), rclcpp::FutureReturnCode::SUCCESS);
+    EXPECT_TRUE(result.get()->success);
 
-  // Try again with a bogus file
-  auto request2 = std::make_shared<nav2_msgs::srv::ReloadDockDatabase::Request>();
-  request2->filepath = ament_index_cpp::get_package_share_directory("opennav_docking") +
-    "/file_does_not_exist.yaml";
-  EXPECT_TRUE(client->wait_for_service(1s));
-  auto result2 = client->async_call(request2);
-  EXPECT_EQ(
-    rclcpp::spin_until_future_complete(node, result2, 2s),
-    rclcpp::FutureReturnCode::SUCCESS);
-  EXPECT_FALSE(result2.get()->success);
+    // Try again with a bogus file
+    auto request2 = std::make_shared<nav2_msgs::srv::ReloadDockDatabase::Request>();
+    request2->filepath = ament_index_cpp::get_package_share_directory("opennav_docking") + "/file_does_not_exist.yaml";
+    EXPECT_TRUE(client->wait_for_service(1s));
+    auto result2 = client->async_call(request2);
+    EXPECT_EQ(rclcpp::spin_until_future_complete(node, result2, 2s), rclcpp::FutureReturnCode::SUCCESS);
+    EXPECT_FALSE(result2.get()->success);
 }
 
-TEST(DatabaseTests, reloadDbMutexLocked)
-{
-  auto node = std::make_shared<nav2::LifecycleNode>("test");
-  std::vector<std::string> plugins{"dockv1"};
-  node->declare_parameter("dock_plugins", rclcpp::ParameterValue(plugins));
-  node->declare_parameter(
-    "dockv1.plugin",
-    rclcpp::ParameterValue("opennav_docking::SimpleChargingDock"));
+TEST(DatabaseTests, reloadDbMutexLocked) {
+    auto node = std::make_shared<nav2::LifecycleNode>("test");
+    std::vector<std::string> plugins{"dockv1"};
+    node->declare_parameter("dock_plugins", rclcpp::ParameterValue(plugins));
+    node->declare_parameter("dockv1.plugin", rclcpp::ParameterValue("opennav_docking::SimpleChargingDock"));
 
-  // This mutex is locked when dock / undock is called
-  auto mutex = std::make_shared<std::mutex>();
-  mutex->lock();
-  opennav_docking::DockDatabase db(mutex);
-  db.initialize(node, nullptr);
+    // This mutex is locked when dock / undock is called
+    auto mutex = std::make_shared<std::mutex>();
+    mutex->lock();
+    opennav_docking::DockDatabase db(mutex);
+    db.initialize(node, nullptr);
 
-  // Call service with a filepath
-  auto client =
-    node->create_client<nav2_msgs::srv::ReloadDockDatabase>("test/reload_database");
+    // Call service with a filepath
+    auto client = node->create_client<nav2_msgs::srv::ReloadDockDatabase>("test/reload_database");
 
-  auto request = std::make_shared<nav2_msgs::srv::ReloadDockDatabase::Request>();
-  request->filepath = ament_index_cpp::get_package_share_directory("opennav_docking") +
-    "/dock_files/test_dock_file.yaml";
-  EXPECT_TRUE(client->wait_for_service(1s));
-  auto result = client->async_call(request);
-  EXPECT_EQ(
-    rclcpp::spin_until_future_complete(node, result, 2s),
-    rclcpp::FutureReturnCode::SUCCESS);
-  EXPECT_FALSE(result.get()->success);
+    auto request = std::make_shared<nav2_msgs::srv::ReloadDockDatabase::Request>();
+    request->filepath = ament_index_cpp::get_package_share_directory("opennav_docking") + "/dock_files/test_dock_file.yaml";
+    EXPECT_TRUE(client->wait_for_service(1s));
+    auto result = client->async_call(request);
+    EXPECT_EQ(rclcpp::spin_until_future_complete(node, result, 2s), rclcpp::FutureReturnCode::SUCCESS);
+    EXPECT_FALSE(result.get()->success);
 
-  mutex->unlock();
+    mutex->unlock();
 }
 
-}  // namespace opennav_docking
+} // namespace opennav_docking
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  rclcpp::init(0, nullptr);
+    rclcpp::init(0, nullptr);
 
-  int result = RUN_ALL_TESTS();
+    int result = RUN_ALL_TESTS();
 
-  rclcpp::shutdown();
+    rclcpp::shutdown();
 
-  return result;
+    return result;
 }

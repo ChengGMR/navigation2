@@ -12,17 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
-
 #include "opennav_following/following_server.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-int main(int argc, char ** argv)
-{
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<opennav_following::FollowingServer>();
-  rclcpp::spin(node->get_node_base_interface());
-  rclcpp::shutdown();
+#include <memory>
 
-  return 0;
+int main(int argc, char** argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<opennav_following::FollowingServer>();
+    rclcpp::spin(node->get_node_base_interface());
+    rclcpp::shutdown();
+
+    return 0;
 }

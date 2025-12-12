@@ -15,12 +15,12 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONTROL__NONBLOCKING_SEQUENCE_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONTROL__NONBLOCKING_SEQUENCE_HPP_
 
-#include <string>
-#include "behaviortree_cpp/control_node.h"
 #include "behaviortree_cpp/bt_factory.h"
+#include "behaviortree_cpp/control_node.h"
 
-namespace nav2_behavior_tree
-{
+#include <string>
+
+namespace nav2_behavior_tree {
 
 /** @brief Type of sequence node that keeps tickinng through all the children until all children
  * return SUCCESS
@@ -57,35 +57,34 @@ namespace nav2_behavior_tree
  *
  * Usage in XML: <NonblockingSequence>
  */
-class NonblockingSequence : public BT::ControlNode
-{
-public:
-  /**
-   * @brief A constructor for nav2_behavior_tree::NonblockingSequence
-   * @param name Name for the XML tag for this node
-   */
-  explicit NonblockingSequence(const std::string & name);
+class NonblockingSequence : public BT::ControlNode {
+   public:
+    /**
+     * @brief A constructor for nav2_behavior_tree::NonblockingSequence
+     * @param name Name for the XML tag for this node
+     */
+    explicit NonblockingSequence(const std::string& name);
 
-  /**
-   * @brief A constructor for nav2_behavior_tree::NonblockingSequence
-   * @param name Name for the XML tag for this node
-   * @param config BT node configuration
-   */
-  NonblockingSequence(const std::string & name, const BT::NodeConfiguration & config);
+    /**
+     * @brief A constructor for nav2_behavior_tree::NonblockingSequence
+     * @param name Name for the XML tag for this node
+     * @param config BT node configuration
+     */
+    NonblockingSequence(const std::string& name, const BT::NodeConfiguration& config);
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing basic ports along with node-specific ports
-   */
-  static BT::PortsList providedPorts() {return {};}
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing basic ports along with node-specific ports
+     */
+    static BT::PortsList providedPorts() { return {}; }
 
-protected:
-  /**
-   * @brief The main override required by a BT action
-   * @return BT::NodeStatus Status of tick execution
-   */
-  BT::NodeStatus tick() override;
+   protected:
+    /**
+     * @brief The main override required by a BT action
+     * @return BT::NodeStatus Status of tick execution
+     */
+    BT::NodeStatus tick() override;
 };
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__CONTROL__NONBLOCKING_SEQUENCE_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONTROL__NONBLOCKING_SEQUENCE_HPP_

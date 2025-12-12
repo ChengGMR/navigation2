@@ -15,31 +15,29 @@
 #ifndef DUMMY_CONTROLLER__DUMMY_CONTROLLER_HPP_
 #define DUMMY_CONTROLLER__DUMMY_CONTROLLER_HPP_
 
-#include <memory>
-
 #include "nav2_behavior_tree/follow_path_task.hpp"
+
 #include "geometry_msgs/msg/twist.hpp"
 
-namespace nav2_system_tests
-{
+#include <memory>
 
-class DummyController : public rclcpp::Node
-{
-public:
-  DummyController();
-  ~DummyController();
+namespace nav2_system_tests {
 
-  nav2_behavior_tree::TaskStatus followPath(
-    const nav2_behavior_tree::FollowPathCommand::SharedPtr command);
+class DummyController : public rclcpp::Node {
+   public:
+    DummyController();
+    ~DummyController();
 
-private:
-  void setZeroVelocity();
+    nav2_behavior_tree::TaskStatus followPath(const nav2_behavior_tree::FollowPathCommand::SharedPtr command);
 
-  std::unique_ptr<nav2_behavior_tree::FollowPathTaskServer> task_server_;
+   private:
+    void setZeroVelocity();
 
-  std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::Twist>> vel_pub_;
+    std::unique_ptr<nav2_behavior_tree::FollowPathTaskServer> task_server_;
+
+    std::shared_ptr<rclcpp::Publisher<geometry_msgs::msg::Twist>> vel_pub_;
 };
 
-}  // namespace nav2_system_tests
+} // namespace nav2_system_tests
 
-#endif  // DUMMY_CONTROLLER__DUMMY_CONTROLLER_HPP_
+#endif // DUMMY_CONTROLLER__DUMMY_CONTROLLER_HPP_

@@ -17,123 +17,104 @@
 #ifndef BEHAVIOR_TREE__SERVER_HANDLER_HPP_
 #define BEHAVIOR_TREE__SERVER_HANDLER_HPP_
 
+#include "dummy_action_server.hpp"
+#include "dummy_service.hpp"
+
+#include "nav2_msgs/action/back_up.hpp"
+#include "nav2_msgs/action/compute_path_through_poses.hpp"
+#include "nav2_msgs/action/compute_path_to_pose.hpp"
+#include "nav2_msgs/action/compute_route.hpp"
+#include "nav2_msgs/action/drive_on_heading.hpp"
+#include "nav2_msgs/action/follow_path.hpp"
+#include "nav2_msgs/action/smooth_path.hpp"
+#include "nav2_msgs/action/spin.hpp"
+#include "nav2_msgs/action/wait.hpp"
+#include "nav2_msgs/srv/clear_entire_costmap.hpp"
+#include "rclcpp/rclcpp.hpp"
+
+#include "geometry_msgs/msg/point_stamped.hpp"
+
 #include <memory>
 #include <string>
 #include <thread>
 #include <utility>
 #include <vector>
 
-#include "nav2_msgs/srv/clear_entire_costmap.hpp"
-#include "nav2_msgs/action/compute_path_to_pose.hpp"
-#include "nav2_msgs/action/follow_path.hpp"
-#include "nav2_msgs/action/spin.hpp"
-#include "nav2_msgs/action/back_up.hpp"
-#include "nav2_msgs/action/wait.hpp"
-#include "nav2_msgs/action/drive_on_heading.hpp"
-#include "nav2_msgs/action/compute_path_through_poses.hpp"
-#include "nav2_msgs/action/compute_route.hpp"
-#include "nav2_msgs/action/smooth_path.hpp"
+namespace nav2_system_tests {
 
-#include "geometry_msgs/msg/point_stamped.hpp"
+class DummyComputePathToPoseActionServer : public DummyActionServer<nav2_msgs::action::ComputePathToPose> {
+   public:
+    explicit DummyComputePathToPoseActionServer(const rclcpp::Node::SharedPtr& node) : DummyActionServer(node, "compute_path_to_pose") {
+        geometry_msgs::msg::PoseStamped pose;
+        pose.header.stamp = node->get_clock()->now();
+        pose.header.frame_id = "map";
+        pose.pose.position.x = 0.0;
+        pose.pose.position.y = 0.0;
+        pose.pose.position.z = 0.0;
+        pose.pose.orientation.x = 0.0;
+        pose.pose.orientation.y = 0.0;
+        pose.pose.orientation.z = 0.0;
+        pose.pose.orientation.w = 1.0;
 
-#include "rclcpp/rclcpp.hpp"
-
-#include "dummy_action_server.hpp"
-#include "dummy_service.hpp"
-
-namespace nav2_system_tests
-{
-
-class DummyComputePathToPoseActionServer
-  : public DummyActionServer<nav2_msgs::action::ComputePathToPose>
-{
-public:
-  explicit DummyComputePathToPoseActionServer(const rclcpp::Node::SharedPtr & node)
-  : DummyActionServer(node, "compute_path_to_pose")
-  {
-    geometry_msgs::msg::PoseStamped pose;
-    pose.header.stamp = node->get_clock()->now();
-    pose.header.frame_id = "map";
-    pose.pose.position.x = 0.0;
-    pose.pose.position.y = 0.0;
-    pose.pose.position.z = 0.0;
-    pose.pose.orientation.x = 0.0;
-    pose.pose.orientation.y = 0.0;
-    pose.pose.orientation.z = 0.0;
-    pose.pose.orientation.w = 1.0;
-
-    result_->path.header.stamp = node->now();
-    result_->path.header.frame_id = pose.header.frame_id;
-    for (int i = 0; i < 6; ++i) {
-      result_->path.poses.push_back(pose);
+        result_->path.header.stamp = node->now();
+        result_->path.header.frame_id = pose.header.frame_id;
+        for (int i = 0; i < 6; ++i) {
+            result_->path.poses.push_back(pose);
+        }
     }
-  }
 
-protected:
-  void updateResultForFailure(
-    std::shared_ptr<nav2_msgs::action::ComputePathToPose::Result>
-    & result) override
-  {
-    result->error_code = nav2_msgs::action::ComputePathToPose::Result::TIMEOUT;
-    result->error_msg = "Timeout";
-  }
+   protected:
+    void updateResultForFailure(std::shared_ptr<nav2_msgs::action::ComputePathToPose::Result>& result) override {
+        result->error_code = nav2_msgs::action::ComputePathToPose::Result::TIMEOUT;
+        result->error_msg = "Timeout";
+    }
 };
 
-class DummyFollowPathActionServer : public DummyActionServer<nav2_msgs::action::FollowPath>
-{
-public:
-  explicit DummyFollowPathActionServer(const rclcpp::Node::SharedPtr & node)
-  : DummyActionServer(node, "follow_path") {}
+class DummyFollowPathActionServer : public DummyActionServer<nav2_msgs::action::FollowPath> {
+   public:
+    explicit DummyFollowPathActionServer(const rclcpp::Node::SharedPtr& node) : DummyActionServer(node, "follow_path") {}
 
-protected:
-  void updateResultForFailure(
-    std::shared_ptr<nav2_msgs::action::FollowPath::Result>
-    & result) override
-  {
-    result->error_code = nav2_msgs::action::FollowPath::Result::NO_VALID_CONTROL;
-    result->error_msg = "No valid control";
-  }
+   protected:
+    void updateResultForFailure(std::shared_ptr<nav2_msgs::action::FollowPath::Result>& result) override {
+        result->error_code = nav2_msgs::action::FollowPath::Result::NO_VALID_CONTROL;
+        result->error_msg = "No valid control";
+    }
 };
 
+class ServerHandler {
+   public:
+    ServerHandler();
+    ~ServerHandler();
 
-class ServerHandler
-{
-public:
-  ServerHandler();
-  ~ServerHandler();
+    void activate();
 
-  void activate();
+    void deactivate();
 
-  void deactivate();
+    bool isActive() const { return is_active_; }
 
-  bool isActive() const
-  {
-    return is_active_;
-  }
+    void reset() const;
 
-  void reset() const;
+   public:
+    std::unique_ptr<DummyService<nav2_msgs::srv::ClearEntireCostmap>> clear_local_costmap_server;
+    std::unique_ptr<DummyService<nav2_msgs::srv::ClearEntireCostmap>> clear_global_costmap_server;
+    std::unique_ptr<DummyComputePathToPoseActionServer> compute_path_to_pose_server;
+    std::unique_ptr<DummyFollowPathActionServer> follow_path_server;
+    std::unique_ptr<DummyActionServer<nav2_msgs::action::Spin>> spin_server;
+    std::unique_ptr<DummyActionServer<nav2_msgs::action::Wait>> wait_server;
+    std::unique_ptr<DummyActionServer<nav2_msgs::action::BackUp>> backup_server;
+    std::unique_ptr<DummyActionServer<nav2_msgs::action::ComputeRoute>> compute_route_server;
+    std::unique_ptr<DummyActionServer<nav2_msgs::action::SmoothPath>> smoother_server;
+    std::unique_ptr<DummyActionServer<nav2_msgs::action::DriveOnHeading>> drive_on_heading_server;
+    std::unique_ptr<DummyActionServer<nav2_msgs::action::ComputePathThroughPoses>> ntp_server;
 
-public:
-  std::unique_ptr<DummyService<nav2_msgs::srv::ClearEntireCostmap>> clear_local_costmap_server;
-  std::unique_ptr<DummyService<nav2_msgs::srv::ClearEntireCostmap>> clear_global_costmap_server;
-  std::unique_ptr<DummyComputePathToPoseActionServer> compute_path_to_pose_server;
-  std::unique_ptr<DummyFollowPathActionServer> follow_path_server;
-  std::unique_ptr<DummyActionServer<nav2_msgs::action::Spin>> spin_server;
-  std::unique_ptr<DummyActionServer<nav2_msgs::action::Wait>> wait_server;
-  std::unique_ptr<DummyActionServer<nav2_msgs::action::BackUp>> backup_server;
-  std::unique_ptr<DummyActionServer<nav2_msgs::action::ComputeRoute>> compute_route_server;
-  std::unique_ptr<DummyActionServer<nav2_msgs::action::SmoothPath>> smoother_server;
-  std::unique_ptr<DummyActionServer<nav2_msgs::action::DriveOnHeading>> drive_on_heading_server;
-  std::unique_ptr<DummyActionServer<nav2_msgs::action::ComputePathThroughPoses>> ntp_server;
+   private:
+    void spinThread();
 
-private:
-  void spinThread();
-
-  bool is_active_;
-  rclcpp::Node::SharedPtr node_;
-  std::shared_ptr<std::thread> server_thread_;
+    bool is_active_;
+    rclcpp::Node::SharedPtr node_;
+    std::shared_ptr<std::thread> server_thread_;
 };
 
-}  // namespace nav2_system_tests
+} // namespace nav2_system_tests
 
-#endif  //  BEHAVIOR_TREE__SERVER_HANDLER_HPP_
+#endif //  BEHAVIOR_TREE__SERVER_HANDLER_HPP_

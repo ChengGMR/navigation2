@@ -13,5 +13,6 @@
 // limitations under the License.
 
 #include "nav2_route/plugins/route_operations/trigger_event.hpp"
+
 #include "pluginlib/class_list_macros.hpp"
 PLUGINLIB_EXPORT_CLASS(nav2_route::TriggerEvent, nav2_route::RouteOperation)

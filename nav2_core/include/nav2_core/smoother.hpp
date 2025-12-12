@@ -15,68 +15,61 @@
 #ifndef NAV2_CORE__SMOOTHER_HPP_
 #define NAV2_CORE__SMOOTHER_HPP_
 
+#include "nav2_costmap_2d/costmap_subscriber.hpp"
+#include "nav2_costmap_2d/footprint_subscriber.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav_msgs/msg/path.hpp"
+
+#include "pluginlib/class_loader.hpp"
+#include "tf2_ros/buffer.hpp"
+#include "tf2_ros/transform_listener.hpp"
+
 #include <memory>
 #include <string>
 
-#include "nav2_costmap_2d/costmap_subscriber.hpp"
-#include "nav2_costmap_2d/footprint_subscriber.hpp"
-#include "tf2_ros/buffer.hpp"
-#include "tf2_ros/transform_listener.hpp"
-#include "nav2_ros_common/lifecycle_node.hpp"
-#include "pluginlib/class_loader.hpp"
-#include "nav_msgs/msg/path.hpp"
-
-
-namespace nav2_core
-{
+namespace nav2_core {
 
 /**
  * @class Smoother
  * @brief smoother interface that acts as a virtual base class for all smoother plugins
  */
-class Smoother
-{
-public:
-  using Ptr = std::shared_ptr<nav2_core::Smoother>;
+class Smoother {
+   public:
+    using Ptr = std::shared_ptr<nav2_core::Smoother>;
 
-  /**
-   * @brief Virtual destructor
-   */
-  virtual ~Smoother() {}
+    /**
+     * @brief Virtual destructor
+     */
+    virtual ~Smoother() {}
 
-  virtual void configure(
-    const nav2::LifecycleNode::WeakPtr &,
-    std::string name, std::shared_ptr<tf2_ros::Buffer>,
-    std::shared_ptr<nav2_costmap_2d::CostmapSubscriber>,
-    std::shared_ptr<nav2_costmap_2d::FootprintSubscriber>) = 0;
+    virtual void configure(const nav2::LifecycleNode::WeakPtr&, std::string name, std::shared_ptr<tf2_ros::Buffer>,
+                           std::shared_ptr<nav2_costmap_2d::CostmapSubscriber>, std::shared_ptr<nav2_costmap_2d::FootprintSubscriber>) = 0;
 
-  /**
-   * @brief Method to cleanup resources.
-   */
-  virtual void cleanup() = 0;
+    /**
+     * @brief Method to cleanup resources.
+     */
+    virtual void cleanup() = 0;
 
-  /**
-   * @brief Method to activate smoother and any threads involved in execution.
-   */
-  virtual void activate() = 0;
+    /**
+     * @brief Method to activate smoother and any threads involved in execution.
+     */
+    virtual void activate() = 0;
 
-  /**
-   * @brief Method to deactivate smoother and any threads involved in execution.
-   */
-  virtual void deactivate() = 0;
+    /**
+     * @brief Method to deactivate smoother and any threads involved in execution.
+     */
+    virtual void deactivate() = 0;
 
-  /**
-   * @brief Method to smooth given path
-   *
-   * @param path In-out path to be smoothed
-   * @param max_time Maximum duration smoothing should take
-   * @return If smoothing was completed (true) or interrupted by time limit (false)
-   */
-  virtual bool smooth(
-    nav_msgs::msg::Path & path,
-    const rclcpp::Duration & max_time) = 0;
+    /**
+     * @brief Method to smooth given path
+     *
+     * @param path In-out path to be smoothed
+     * @param max_time Maximum duration smoothing should take
+     * @return If smoothing was completed (true) or interrupted by time limit (false)
+     */
+    virtual bool smooth(nav_msgs::msg::Path& path, const rclcpp::Duration& max_time) = 0;
 };
 
-}  // namespace nav2_core
+} // namespace nav2_core
 
-#endif  // NAV2_CORE__SMOOTHER_HPP_
+#endif // NAV2_CORE__SMOOTHER_HPP_

@@ -12,61 +12,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. Reserved.
 
-#include <memory>
-#include <vector>
-
-#include "gtest/gtest.h"
-#include "rclcpp/rclcpp.hpp"
 #include "nav2_costmap_2d/costmap_2d.hpp"
 #include "nav2_ros_common/lifecycle_node.hpp"
 #include "nav2_smac_planner/costmap_downsampler.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-TEST(CostmapDownsampler, costmap_downsample_test)
-{
-  nav2::LifecycleNode::SharedPtr node = std::make_shared<nav2::LifecycleNode>(
-    "CostmapDownsamplerTest");
-  nav2_smac_planner::CostmapDownsampler downsampler;
+#include "gtest/gtest.h"
 
-  // create basic costmap
-  nav2_costmap_2d::Costmap2D costmapA(10, 10, 0.05, 0.0, 0.0, 0);
-  costmapA.setCost(0, 0, 100);
-  costmapA.setCost(5, 5, 50);
+#include <memory>
+#include <vector>
 
-  // downsample it
-  downsampler.on_configure(node, "map", "unused_topic", &costmapA, 2);
-  nav2_costmap_2d::Costmap2D * downsampledCostmapA = downsampler.downsample(2);
+TEST(CostmapDownsampler, costmap_downsample_test) {
+    nav2::LifecycleNode::SharedPtr node = std::make_shared<nav2::LifecycleNode>("CostmapDownsamplerTest");
+    nav2_smac_planner::CostmapDownsampler downsampler;
 
-  // validate it
-  EXPECT_EQ(downsampledCostmapA->getCost(0, 0), 100);
-  EXPECT_EQ(downsampledCostmapA->getCost(2, 2), 50);
-  EXPECT_EQ(downsampledCostmapA->getSizeInCellsX(), 5u);
-  EXPECT_EQ(downsampledCostmapA->getSizeInCellsY(), 5u);
+    // create basic costmap
+    nav2_costmap_2d::Costmap2D costmapA(10, 10, 0.05, 0.0, 0.0, 0);
+    costmapA.setCost(0, 0, 100);
+    costmapA.setCost(5, 5, 50);
 
-  // give it another costmap of another size
-  nav2_costmap_2d::Costmap2D costmapB(4, 4, 0.10, 0.0, 0.0, 0);
+    // downsample it
+    downsampler.on_configure(node, "map", "unused_topic", &costmapA, 2);
+    nav2_costmap_2d::Costmap2D* downsampledCostmapA = downsampler.downsample(2);
 
-  // downsample it
-  downsampler.on_configure(node, "map", "unused_topic", &costmapB, 4);
-  downsampler.on_activate();
-  nav2_costmap_2d::Costmap2D * downsampledCostmapB = downsampler.downsample(4);
-  downsampler.on_deactivate();
+    // validate it
+    EXPECT_EQ(downsampledCostmapA->getCost(0, 0), 100);
+    EXPECT_EQ(downsampledCostmapA->getCost(2, 2), 50);
+    EXPECT_EQ(downsampledCostmapA->getSizeInCellsX(), 5u);
+    EXPECT_EQ(downsampledCostmapA->getSizeInCellsY(), 5u);
 
-  // validate size
-  EXPECT_EQ(downsampledCostmapB->getSizeInCellsX(), 1u);
-  EXPECT_EQ(downsampledCostmapB->getSizeInCellsY(), 1u);
+    // give it another costmap of another size
+    nav2_costmap_2d::Costmap2D costmapB(4, 4, 0.10, 0.0, 0.0, 0);
 
-  downsampler.resizeCostmap();
+    // downsample it
+    downsampler.on_configure(node, "map", "unused_topic", &costmapB, 4);
+    downsampler.on_activate();
+    nav2_costmap_2d::Costmap2D* downsampledCostmapB = downsampler.downsample(4);
+    downsampler.on_deactivate();
+
+    // validate size
+    EXPECT_EQ(downsampledCostmapB->getSizeInCellsX(), 1u);
+    EXPECT_EQ(downsampledCostmapB->getSizeInCellsY(), 1u);
+
+    downsampler.resizeCostmap();
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  rclcpp::init(0, nullptr);
+    rclcpp::init(0, nullptr);
 
-  int result = RUN_ALL_TESTS();
+    int result = RUN_ALL_TESTS();
 
-  rclcpp::shutdown();
+    rclcpp::shutdown();
 
-  return result;
+    return result;
 }

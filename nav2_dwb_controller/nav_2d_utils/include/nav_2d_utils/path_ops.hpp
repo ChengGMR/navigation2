@@ -37,8 +37,7 @@
 
 #include "nav_msgs/msg/path.hpp"
 
-namespace nav_2d_utils
-{
+namespace nav_2d_utils {
 /**
  * @brief Increase plan resolution to match that of the costmap by adding points linearly between points
  *
@@ -46,9 +45,7 @@ namespace nav_2d_utils
  * @param resolution desired distance between waypoints
  * @return Higher resolution plan
  */
-nav_msgs::msg::Path adjustPlanResolution(
-  const nav_msgs::msg::Path & global_plan_in,
-  double resolution);
-}  // namespace nav_2d_utils
+nav_msgs::msg::Path adjustPlanResolution(const nav_msgs::msg::Path& global_plan_in, double resolution);
+} // namespace nav_2d_utils
 
-#endif  // NAV_2D_UTILS__PATH_OPS_HPP_
+#endif // NAV_2D_UTILS__PATH_OPS_HPP_

@@ -17,30 +17,27 @@
 
 #include <Eigen/Dense>
 
-namespace mppi::models
-{
+namespace mppi::models {
 
 /**
  * @struct mppi::models::Path
  * @brief Path represented as a tensor
  */
-struct Path
-{
-  Eigen::ArrayXf x;
-  Eigen::ArrayXf y;
-  Eigen::ArrayXf yaws;
+struct Path {
+    Eigen::ArrayXf x;
+    Eigen::ArrayXf y;
+    Eigen::ArrayXf yaws;
 
-  /**
-    * @brief Reset path data
-    */
-  void reset(unsigned int size)
-  {
-    x.setZero(size);
-    y.setZero(size);
-    yaws.setZero(size);
-  }
+    /**
+     * @brief Reset path data
+     */
+    void reset(unsigned int size) {
+        x.setZero(size);
+        y.setZero(size);
+        yaws.setZero(size);
+    }
 };
 
-}  // namespace mppi::models
+} // namespace mppi::models
 
-#endif  // NAV2_MPPI_CONTROLLER__MODELS__PATH_HPP_
+#endif // NAV2_MPPI_CONTROLLER__MODELS__PATH_HPP_

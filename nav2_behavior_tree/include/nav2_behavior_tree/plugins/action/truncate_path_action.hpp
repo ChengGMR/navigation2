@@ -16,66 +16,60 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__TRUNCATE_PATH_ACTION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__TRUNCATE_PATH_ACTION_HPP_
 
-#include <memory>
-#include <string>
-
 #include "behaviortree_cpp/action_node.h"
 #include "behaviortree_cpp/json_export.h"
-#include "nav_msgs/msg/path.hpp"
 #include "nav2_behavior_tree/bt_utils.hpp"
 #include "nav2_behavior_tree/json_utils.hpp"
 #include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav_msgs/msg/path.hpp"
 
+#include <memory>
+#include <string>
 
-namespace nav2_behavior_tree
-{
+namespace nav2_behavior_tree {
 
 /**
  * @brief A BT::ActionNodeBase to shorten path by some distance
  */
-class TruncatePath : public BT::ActionNodeBase
-{
-public:
-  /**
-   * @brief A nav2_behavior_tree::TruncatePath constructor
-   * @param xml_tag_name Name for the XML tag for this node
-   * @param conf BT node configuration
-   */
-  TruncatePath(
-    const std::string & xml_tag_name,
-    const BT::NodeConfiguration & conf);
+class TruncatePath : public BT::ActionNodeBase {
+   public:
+    /**
+     * @brief A nav2_behavior_tree::TruncatePath constructor
+     * @param xml_tag_name Name for the XML tag for this node
+     * @param conf BT node configuration
+     */
+    TruncatePath(const std::string& xml_tag_name, const BT::NodeConfiguration& conf);
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing basic ports along with node-specific ports
-   */
-  static BT::PortsList providedPorts()
-  {
-    // Register JSON definitions for the types used in the ports
-    BT::RegisterJsonDefinition<nav_msgs::msg::Path>();
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing basic ports along with node-specific ports
+     */
+    static BT::PortsList providedPorts() {
+        // Register JSON definitions for the types used in the ports
+        BT::RegisterJsonDefinition<nav_msgs::msg::Path>();
 
-    return {
-      BT::InputPort<nav_msgs::msg::Path>("input_path", "Original Path"),
-      BT::OutputPort<nav_msgs::msg::Path>("output_path", "Path truncated to a certain distance"),
-      BT::InputPort<double>("distance", 1.0, "distance"),
-    };
-  }
+        return {
+            BT::InputPort<nav_msgs::msg::Path>("input_path", "Original Path"),
+            BT::OutputPort<nav_msgs::msg::Path>("output_path", "Path truncated to a certain distance"),
+            BT::InputPort<double>("distance", 1.0, "distance"),
+        };
+    }
 
-private:
-  /**
-   * @brief The other (optional) override required by a BT action.
-   */
-  void halt() override {}
+   private:
+    /**
+     * @brief The other (optional) override required by a BT action.
+     */
+    void halt() override {}
 
-  /**
-   * @brief The main override required by a BT action
-   * @return BT::NodeStatus Status of tick execution
-   */
-  BT::NodeStatus tick() override;
+    /**
+     * @brief The main override required by a BT action
+     * @return BT::NodeStatus Status of tick execution
+     */
+    BT::NodeStatus tick() override;
 
-  double distance_;
+    double distance_;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__TRUNCATE_PATH_ACTION_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__TRUNCATE_PATH_ACTION_HPP_

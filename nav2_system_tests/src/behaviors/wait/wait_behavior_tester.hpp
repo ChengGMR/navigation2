@@ -17,75 +17,70 @@
 #ifndef BEHAVIORS__WAIT__WAIT_BEHAVIOR_TESTER_HPP_
 #define BEHAVIORS__WAIT__WAIT_BEHAVIOR_TESTER_HPP_
 
-#include <gtest/gtest.h>
-#include <memory>
-#include <string>
-#include <thread>
-#include <algorithm>
-
+#include "nav2_msgs/action/wait.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav2_ros_common/node_thread.hpp"
+#include "nav2_util/robot_utils.hpp"
 #include "rclcpp/rclcpp.hpp"
 #include "rclcpp_action/rclcpp_action.hpp"
-#include "nav2_msgs/action/wait.hpp"
-#include "nav2_util/robot_utils.hpp"
-#include "nav2_ros_common/node_thread.hpp"
-#include "nav2_ros_common/lifecycle_node.hpp"
+
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/pose_with_covariance_stamped.hpp"
-
 #include "tf2/utils.hpp"
 #include "tf2_ros/buffer.hpp"
 #include "tf2_ros/transform_listener.hpp"
 
-namespace nav2_system_tests
-{
+#include <gtest/gtest.h>
 
-class WaitBehaviorTester
-{
-public:
-  using Wait = nav2_msgs::action::Wait;
-  using GoalHandleWait = rclcpp_action::ClientGoalHandle<Wait>;
+#include <algorithm>
+#include <memory>
+#include <string>
+#include <thread>
 
-  WaitBehaviorTester();
-  ~WaitBehaviorTester();
+namespace nav2_system_tests {
 
-  // Runs a single test with given target yaw
-  bool behaviorTest(
-    float time);
+class WaitBehaviorTester {
+   public:
+    using Wait = nav2_msgs::action::Wait;
+    using GoalHandleWait = rclcpp_action::ClientGoalHandle<Wait>;
 
-  bool behaviorTestCancel(float time);
+    WaitBehaviorTester();
+    ~WaitBehaviorTester();
 
-  void activate();
+    // Runs a single test with given target yaw
+    bool behaviorTest(float time);
 
-  void deactivate();
+    bool behaviorTestCancel(float time);
 
-  bool isActive() const
-  {
-    return is_active_;
-  }
+    void activate();
 
-private:
-  void sendInitialPose();
+    void deactivate();
 
-  void amclPoseCallback(geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr);
+    bool isActive() const { return is_active_; }
 
-  bool is_active_;
-  bool initial_pose_received_;
+   private:
+    void sendInitialPose();
 
-  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
-  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+    void amclPoseCallback(geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr);
 
-  rclcpp::Node::SharedPtr node_;
+    bool is_active_;
+    bool initial_pose_received_;
 
-  // Publisher to publish initial pose
-  rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr publisher_;
+    std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+    std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 
-  // Subscriber for amcl pose
-  nav2::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr subscription_;
+    rclcpp::Node::SharedPtr node_;
 
-  // Action client to call wait action
-  nav2::ActionClient<Wait>::SharedPtr client_ptr_;
+    // Publisher to publish initial pose
+    rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr publisher_;
+
+    // Subscriber for amcl pose
+    nav2::Subscription<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr subscription_;
+
+    // Action client to call wait action
+    nav2::ActionClient<Wait>::SharedPtr client_ptr_;
 };
 
-}  // namespace nav2_system_tests
+} // namespace nav2_system_tests
 
-#endif  // BEHAVIORS__WAIT__WAIT_BEHAVIOR_TESTER_HPP_
+#endif // BEHAVIORS__WAIT__WAIT_BEHAVIOR_TESTER_HPP_

@@ -32,48 +32,48 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vector>
-#include <memory>
-#include <string>
-
-#include "gtest/gtest.h"
-#include "rclcpp/rclcpp.hpp"
 #include "dwb_critics/twirling.hpp"
+
 #include "dwb_core/exceptions.hpp"
+#include "rclcpp/rclcpp.hpp"
+
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
-TEST(TwirlingTests, Scoring)
-{
-  std::shared_ptr<dwb_critics::TwirlingCritic> critic =
-    std::make_shared<dwb_critics::TwirlingCritic>();
+#include "gtest/gtest.h"
 
-  auto node = std::make_shared<nav2::LifecycleNode>("costmap_tester");
+#include <memory>
+#include <string>
+#include <vector>
 
-  auto costmap_ros = std::make_shared<nav2_costmap_2d::Costmap2DROS>("test_global_costmap");
-  costmap_ros->configure();
+TEST(TwirlingTests, Scoring) {
+    std::shared_ptr<dwb_critics::TwirlingCritic> critic = std::make_shared<dwb_critics::TwirlingCritic>();
 
-  std::string name = "name";
-  std::string ns = "ns";
-  critic->initialize(node, name, ns, costmap_ros);
+    auto node = std::make_shared<nav2::LifecycleNode>("costmap_tester");
 
-  dwb_msgs::msg::Trajectory2D traj;
-  traj.velocity.theta = 1.0;
-  EXPECT_EQ(critic->scoreTrajectory(traj), 1.0);
-  traj.velocity.theta = -1.0;
-  EXPECT_EQ(critic->scoreTrajectory(traj), 1.0);
+    auto costmap_ros = std::make_shared<nav2_costmap_2d::Costmap2DROS>("test_global_costmap");
+    costmap_ros->configure();
+
+    std::string name = "name";
+    std::string ns = "ns";
+    critic->initialize(node, name, ns, costmap_ros);
+
+    dwb_msgs::msg::Trajectory2D traj;
+    traj.velocity.theta = 1.0;
+    EXPECT_EQ(critic->scoreTrajectory(traj), 1.0);
+    traj.velocity.theta = -1.0;
+    EXPECT_EQ(critic->scoreTrajectory(traj), 1.0);
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  // initialize ROS
-  rclcpp::init(argc, argv);
+    // initialize ROS
+    rclcpp::init(argc, argv);
 
-  bool all_successful = RUN_ALL_TESTS();
+    bool all_successful = RUN_ALL_TESTS();
 
-  // shutdown ROS
-  rclcpp::shutdown();
+    // shutdown ROS
+    rclcpp::shutdown();
 
-  return all_successful;
+    return all_successful;
 }

@@ -35,24 +35,23 @@
 #ifndef NAV_2D_UTILS__CONVERSIONS_HPP_
 #define NAV_2D_UTILS__CONVERSIONS_HPP_
 
-#include <vector>
-#include <string>
-#include "geometry_msgs/msg/pose.hpp"
-#include "geometry_msgs/msg/twist.hpp"
 #include "nav_2d_msgs/msg/twist2_d.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav_msgs/msg/path.hpp"
 #include "rclcpp/rclcpp.hpp"
+
+#include "geometry_msgs/msg/pose.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/twist.hpp"
 #include "tf2/convert.hpp"
 
-namespace nav_2d_utils
-{
-geometry_msgs::msg::Twist twist2Dto3D(const nav_2d_msgs::msg::Twist2D & cmd_vel_2d);
-nav_2d_msgs::msg::Twist2D twist3Dto2D(const geometry_msgs::msg::Twist & cmd_vel);
-nav_msgs::msg::Path posesToPath(
-  const std::vector<geometry_msgs::msg::Pose> & poses,
-  const std::string & frame, const rclcpp::Time & stamp);
+#include <string>
+#include <vector>
 
-}  // namespace nav_2d_utils
+namespace nav_2d_utils {
+geometry_msgs::msg::Twist twist2Dto3D(const nav_2d_msgs::msg::Twist2D& cmd_vel_2d);
+nav_2d_msgs::msg::Twist2D twist3Dto2D(const geometry_msgs::msg::Twist& cmd_vel);
+nav_msgs::msg::Path posesToPath(const std::vector<geometry_msgs::msg::Pose>& poses, const std::string& frame, const rclcpp::Time& stamp);
 
-#endif  // NAV_2D_UTILS__CONVERSIONS_HPP_
+} // namespace nav_2d_utils
+
+#endif // NAV_2D_UTILS__CONVERSIONS_HPP_

@@ -13,52 +13,46 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "nav2_behavior_tree/plugins/condition/initial_pose_received_condition.hpp"
+#include "utils/test_behavior_tree_fixture.hpp"
+
 #include <gtest/gtest.h>
+
 #include <memory>
 #include <set>
 #include <string>
 
-#include "utils/test_behavior_tree_fixture.hpp"
-#include "nav2_behavior_tree/plugins/condition/initial_pose_received_condition.hpp"
+class InitialPoseReceivedConditionTestFixture : public nav2_behavior_tree::BehaviorTreeTestFixture {
+   public:
+    void SetUp() {
+        config_->input_ports["initial_pose_received"] = false;
+        bt_node_ = std::make_shared<nav2_behavior_tree::InitialPoseReceived>("TestNode", *config_);
+    }
 
-class InitialPoseReceivedConditionTestFixture : public nav2_behavior_tree::BehaviorTreeTestFixture
-{
-public:
-  void SetUp()
-  {
-    config_->input_ports["initial_pose_received"] = false;
-    bt_node_ = std::make_shared<nav2_behavior_tree::InitialPoseReceived>("TestNode", *config_);
-  }
+    void TearDown() { bt_node_.reset(); }
 
-  void TearDown()
-  {
-    bt_node_.reset();
-  }
-
-protected:
-  static std::shared_ptr<BT::TreeNode> bt_node_;
+   protected:
+    static std::shared_ptr<BT::TreeNode> bt_node_;
 };
 
 std::shared_ptr<BT::TreeNode> InitialPoseReceivedConditionTestFixture::bt_node_ = nullptr;
 
-TEST_F(InitialPoseReceivedConditionTestFixture, test_behavior)
-{
-  EXPECT_EQ(bt_node_->executeTick(), BT::NodeStatus::FAILURE);
-  config_->blackboard->set("initial_pose_received", true);
-  EXPECT_EQ(bt_node_->executeTick(), BT::NodeStatus::SUCCESS);
+TEST_F(InitialPoseReceivedConditionTestFixture, test_behavior) {
+    EXPECT_EQ(bt_node_->executeTick(), BT::NodeStatus::FAILURE);
+    config_->blackboard->set("initial_pose_received", true);
+    EXPECT_EQ(bt_node_->executeTick(), BT::NodeStatus::SUCCESS);
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  // initialize ROS
-  rclcpp::init(argc, argv);
+    // initialize ROS
+    rclcpp::init(argc, argv);
 
-  bool all_successful = RUN_ALL_TESTS();
+    bool all_successful = RUN_ALL_TESTS();
 
-  // shutdown ROS
-  rclcpp::shutdown();
+    // shutdown ROS
+    rclcpp::shutdown();
 
-  return all_successful;
+    return all_successful;
 }

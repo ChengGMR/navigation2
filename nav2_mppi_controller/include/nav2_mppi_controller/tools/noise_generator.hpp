@@ -15,104 +15,100 @@
 #ifndef NAV2_MPPI_CONTROLLER__TOOLS__NOISE_GENERATOR_HPP_
 #define NAV2_MPPI_CONTROLLER__TOOLS__NOISE_GENERATOR_HPP_
 
+#include "nav2_mppi_controller/models/control_sequence.hpp"
+#include "nav2_mppi_controller/models/optimizer_settings.hpp"
+#include "nav2_mppi_controller/models/state.hpp"
+#include "nav2_mppi_controller/tools/parameters_handler.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+
 #include <Eigen/Dense>
 
-#include <string>
-#include <memory>
-#include <thread>
-#include <mutex>
 #include <condition_variable>
+#include <memory>
+#include <mutex>
 #include <random>
+#include <string>
+#include <thread>
 
-#include "nav2_ros_common/lifecycle_node.hpp"
-#include "nav2_mppi_controller/models/optimizer_settings.hpp"
-#include "nav2_mppi_controller/tools/parameters_handler.hpp"
-#include "nav2_mppi_controller/models/control_sequence.hpp"
-#include "nav2_mppi_controller/models/state.hpp"
-
-namespace mppi
-{
+namespace mppi {
 
 /**
  * @class mppi::NoiseGenerator
  * @brief Generates noise trajectories from optimal trajectory
  */
-class NoiseGenerator
-{
-public:
-  /**
-    * @brief Constructor for mppi::NoiseGenerator
-    */
-  NoiseGenerator() = default;
+class NoiseGenerator {
+   public:
+    /**
+     * @brief Constructor for mppi::NoiseGenerator
+     */
+    NoiseGenerator() = default;
 
-  /**
-   * @brief Initialize noise generator with settings and model types
-   * @param settings Settings of controller
-   * @param is_holonomic If base is holonomic
-   * @param name Namespace for configs
-   * @param param_handler Get parameters util
-   */
-  void initialize(
-    mppi::models::OptimizerSettings & settings,
-    bool is_holonomic, const std::string & name, ParametersHandler * param_handler);
+    /**
+     * @brief Initialize noise generator with settings and model types
+     * @param settings Settings of controller
+     * @param is_holonomic If base is holonomic
+     * @param name Namespace for configs
+     * @param param_handler Get parameters util
+     */
+    void initialize(mppi::models::OptimizerSettings& settings, bool is_holonomic, const std::string& name, ParametersHandler* param_handler);
 
-  /**
-   * @brief Shutdown noise generator thread
-   */
-  void shutdown();
+    /**
+     * @brief Shutdown noise generator thread
+     */
+    void shutdown();
 
-  /**
-   * @brief Signal to the noise thread the controller is ready to generate a new
-   * noised control for the next iteration
-   */
-  void generateNextNoises();
+    /**
+     * @brief Signal to the noise thread the controller is ready to generate a new
+     * noised control for the next iteration
+     */
+    void generateNextNoises();
 
-  /**
-   * @brief set noised control_sequence to state controls
-   * @return noises vx, vy, wz
-   */
-  void setNoisedControls(models::State & state, const models::ControlSequence & control_sequence);
+    /**
+     * @brief set noised control_sequence to state controls
+     * @return noises vx, vy, wz
+     */
+    void setNoisedControls(models::State& state, const models::ControlSequence& control_sequence);
 
-  /**
-   * @brief Reset noise generator with settings and model types
-   * @param settings Settings of controller
-   * @param is_holonomic If base is holonomic
-   */
-  void reset(mppi::models::OptimizerSettings & settings, bool is_holonomic);
+    /**
+     * @brief Reset noise generator with settings and model types
+     * @param settings Settings of controller
+     * @param is_holonomic If base is holonomic
+     */
+    void reset(mppi::models::OptimizerSettings& settings, bool is_holonomic);
 
-protected:
-  /**
-   * @brief Thread to execute noise generation process
-   */
-  void noiseThread();
+   protected:
+    /**
+     * @brief Thread to execute noise generation process
+     */
+    void noiseThread();
 
-  /**
-   * @brief Generate random controls by gaussian noise with mean in
-   * control_sequence_
-   *
-   * @return tensor of shape [ batch_size_, time_steps_, 2]
-   * where 2 stands for v, w
-   */
-  void generateNoisedControls();
+    /**
+     * @brief Generate random controls by gaussian noise with mean in
+     * control_sequence_
+     *
+     * @return tensor of shape [ batch_size_, time_steps_, 2]
+     * where 2 stands for v, w
+     */
+    void generateNoisedControls();
 
-  Eigen::ArrayXXf noises_vx_;
-  Eigen::ArrayXXf noises_vy_;
-  Eigen::ArrayXXf noises_wz_;
+    Eigen::ArrayXXf noises_vx_;
+    Eigen::ArrayXXf noises_vy_;
+    Eigen::ArrayXXf noises_wz_;
 
-  std::default_random_engine generator_;
-  std::normal_distribution<float> ndistribution_vx_;
-  std::normal_distribution<float> ndistribution_wz_;
-  std::normal_distribution<float> ndistribution_vy_;
+    std::default_random_engine generator_;
+    std::normal_distribution<float> ndistribution_vx_;
+    std::normal_distribution<float> ndistribution_wz_;
+    std::normal_distribution<float> ndistribution_vy_;
 
-  mppi::models::OptimizerSettings settings_;
-  bool is_holonomic_;
+    mppi::models::OptimizerSettings settings_;
+    bool is_holonomic_;
 
-  std::thread noise_thread_;
-  std::condition_variable noise_cond_;
-  std::mutex noise_lock_;
-  bool active_{false}, ready_{false}, regenerate_noises_{false};
+    std::thread noise_thread_;
+    std::condition_variable noise_cond_;
+    std::mutex noise_lock_;
+    bool active_{false}, ready_{false}, regenerate_noises_{false};
 };
 
-}  // namespace mppi
+} // namespace mppi
 
-#endif  // NAV2_MPPI_CONTROLLER__TOOLS__NOISE_GENERATOR_HPP_
+#endif // NAV2_MPPI_CONTROLLER__TOOLS__NOISE_GENERATOR_HPP_

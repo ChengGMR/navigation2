@@ -18,8 +18,7 @@
 #include <string>
 #include <vector>
 
-namespace nav2_util
-{
+namespace nav2_util {
 
 typedef std::vector<std::string> Tokens;
 
@@ -29,9 +28,9 @@ typedef std::vector<std::string> Tokens;
  * @param in String to split
  * @param Delimiter criteria
  * @return Tokens
-*/
-Tokens split(const std::string & tokenstring, char delimiter);
+ */
+Tokens split(const std::string& tokenstring, char delimiter);
 
-}  // namespace nav2_util
+} // namespace nav2_util
 
-#endif  // NAV2_UTIL__STRING_UTILS_HPP_
+#endif // NAV2_UTIL__STRING_UTILS_HPP_

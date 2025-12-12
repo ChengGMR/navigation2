@@ -15,65 +15,57 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__PATH_EXPIRING_TIMER_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__PATH_EXPIRING_TIMER_CONDITION_HPP_
 
-#include <string>
-
-#include "nav2_ros_common/lifecycle_node.hpp"
 #include "behaviortree_cpp/condition_node.h"
 #include "behaviortree_cpp/json_export.h"
-#include "nav_msgs/msg/path.hpp"
 #include "nav2_behavior_tree/bt_utils.hpp"
 #include "nav2_behavior_tree/json_utils.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav_msgs/msg/path.hpp"
 
-namespace nav2_behavior_tree
-{
+#include <string>
+
+namespace nav2_behavior_tree {
 
 /**
  * @brief A BT::ConditionNode that returns SUCCESS every time a specified
  * time period passes and FAILURE otherwise
  */
-class PathExpiringTimerCondition : public BT::ConditionNode
-{
-public:
-  /**
-   * @brief A constructor for nav2_behavior_tree::PathExpiringTimerCondition
-   * @param condition_name Name for the XML tag for this node
-   * @param conf BT node configuration
-   */
-  PathExpiringTimerCondition(
-    const std::string & condition_name,
-    const BT::NodeConfiguration & conf);
+class PathExpiringTimerCondition : public BT::ConditionNode {
+   public:
+    /**
+     * @brief A constructor for nav2_behavior_tree::PathExpiringTimerCondition
+     * @param condition_name Name for the XML tag for this node
+     * @param conf BT node configuration
+     */
+    PathExpiringTimerCondition(const std::string& condition_name, const BT::NodeConfiguration& conf);
 
-  PathExpiringTimerCondition() = delete;
+    PathExpiringTimerCondition() = delete;
 
-  /**
-   * @brief The main override required by a BT action
-   * @return BT::NodeStatus Status of tick execution
-   */
-  BT::NodeStatus tick() override;
+    /**
+     * @brief The main override required by a BT action
+     * @return BT::NodeStatus Status of tick execution
+     */
+    BT::NodeStatus tick() override;
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing node-specific ports
-   */
-  static BT::PortsList providedPorts()
-  {
-    // Register JSON definitions for the types used in the ports
-    BT::RegisterJsonDefinition<nav_msgs::msg::Path>();
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing node-specific ports
+     */
+    static BT::PortsList providedPorts() {
+        // Register JSON definitions for the types used in the ports
+        BT::RegisterJsonDefinition<nav_msgs::msg::Path>();
 
-    return {
-      BT::InputPort<double>("seconds", 1.0, "Seconds"),
-      BT::InputPort<nav_msgs::msg::Path>("path")
-    };
-  }
+        return {BT::InputPort<double>("seconds", 1.0, "Seconds"), BT::InputPort<nav_msgs::msg::Path>("path")};
+    }
 
-private:
-  nav2::LifecycleNode::SharedPtr node_;
-  rclcpp::Time start_;
-  nav_msgs::msg::Path prev_path_;
-  double period_;
-  bool first_time_;
+   private:
+    nav2::LifecycleNode::SharedPtr node_;
+    rclcpp::Time start_;
+    nav_msgs::msg::Path prev_path_;
+    double period_;
+    bool first_time_;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__PATH_EXPIRING_TIMER_CONDITION_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__PATH_EXPIRING_TIMER_CONDITION_HPP_

@@ -40,8 +40,7 @@
 
 /** Provides constants used in costmap filters */
 
-namespace nav2_costmap_2d
-{
+namespace nav2_costmap_2d {
 
 /** Types of costmap filter */
 static constexpr uint8_t KEEPOUT_FILTER = 0;
@@ -58,6 +57,6 @@ static constexpr int8_t SPEED_MASK_UNKNOWN = -1;
 static constexpr int8_t SPEED_MASK_NO_LIMIT = 0;
 static constexpr double NO_SPEED_LIMIT = 0.0;
 
-}  // namespace nav2_costmap_2d
+} // namespace nav2_costmap_2d
 
-#endif  // NAV2_COSTMAP_2D__COSTMAP_FILTERS__FILTER_VALUES_HPP_
+#endif // NAV2_COSTMAP_2D__COSTMAP_FILTERS__FILTER_VALUES_HPP_

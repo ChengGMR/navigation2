@@ -12,13 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. Reserved.
 
-#include <gtest/gtest.h>
-#include <memory>
-#include <vector>
-#include <iostream>
+#include "planner_tester.hpp"
 
 #include "rclcpp/rclcpp.hpp"
-#include "planner_tester.hpp"
+
+#include <gtest/gtest.h>
+
+#include <iostream>
+#include <memory>
+#include <vector>
 
 using namespace std::chrono_literals;
 
@@ -28,35 +30,33 @@ using nav2_util::TestCostmap;
 using ComputePathToPoseCommand = geometry_msgs::msg::PoseStamped;
 using ComputePathToPoseResult = nav_msgs::msg::Path;
 
-TEST(testWithHundredRandomEndPoints, testWithHundredRandomEndPoints)
-{
-  auto obj = std::make_shared<PlannerTester>();
-  obj->activate();
-  obj->loadDefaultMap();
+TEST(testWithHundredRandomEndPoints, testWithHundredRandomEndPoints) {
+    auto obj = std::make_shared<PlannerTester>();
+    obj->activate();
+    obj->loadDefaultMap();
 
-  bool success = false;
-  int num_tries = 3;
-  for (int i = 0; i != num_tries; i++) {
-    success = success || obj->defaultPlannerRandomTests(100, 0.1);
-    if (success) {
-      break;
+    bool success = false;
+    int num_tries = 3;
+    for (int i = 0; i != num_tries; i++) {
+        success = success || obj->defaultPlannerRandomTests(100, 0.1);
+        if (success) {
+            break;
+        }
     }
-  }
 
-  EXPECT_EQ(true, success);
+    EXPECT_EQ(true, success);
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  // initialize ROS
-  rclcpp::init(argc, argv);
+    // initialize ROS
+    rclcpp::init(argc, argv);
 
-  bool all_successful = RUN_ALL_TESTS();
+    bool all_successful = RUN_ALL_TESTS();
 
-  // shutdown ROS
-  rclcpp::shutdown();
+    // shutdown ROS
+    rclcpp::shutdown();
 
-  return all_successful;
+    return all_successful;
 }

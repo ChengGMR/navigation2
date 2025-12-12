@@ -16,18 +16,16 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__CONTROLLER_SELECTOR_NODE_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__CONTROLLER_SELECTOR_NODE_HPP_
 
-#include <memory>
-#include <string>
-#include <chrono>
+#include "behaviortree_cpp/action_node.h"
+#include "nav2_ros_common/lifecycle_node.hpp"
 
 #include "std_msgs/msg/string.hpp"
 
-#include "behaviortree_cpp/action_node.h"
+#include <chrono>
+#include <memory>
+#include <string>
 
-#include "nav2_ros_common/lifecycle_node.hpp"
-
-namespace nav2_behavior_tree
-{
+namespace nav2_behavior_tree {
 
 /**
  * @brief The ControllerSelector behavior is used to switch the controller
@@ -37,75 +35,63 @@ namespace nav2_behavior_tree
  * input port of the FollowPath
  * @note It will re-initialize when halted.
  */
-class ControllerSelector : public BT::SyncActionNode
-{
-public:
-  /**
-   * @brief A constructor for nav2_behavior_tree::ControllerSelector
-   *
-   * @param xml_tag_name Name for the XML tag for this node
-   * @param conf  BT node configuration
-   */
-  ControllerSelector(
-    const std::string & xml_tag_name,
-    const BT::NodeConfiguration & conf);
+class ControllerSelector : public BT::SyncActionNode {
+   public:
+    /**
+     * @brief A constructor for nav2_behavior_tree::ControllerSelector
+     *
+     * @param xml_tag_name Name for the XML tag for this node
+     * @param conf  BT node configuration
+     */
+    ControllerSelector(const std::string& xml_tag_name, const BT::NodeConfiguration& conf);
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing basic ports along with node-specific ports
-   */
-  static BT::PortsList providedPorts()
-  {
-    return {
-      BT::InputPort<std::string>(
-        "default_controller",
-        "the default controller to use if there is not any external topic message received."),
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing basic ports along with node-specific ports
+     */
+    static BT::PortsList providedPorts() {
+        return {
+            BT::InputPort<std::string>("default_controller", "the default controller to use if there is not any external topic message received."),
 
-      BT::InputPort<std::string>(
-        "topic_name",
-        "controller_selector",
-        "the input topic name to select the controller"),
+            BT::InputPort<std::string>("topic_name", "controller_selector", "the input topic name to select the controller"),
 
-      BT::OutputPort<std::string>(
-        "selected_controller",
-        "Selected controller by subscription")
-    };
-  }
+            BT::OutputPort<std::string>("selected_controller", "Selected controller by subscription")};
+    }
 
-private:
-  /**
-   * @brief Function to read parameters and initialize class variables
-   */
-  void initialize();
-  /**
-   * @brief Function to create ROS interfaces
-   */
-  void createROSInterfaces();
+   private:
+    /**
+     * @brief Function to read parameters and initialize class variables
+     */
+    void initialize();
+    /**
+     * @brief Function to create ROS interfaces
+     */
+    void createROSInterfaces();
 
-  /**
-   * @brief Function to perform some user-defined operation on tick
-   */
-  BT::NodeStatus tick() override;
+    /**
+     * @brief Function to perform some user-defined operation on tick
+     */
+    BT::NodeStatus tick() override;
 
-  /**
-   * @brief callback function for the controller_selector topic
-   *
-   * @param msg the message with the id of the controller_selector
-   */
-  void callbackControllerSelect(const std_msgs::msg::String::SharedPtr msg);
+    /**
+     * @brief callback function for the controller_selector topic
+     *
+     * @param msg the message with the id of the controller_selector
+     */
+    void callbackControllerSelect(const std_msgs::msg::String::SharedPtr msg);
 
-  nav2::Subscription<std_msgs::msg::String>::SharedPtr controller_selector_sub_;
+    nav2::Subscription<std_msgs::msg::String>::SharedPtr controller_selector_sub_;
 
-  std::string last_selected_controller_;
+    std::string last_selected_controller_;
 
-  nav2::LifecycleNode::SharedPtr node_;
-  rclcpp::CallbackGroup::SharedPtr callback_group_;
-  rclcpp::executors::SingleThreadedExecutor callback_group_executor_;
+    nav2::LifecycleNode::SharedPtr node_;
+    rclcpp::CallbackGroup::SharedPtr callback_group_;
+    rclcpp::executors::SingleThreadedExecutor callback_group_executor_;
 
-  std::string topic_name_;
-  std::chrono::milliseconds bt_loop_duration_;
+    std::string topic_name_;
+    std::chrono::milliseconds bt_loop_duration_;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__CONTROLLER_SELECTOR_NODE_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__CONTROLLER_SELECTOR_NODE_HPP_

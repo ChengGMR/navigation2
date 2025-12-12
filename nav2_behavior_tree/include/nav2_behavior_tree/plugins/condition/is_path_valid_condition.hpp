@@ -15,81 +15,71 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__IS_PATH_VALID_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__IS_PATH_VALID_CONDITION_HPP_
 
-#include <string>
-#include <memory>
-
-#include "nav2_ros_common/lifecycle_node.hpp"
 #include "behaviortree_cpp/condition_node.h"
 #include "behaviortree_cpp/json_export.h"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "nav2_msgs/srv/is_path_valid.hpp"
-#include "nav2_ros_common/service_client.hpp"
 #include "nav2_behavior_tree/bt_utils.hpp"
 #include "nav2_behavior_tree/json_utils.hpp"
+#include "nav2_msgs/srv/is_path_valid.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav2_ros_common/service_client.hpp"
 
+#include "geometry_msgs/msg/pose_stamped.hpp"
 
-namespace nav2_behavior_tree
-{
+#include <memory>
+#include <string>
+
+namespace nav2_behavior_tree {
 
 /**
  * @brief A BT::ConditionNode that returns SUCCESS when the IsPathValid
  * service returns true and FAILURE otherwise
  */
-class IsPathValidCondition : public BT::ConditionNode
-{
-public:
-  /**
-   * @brief A constructor for nav2_behavior_tree::IsPathValidCondition
-   * @param condition_name Name for the XML tag for this node
-   * @param conf BT node configuration
-   */
-  IsPathValidCondition(
-    const std::string & condition_name,
-    const BT::NodeConfiguration & conf);
+class IsPathValidCondition : public BT::ConditionNode {
+   public:
+    /**
+     * @brief A constructor for nav2_behavior_tree::IsPathValidCondition
+     * @param condition_name Name for the XML tag for this node
+     * @param conf BT node configuration
+     */
+    IsPathValidCondition(const std::string& condition_name, const BT::NodeConfiguration& conf);
 
-  IsPathValidCondition() = delete;
+    IsPathValidCondition() = delete;
 
-  /**
-   * @brief The main override required by a BT action
-   * @return BT::NodeStatus Status of tick execution
-   */
-  BT::NodeStatus tick() override;
+    /**
+     * @brief The main override required by a BT action
+     * @return BT::NodeStatus Status of tick execution
+     */
+    BT::NodeStatus tick() override;
 
-  /**
-   * @brief Function to read parameters and initialize class variables
-   */
-  void initialize();
+    /**
+     * @brief Function to read parameters and initialize class variables
+     */
+    void initialize();
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing node-specific ports
-   */
-  static BT::PortsList providedPorts()
-  {
-    // Register JSON definitions for the types used in the ports
-    BT::RegisterJsonDefinition<nav_msgs::msg::Path>();
-    BT::RegisterJsonDefinition<std::chrono::milliseconds>();
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing node-specific ports
+     */
+    static BT::PortsList providedPorts() {
+        // Register JSON definitions for the types used in the ports
+        BT::RegisterJsonDefinition<nav_msgs::msg::Path>();
+        BT::RegisterJsonDefinition<std::chrono::milliseconds>();
 
-    return {
-      BT::InputPort<nav_msgs::msg::Path>("path", "Path to Check"),
-      BT::InputPort<std::chrono::milliseconds>("server_timeout"),
-      BT::InputPort<unsigned int>("max_cost", 253, "Maximum cost of the path"),
-      BT::InputPort<bool>(
-        "consider_unknown_as_obstacle", false,
-        "Whether to consider unknown cost as obstacle")
-    };
-  }
+        return {BT::InputPort<nav_msgs::msg::Path>("path", "Path to Check"), BT::InputPort<std::chrono::milliseconds>("server_timeout"),
+                BT::InputPort<unsigned int>("max_cost", 253, "Maximum cost of the path"),
+                BT::InputPort<bool>("consider_unknown_as_obstacle", false, "Whether to consider unknown cost as obstacle")};
+    }
 
-private:
-  nav2::LifecycleNode::SharedPtr node_;
-  nav2::ServiceClient<nav2_msgs::srv::IsPathValid>::SharedPtr client_;
-  // The timeout value while waiting for a response from the
-  // is path valid service
-  std::chrono::milliseconds server_timeout_;
-  unsigned int max_cost_;
-  bool consider_unknown_as_obstacle_;
+   private:
+    nav2::LifecycleNode::SharedPtr node_;
+    nav2::ServiceClient<nav2_msgs::srv::IsPathValid>::SharedPtr client_;
+    // The timeout value while waiting for a response from the
+    // is path valid service
+    std::chrono::milliseconds server_timeout_;
+    unsigned int max_cost_;
+    bool consider_unknown_as_obstacle_;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__IS_PATH_VALID_CONDITION_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__IS_PATH_VALID_CONDITION_HPP_

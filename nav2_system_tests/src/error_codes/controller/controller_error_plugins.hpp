@@ -15,100 +15,73 @@
 #ifndef ERROR_CODES__CONTROLLER__CONTROLLER_ERROR_PLUGINS_HPP_
 #define ERROR_CODES__CONTROLLER__CONTROLLER_ERROR_PLUGINS_HPP_
 
-#include <memory>
-#include <string>
-
 #include "nav2_core/controller.hpp"
 #include "nav2_core/controller_exceptions.hpp"
 
-namespace nav2_system_tests
-{
+#include <memory>
+#include <string>
 
-class UnknownErrorController : public nav2_core::Controller
-{
-public:
-  UnknownErrorController() = default;
-  ~UnknownErrorController() = default;
+namespace nav2_system_tests {
 
-  void configure(
-    const nav2::LifecycleNode::WeakPtr &,
-    std::string, std::shared_ptr<tf2_ros::Buffer>,
-    std::shared_ptr<nav2_costmap_2d::Costmap2DROS>) override {}
+class UnknownErrorController : public nav2_core::Controller {
+   public:
+    UnknownErrorController() = default;
+    ~UnknownErrorController() = default;
 
-  void cleanup() {}
+    void configure(const nav2::LifecycleNode::WeakPtr&, std::string, std::shared_ptr<tf2_ros::Buffer>,
+                   std::shared_ptr<nav2_costmap_2d::Costmap2DROS>) override {}
 
-  void activate() {}
+    void cleanup() {}
 
-  void deactivate() {}
+    void activate() {}
 
-  void setPlan(const nav_msgs::msg::Path &) {}
+    void deactivate() {}
 
-  virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(
-    const geometry_msgs::msg::PoseStamped &,
-    const geometry_msgs::msg::Twist &,
-    nav2_core::GoalChecker *)
-  {
-    throw nav2_core::ControllerException("Unknown Error");
-  }
+    void setPlan(const nav_msgs::msg::Path&) {}
 
-  void setSpeedLimit(const double &, const bool &) {}
+    virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(const geometry_msgs::msg::PoseStamped&, const geometry_msgs::msg::Twist&,
+                                                                     nav2_core::GoalChecker*) {
+        throw nav2_core::ControllerException("Unknown Error");
+    }
+
+    void setSpeedLimit(const double&, const bool&) {}
 };
 
-class TFErrorController : public UnknownErrorController
-{
-  virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(
-    const geometry_msgs::msg::PoseStamped &,
-    const geometry_msgs::msg::Twist &,
-    nav2_core::GoalChecker *)
-  {
-    throw nav2_core::ControllerTFError("TF error");
-  }
+class TFErrorController : public UnknownErrorController {
+    virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(const geometry_msgs::msg::PoseStamped&, const geometry_msgs::msg::Twist&,
+                                                                     nav2_core::GoalChecker*) {
+        throw nav2_core::ControllerTFError("TF error");
+    }
 };
 
-class FailedToMakeProgressErrorController : public UnknownErrorController
-{
-  virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(
-    const geometry_msgs::msg::PoseStamped &,
-    const geometry_msgs::msg::Twist &,
-    nav2_core::GoalChecker *)
-  {
-    throw nav2_core::FailedToMakeProgress("Failed to make progress");
-  }
+class FailedToMakeProgressErrorController : public UnknownErrorController {
+    virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(const geometry_msgs::msg::PoseStamped&, const geometry_msgs::msg::Twist&,
+                                                                     nav2_core::GoalChecker*) {
+        throw nav2_core::FailedToMakeProgress("Failed to make progress");
+    }
 };
 
-class PatienceExceededErrorController : public UnknownErrorController
-{
-  virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(
-    const geometry_msgs::msg::PoseStamped &,
-    const geometry_msgs::msg::Twist &,
-    nav2_core::GoalChecker *)
-  {
-    throw nav2_core::PatienceExceeded("Patience exceeded");
-  }
+class PatienceExceededErrorController : public UnknownErrorController {
+    virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(const geometry_msgs::msg::PoseStamped&, const geometry_msgs::msg::Twist&,
+                                                                     nav2_core::GoalChecker*) {
+        throw nav2_core::PatienceExceeded("Patience exceeded");
+    }
 };
 
-class InvalidPathErrorController : public UnknownErrorController
-{
-  virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(
-    const geometry_msgs::msg::PoseStamped &,
-    const geometry_msgs::msg::Twist &,
-    nav2_core::GoalChecker *)
-  {
-    throw nav2_core::InvalidPath("Invalid path");
-  }
+class InvalidPathErrorController : public UnknownErrorController {
+    virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(const geometry_msgs::msg::PoseStamped&, const geometry_msgs::msg::Twist&,
+                                                                     nav2_core::GoalChecker*) {
+        throw nav2_core::InvalidPath("Invalid path");
+    }
 };
 
-class NoValidControlErrorController : public UnknownErrorController
-{
-  virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(
-    const geometry_msgs::msg::PoseStamped &,
-    const geometry_msgs::msg::Twist &,
-    nav2_core::GoalChecker *)
-  {
-    throw nav2_core::NoValidControl("No valid control");
-  }
+class NoValidControlErrorController : public UnknownErrorController {
+    virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(const geometry_msgs::msg::PoseStamped&, const geometry_msgs::msg::Twist&,
+                                                                     nav2_core::GoalChecker*) {
+        throw nav2_core::NoValidControl("No valid control");
+    }
 };
 
-}  // namespace nav2_system_tests
+} // namespace nav2_system_tests
 
-#endif  // ERROR_CODES__CONTROLLER__CONTROLLER_ERROR_PLUGINS_HPP_
+#endif // ERROR_CODES__CONTROLLER__CONTROLLER_ERROR_PLUGINS_HPP_

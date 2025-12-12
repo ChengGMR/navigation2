@@ -15,19 +15,19 @@
 #ifndef NAV2_ROS_COMMON__ACTION_CLIENT_HPP_
 #define NAV2_ROS_COMMON__ACTION_CLIENT_HPP_
 
-#include <memory>
 #include "rclcpp_action/rclcpp_action.hpp"
 
-namespace nav2
-{
+#include <memory>
+
+namespace nav2 {
 /**
-  * @brief A ROS 2 action client for Nav2
-  * This is a convenience type alias to simplify the use of action clients in Nav2
-  * which may be further built up on in the future with custom APIs.
-  */
-template<typename ActionT>
+ * @brief A ROS 2 action client for Nav2
+ * This is a convenience type alias to simplify the use of action clients in Nav2
+ * which may be further built up on in the future with custom APIs.
+ */
+template <typename ActionT>
 using ActionClient = rclcpp_action::Client<ActionT>;
 
-}  // namespace nav2
+} // namespace nav2
 
-#endif  // NAV2_ROS_COMMON__ACTION_CLIENT_HPP_
+#endif // NAV2_ROS_COMMON__ACTION_CLIENT_HPP_

@@ -15,47 +15,43 @@
 #ifndef NAV2_MPPI_CONTROLLER__MODELS__STATE_HPP_
 #define NAV2_MPPI_CONTROLLER__MODELS__STATE_HPP_
 
-#include <Eigen/Dense>
-
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/twist.hpp>
 
+#include <Eigen/Dense>
 
-namespace mppi::models
-{
+namespace mppi::models {
 
 /**
  * @struct mppi::models::State
  * @brief State information: velocities, controls, poses, speed
  */
-struct State
-{
-  Eigen::ArrayXXf vx;
-  Eigen::ArrayXXf vy;
-  Eigen::ArrayXXf wz;
+struct State {
+    Eigen::ArrayXXf vx;
+    Eigen::ArrayXXf vy;
+    Eigen::ArrayXXf wz;
 
-  Eigen::ArrayXXf cvx;
-  Eigen::ArrayXXf cvy;
-  Eigen::ArrayXXf cwz;
+    Eigen::ArrayXXf cvx;
+    Eigen::ArrayXXf cvy;
+    Eigen::ArrayXXf cwz;
 
-  geometry_msgs::msg::PoseStamped pose;
-  geometry_msgs::msg::Twist speed;
-  float local_path_length;
+    geometry_msgs::msg::PoseStamped pose;
+    geometry_msgs::msg::Twist speed;
+    float local_path_length;
 
-  /**
-    * @brief Reset state data
-    */
-  void reset(unsigned int batch_size, unsigned int time_steps)
-  {
-    vx.setZero(batch_size, time_steps);
-    vy.setZero(batch_size, time_steps);
-    wz.setZero(batch_size, time_steps);
+    /**
+     * @brief Reset state data
+     */
+    void reset(unsigned int batch_size, unsigned int time_steps) {
+        vx.setZero(batch_size, time_steps);
+        vy.setZero(batch_size, time_steps);
+        wz.setZero(batch_size, time_steps);
 
-    cvx.setZero(batch_size, time_steps);
-    cvy.setZero(batch_size, time_steps);
-    cwz.setZero(batch_size, time_steps);
-  }
+        cvx.setZero(batch_size, time_steps);
+        cvy.setZero(batch_size, time_steps);
+        cwz.setZero(batch_size, time_steps);
+    }
 };
-}  // namespace mppi::models
+} // namespace mppi::models
 
-#endif  // NAV2_MPPI_CONTROLLER__MODELS__STATE_HPP_
+#endif // NAV2_MPPI_CONTROLLER__MODELS__STATE_HPP_

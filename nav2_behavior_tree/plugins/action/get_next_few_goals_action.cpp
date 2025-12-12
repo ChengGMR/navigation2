@@ -12,49 +12,41 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
-#include <memory>
-#include <limits>
+#include "nav2_behavior_tree/plugins/action/get_next_few_goals_action.hpp"
 
 #include "nav2_util/geometry_utils.hpp"
 
-#include "nav2_behavior_tree/plugins/action/get_next_few_goals_action.hpp"
+#include <limits>
+#include <memory>
+#include <string>
 
-namespace nav2_behavior_tree
-{
+namespace nav2_behavior_tree {
 
-GetNextFewGoals::GetNextFewGoals(
-  const std::string & name,
-  const BT::NodeConfiguration & conf)
-: BT::ActionNodeBase(name, conf)
-{
+GetNextFewGoals::GetNextFewGoals(const std::string& name, const BT::NodeConfiguration& conf) : BT::ActionNodeBase(name, conf) {}
+
+inline BT::NodeStatus GetNextFewGoals::tick() {
+    setStatus(BT::NodeStatus::RUNNING);
+
+    nav_msgs::msg::Goals input_goals, output_goals;
+    unsigned int num_goals;
+    getInput("input_goals", input_goals);
+    getInput("num_goals", num_goals);
+
+    if (input_goals.goals.empty()) {
+        return BT::NodeStatus::FAILURE;
+    }
+
+    output_goals.header = input_goals.header;
+    for (unsigned int i = 0; i < num_goals && i < input_goals.goals.size(); ++i) {
+        output_goals.goals.push_back(input_goals.goals[i]);
+    }
+    setOutput("output_goals", output_goals);
+    return BT::NodeStatus::SUCCESS;
 }
 
-inline BT::NodeStatus GetNextFewGoals::tick()
-{
-  setStatus(BT::NodeStatus::RUNNING);
-
-  nav_msgs::msg::Goals input_goals, output_goals;
-  unsigned int num_goals;
-  getInput("input_goals", input_goals);
-  getInput("num_goals", num_goals);
-
-  if (input_goals.goals.empty()) {
-    return BT::NodeStatus::FAILURE;
-  }
-
-  output_goals.header = input_goals.header;
-  for (unsigned int i = 0; i < num_goals && i < input_goals.goals.size(); ++i) {
-    output_goals.goals.push_back(input_goals.goals[i]);
-  }
-  setOutput("output_goals", output_goals);
-  return BT::NodeStatus::SUCCESS;
-}
-
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
 #include "behaviortree_cpp/bt_factory.h"
-BT_REGISTER_NODES(factory)
-{
-  factory.registerNodeType<nav2_behavior_tree::GetNextFewGoals>("GetNextFewGoals");
+BT_REGISTER_NODES(factory) {
+    factory.registerNodeType<nav2_behavior_tree::GetNextFewGoals>("GetNextFewGoals");
 }

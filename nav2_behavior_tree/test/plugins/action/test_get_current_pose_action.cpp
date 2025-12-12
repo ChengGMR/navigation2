@@ -12,97 +12,83 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "behaviortree_cpp/bt_factory.h"
+#include "nav2_behavior_tree/plugins/action/get_current_pose_action.hpp"
+#include "nav2_behavior_tree/utils/test_action_server.hpp"
+#include "nav2_ros_common/node_utils.hpp"
+#include "nav_msgs/msg/goals.hpp"
+#include "nav_msgs/msg/path.hpp"
+#include "utils/test_behavior_tree_fixture.hpp"
+
 #include <gtest/gtest.h>
+
 #include <memory>
 #include <set>
 #include <string>
 #include <vector>
 
-#include "nav_msgs/msg/path.hpp"
-#include "nav_msgs/msg/goals.hpp"
+class GetCurrentPoseTestFixture : public nav2_behavior_tree::BehaviorTreeTestFixture {
+   public:
+    void SetUp() {
+        config_->blackboard->set("robot_base_frame", "base_link");
+        config_->blackboard->set("global_frame", "map");
+        nav2::declare_parameter_if_not_declared(node_, "robot_base_frame", rclcpp::ParameterValue("base_link"));
+        nav2::declare_parameter_if_not_declared(node_, "global_frame", rclcpp::ParameterValue("map"));
 
-#include "behaviortree_cpp/bt_factory.h"
+        BT::NodeBuilder builder = [](const std::string& name, const BT::NodeConfiguration& config) {
+            return std::make_unique<nav2_behavior_tree::GetCurrentPoseAction>(name, config);
+        };
 
-#include "nav2_behavior_tree/utils/test_action_server.hpp"
-#include "nav2_behavior_tree/plugins/action/get_current_pose_action.hpp"
-#include "utils/test_behavior_tree_fixture.hpp"
-#include "nav2_ros_common/node_utils.hpp"
+        factory_->registerBuilder<nav2_behavior_tree::GetCurrentPoseAction>("GetCurrentPose", builder);
+    }
 
-class GetCurrentPoseTestFixture : public nav2_behavior_tree::BehaviorTreeTestFixture
-{
-public:
-  void SetUp()
-  {
-    config_->blackboard->set("robot_base_frame", "base_link");
-    config_->blackboard->set("global_frame", "map");
-    nav2::declare_parameter_if_not_declared(
-      node_, "robot_base_frame", rclcpp::ParameterValue("base_link"));
-    nav2::declare_parameter_if_not_declared(
-      node_, "global_frame", rclcpp::ParameterValue("map"));
+    void TearDown() { tree_.reset(); }
 
-    BT::NodeBuilder builder =
-      [](const std::string & name, const BT::NodeConfiguration & config)
-      {
-        return std::make_unique<nav2_behavior_tree::GetCurrentPoseAction>(
-          name, config);
-      };
-
-    factory_->registerBuilder<nav2_behavior_tree::GetCurrentPoseAction>(
-      "GetCurrentPose", builder);
-  }
-
-  void TearDown()
-  {
-    tree_.reset();
-  }
-
-protected:
-  static std::shared_ptr<BT::Tree> tree_;
+   protected:
+    static std::shared_ptr<BT::Tree> tree_;
 };
 
 std::shared_ptr<BT::Tree> GetCurrentPoseTestFixture::tree_ = nullptr;
 
-TEST_F(GetCurrentPoseTestFixture, test_tick)
-{
-  // create tree
-  std::string xml_txt =
-    R"(
+TEST_F(GetCurrentPoseTestFixture, test_tick) {
+    // create tree
+    std::string xml_txt =
+        R"(
       <root BTCPP_format="4">
         <BehaviorTree ID="MainTree">
             <GetCurrentPose current_pose="{current_pose}"/>
         </BehaviorTree>
       </root>)";
 
-  tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
+    tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
 
-  geometry_msgs::msg::Pose pose;
-  pose.position.x = 1.0;
-  pose.position.y = 2.0;
-  transform_handler_->updateRobotPose(pose);
-  std::this_thread::sleep_for(500ms);
+    geometry_msgs::msg::Pose pose;
+    pose.position.x = 1.0;
+    pose.position.y = 2.0;
+    transform_handler_->updateRobotPose(pose);
+    std::this_thread::sleep_for(500ms);
 
-  while (tree_->rootNode()->status() != BT::NodeStatus::SUCCESS) {
-    tree_->rootNode()->executeTick();
-  }
+    while (tree_->rootNode()->status() != BT::NodeStatus::SUCCESS) {
+        tree_->rootNode()->executeTick();
+    }
 
-  // Check the output
-  geometry_msgs::msg::PoseStamped current_pose;
-  EXPECT_TRUE(config_->blackboard->get("current_pose", current_pose));
-  EXPECT_EQ(current_pose.pose.position.x, pose.position.x);
-  EXPECT_EQ(current_pose.pose.position.y, pose.position.y);
+    // Check the output
+    geometry_msgs::msg::PoseStamped current_pose;
+    EXPECT_TRUE(config_->blackboard->get("current_pose", current_pose));
+    EXPECT_EQ(current_pose.pose.position.x, pose.position.x);
+    EXPECT_EQ(current_pose.pose.position.y, pose.position.y);
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  // initialize ROS
-  rclcpp::init(argc, argv);
+    // initialize ROS
+    rclcpp::init(argc, argv);
 
-  int all_successful = RUN_ALL_TESTS();
+    int all_successful = RUN_ALL_TESTS();
 
-  // shutdown ROS
-  rclcpp::shutdown();
+    // shutdown ROS
+    rclcpp::shutdown();
 
-  return all_successful;
+    return all_successful;
 }

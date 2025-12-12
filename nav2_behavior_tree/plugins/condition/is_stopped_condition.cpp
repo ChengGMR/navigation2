@@ -12,69 +12,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
-#include <chrono>
-
 #include "nav2_behavior_tree/plugins/condition/is_stopped_condition.hpp"
 
-namespace nav2_behavior_tree
-{
+#include <chrono>
+#include <string>
 
-IsStoppedCondition::IsStoppedCondition(
-  const std::string & condition_name,
-  const BT::NodeConfiguration & conf)
-: BT::ConditionNode(condition_name, conf),
-  velocity_threshold_(0.01),
-  duration_stopped_(1000ms),
-  stopped_stamp_(rclcpp::Time(0, 0, RCL_ROS_TIME))
-{
-  node_ = config().blackboard->get<nav2::LifecycleNode::SharedPtr>("node");
-  odom_smoother_ = config().blackboard->get<std::shared_ptr<nav2_util::OdomSmoother>>(
-    "odom_smoother");
+namespace nav2_behavior_tree {
+
+IsStoppedCondition::IsStoppedCondition(const std::string& condition_name, const BT::NodeConfiguration& conf)
+    : BT::ConditionNode(condition_name, conf)
+    , velocity_threshold_(0.01)
+    , duration_stopped_(1000ms)
+    , stopped_stamp_(rclcpp::Time(0, 0, RCL_ROS_TIME)) {
+    node_ = config().blackboard->get<nav2::LifecycleNode::SharedPtr>("node");
+    odom_smoother_ = config().blackboard->get<std::shared_ptr<nav2_util::OdomSmoother>>("odom_smoother");
 }
 
-IsStoppedCondition::~IsStoppedCondition()
-{
-  RCLCPP_DEBUG(node_->get_logger(), "Shutting down IsStoppedCondition BT node");
+IsStoppedCondition::~IsStoppedCondition() {
+    RCLCPP_DEBUG(node_->get_logger(), "Shutting down IsStoppedCondition BT node");
 }
 
-BT::NodeStatus IsStoppedCondition::tick()
-{
-  getInput("velocity_threshold", velocity_threshold_);
-  getInput("duration_stopped", duration_stopped_);
+BT::NodeStatus IsStoppedCondition::tick() {
+    getInput("velocity_threshold", velocity_threshold_);
+    getInput("duration_stopped", duration_stopped_);
 
-  auto twist = odom_smoother_->getRawTwistStamped();
+    auto twist = odom_smoother_->getRawTwistStamped();
 
-  // if there is no timestamp, set it to now
-  if (twist.header.stamp.sec == 0 && twist.header.stamp.nanosec == 0) {
-    twist.header.stamp = node_->get_clock()->now();
-  }
-
-  if (abs(twist.twist.linear.x) < velocity_threshold_ &&
-    abs(twist.twist.linear.y) < velocity_threshold_ &&
-    abs(twist.twist.angular.z) < velocity_threshold_)
-  {
-    if (stopped_stamp_ == rclcpp::Time(0, 0, RCL_ROS_TIME)) {
-      stopped_stamp_ = rclcpp::Time(twist.header.stamp);
+    // if there is no timestamp, set it to now
+    if (twist.header.stamp.sec == 0 && twist.header.stamp.nanosec == 0) {
+        twist.header.stamp = node_->get_clock()->now();
     }
 
-    if (node_->get_clock()->now() - stopped_stamp_ > rclcpp::Duration(duration_stopped_)) {
-      stopped_stamp_ = rclcpp::Time(0, 0, RCL_ROS_TIME);
-      return BT::NodeStatus::SUCCESS;
+    if (abs(twist.twist.linear.x) < velocity_threshold_ && abs(twist.twist.linear.y) < velocity_threshold_
+        && abs(twist.twist.angular.z) < velocity_threshold_) {
+        if (stopped_stamp_ == rclcpp::Time(0, 0, RCL_ROS_TIME)) {
+            stopped_stamp_ = rclcpp::Time(twist.header.stamp);
+        }
+
+        if (node_->get_clock()->now() - stopped_stamp_ > rclcpp::Duration(duration_stopped_)) {
+            stopped_stamp_ = rclcpp::Time(0, 0, RCL_ROS_TIME);
+            return BT::NodeStatus::SUCCESS;
+        } else {
+            return BT::NodeStatus::RUNNING;
+        }
+
     } else {
-      return BT::NodeStatus::RUNNING;
+        stopped_stamp_ = rclcpp::Time(0, 0, RCL_ROS_TIME);
+        return BT::NodeStatus::FAILURE;
     }
-
-  } else {
-    stopped_stamp_ = rclcpp::Time(0, 0, RCL_ROS_TIME);
-    return BT::NodeStatus::FAILURE;
-  }
 }
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
 #include "behaviortree_cpp/bt_factory.h"
-BT_REGISTER_NODES(factory)
-{
-  factory.registerNodeType<nav2_behavior_tree::IsStoppedCondition>("IsStopped");
+BT_REGISTER_NODES(factory) {
+    factory.registerNodeType<nav2_behavior_tree::IsStoppedCondition>("IsStopped");
 }

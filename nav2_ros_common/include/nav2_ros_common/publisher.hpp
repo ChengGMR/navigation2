@@ -15,19 +15,19 @@
 #ifndef NAV2_ROS_COMMON__PUBLISHER_HPP_
 #define NAV2_ROS_COMMON__PUBLISHER_HPP_
 
-#include <memory>
 #include "rclcpp_lifecycle/lifecycle_publisher.hpp"
 
-namespace nav2
-{
+#include <memory>
+
+namespace nav2 {
 /**
-  * @brief A ROS 2 publisher for Nav2
-  * This is a convenience type alias to simplify the use of publishers in Nav2
-  * which may be further built up on in the future with custom APIs.
-  */
-template<typename MessageT>
+ * @brief A ROS 2 publisher for Nav2
+ * This is a convenience type alias to simplify the use of publishers in Nav2
+ * which may be further built up on in the future with custom APIs.
+ */
+template <typename MessageT>
 using Publisher = rclcpp_lifecycle::LifecyclePublisher<MessageT>;
 
-}  // namespace nav2
+} // namespace nav2
 
-#endif  // NAV2_ROS_COMMON__PUBLISHER_HPP_
+#endif // NAV2_ROS_COMMON__PUBLISHER_HPP_

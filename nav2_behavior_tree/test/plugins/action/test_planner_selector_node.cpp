@@ -13,191 +13,178 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "behaviortree_cpp/bt_factory.h"
+#include "nav2_behavior_tree/plugins/action/planner_selector_node.hpp"
+#include "nav2_behavior_tree/utils/test_action_server.hpp"
+#include "nav_msgs/msg/path.hpp"
+
+#include "std_msgs/msg/string.hpp"
+
 #include <gtest/gtest.h>
 
 #include <memory>
 #include <set>
 #include <string>
 
-#include "nav2_behavior_tree/utils/test_action_server.hpp"
-#include "behaviortree_cpp/bt_factory.h"
-#include "nav2_behavior_tree/plugins/action/planner_selector_node.hpp"
-#include "nav_msgs/msg/path.hpp"
-#include "std_msgs/msg/string.hpp"
+class PlannerSelectorTestFixture : public ::testing::Test {
+   public:
+    static void SetUpTestCase() {
+        node_ = std::make_shared<nav2::LifecycleNode>("planner_selector_test_fixture");
+        executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
+        executor_->add_node(node_->get_node_base_interface());
 
-class PlannerSelectorTestFixture : public ::testing::Test
-{
-public:
-  static void SetUpTestCase()
-  {
-    node_ = std::make_shared<nav2::LifecycleNode>("planner_selector_test_fixture");
-    executor_ = std::make_shared<rclcpp::executors::SingleThreadedExecutor>();
-    executor_->add_node(node_->get_node_base_interface());
+        // Configure and activate the lifecycle node
+        node_->configure();
+        node_->activate();
 
-    // Configure and activate the lifecycle node
-    node_->configure();
-    node_->activate();
+        factory_ = std::make_shared<BT::BehaviorTreeFactory>();
 
-    factory_ = std::make_shared<BT::BehaviorTreeFactory>();
+        config_ = new BT::NodeConfiguration();
 
-    config_ = new BT::NodeConfiguration();
+        // Create the blackboard that will be shared by all of the nodes in the tree
+        config_->blackboard = BT::Blackboard::create();
+        // Put items on the blackboard
+        config_->blackboard->set("node", node_);
+        config_->blackboard->set<std::chrono::milliseconds>("bt_loop_duration", std::chrono::milliseconds(10));
 
-    // Create the blackboard that will be shared by all of the nodes in the tree
-    config_->blackboard = BT::Blackboard::create();
-    // Put items on the blackboard
-    config_->blackboard->set("node", node_);
-    config_->blackboard->set<std::chrono::milliseconds>(
-      "bt_loop_duration",
-      std::chrono::milliseconds(10));
+        BT::NodeBuilder builder = [](const std::string& name, const BT::NodeConfiguration& config) {
+            return std::make_unique<nav2_behavior_tree::PlannerSelector>(name, config);
+        };
 
-    BT::NodeBuilder builder = [](const std::string & name, const BT::NodeConfiguration & config) {
-        return std::make_unique<nav2_behavior_tree::PlannerSelector>(name, config);
-      };
+        factory_->registerBuilder<nav2_behavior_tree::PlannerSelector>("PlannerSelector", builder);
+    }
 
-    factory_->registerBuilder<nav2_behavior_tree::PlannerSelector>("PlannerSelector", builder);
-  }
+    static void TearDownTestCase() {
+        // Properly deactivate and cleanup the lifecycle node
+        node_->deactivate();
+        node_->cleanup();
 
-  static void TearDownTestCase()
-  {
-    // Properly deactivate and cleanup the lifecycle node
-    node_->deactivate();
-    node_->cleanup();
+        delete config_;
+        config_ = nullptr;
+        node_.reset();
+        factory_.reset();
+        executor_.reset();
+    }
 
-    delete config_;
-    config_ = nullptr;
-    node_.reset();
-    factory_.reset();
-    executor_.reset();
-  }
+    void TearDown() override { tree_.reset(); }
 
-  void TearDown() override
-  {
-    tree_.reset();
-  }
-
-protected:
-  static nav2::LifecycleNode::SharedPtr node_;
-  static rclcpp::executors::SingleThreadedExecutor::SharedPtr executor_;
-  static BT::NodeConfiguration * config_;
-  static std::shared_ptr<BT::BehaviorTreeFactory> factory_;
-  static std::shared_ptr<BT::Tree> tree_;
+   protected:
+    static nav2::LifecycleNode::SharedPtr node_;
+    static rclcpp::executors::SingleThreadedExecutor::SharedPtr executor_;
+    static BT::NodeConfiguration* config_;
+    static std::shared_ptr<BT::BehaviorTreeFactory> factory_;
+    static std::shared_ptr<BT::Tree> tree_;
 };
 
 nav2::LifecycleNode::SharedPtr PlannerSelectorTestFixture::node_ = nullptr;
-rclcpp::executors::SingleThreadedExecutor::SharedPtr PlannerSelectorTestFixture::executor_ =
-  nullptr;
+rclcpp::executors::SingleThreadedExecutor::SharedPtr PlannerSelectorTestFixture::executor_ = nullptr;
 
-BT::NodeConfiguration * PlannerSelectorTestFixture::config_ = nullptr;
+BT::NodeConfiguration* PlannerSelectorTestFixture::config_ = nullptr;
 std::shared_ptr<BT::BehaviorTreeFactory> PlannerSelectorTestFixture::factory_ = nullptr;
 std::shared_ptr<BT::Tree> PlannerSelectorTestFixture::tree_ = nullptr;
 
-TEST_F(PlannerSelectorTestFixture, test_custom_topic)
-{
-  // create tree
-  std::string xml_txt =
-    R"(
+TEST_F(PlannerSelectorTestFixture, test_custom_topic) {
+    // create tree
+    std::string xml_txt =
+        R"(
       <root BTCPP_format="4">
         <BehaviorTree ID="MainTree">
           <PlannerSelector selected_planner="{selected_planner}" default_planner="GridBased" topic_name="planner_selector_custom_topic_name"/>
         </BehaviorTree>
       </root>)";
 
-  tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
+    tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
 
-  // tick until node succeeds
-  while (tree_->rootNode()->status() != BT::NodeStatus::SUCCESS) {
-    tree_->rootNode()->executeTick();
-  }
+    // tick until node succeeds
+    while (tree_->rootNode()->status() != BT::NodeStatus::SUCCESS) {
+        tree_->rootNode()->executeTick();
+    }
 
-  // check default value
-  std::string selected_planner_result;
-  EXPECT_TRUE(config_->blackboard->get("selected_planner", selected_planner_result));
+    // check default value
+    std::string selected_planner_result;
+    EXPECT_TRUE(config_->blackboard->get("selected_planner", selected_planner_result));
 
-  EXPECT_EQ(selected_planner_result, "GridBased");
+    EXPECT_EQ(selected_planner_result, "GridBased");
 
-  std_msgs::msg::String selected_planner_cmd;
+    std_msgs::msg::String selected_planner_cmd;
 
-  selected_planner_cmd.data = "RRT";
+    selected_planner_cmd.data = "RRT";
 
-  rclcpp::QoS qos = nav2::qos::LatchedPublisherQoS();
+    rclcpp::QoS qos = nav2::qos::LatchedPublisherQoS();
 
-  auto planner_selector_pub =
-    node_->create_publisher<std_msgs::msg::String>("planner_selector_custom_topic_name", qos);
-  planner_selector_pub->on_activate();
+    auto planner_selector_pub = node_->create_publisher<std_msgs::msg::String>("planner_selector_custom_topic_name", qos);
+    planner_selector_pub->on_activate();
 
-  // publish a few updates of the selected_planner
-  auto start = node_->now();
-  while ((node_->now() - start).seconds() < 0.5) {
-    tree_->rootNode()->executeTick();
-    planner_selector_pub->publish(selected_planner_cmd);
+    // publish a few updates of the selected_planner
+    auto start = node_->now();
+    while ((node_->now() - start).seconds() < 0.5) {
+        tree_->rootNode()->executeTick();
+        planner_selector_pub->publish(selected_planner_cmd);
 
-    executor_->spin_some();
-  }
+        executor_->spin_some();
+    }
 
-  // check planner updated
-  EXPECT_TRUE(config_->blackboard->get("selected_planner", selected_planner_result));
-  EXPECT_EQ("RRT", selected_planner_result);
+    // check planner updated
+    EXPECT_TRUE(config_->blackboard->get("selected_planner", selected_planner_result));
+    EXPECT_EQ("RRT", selected_planner_result);
 }
 
-TEST_F(PlannerSelectorTestFixture, test_default_topic)
-{
-  // create tree
-  std::string xml_txt =
-    R"(
+TEST_F(PlannerSelectorTestFixture, test_default_topic) {
+    // create tree
+    std::string xml_txt =
+        R"(
       <root BTCPP_format="4">
         <BehaviorTree ID="MainTree">
           <PlannerSelector selected_planner="{selected_planner}" default_planner="GridBased"/>
         </BehaviorTree>
       </root>)";
 
-  tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
+    tree_ = std::make_shared<BT::Tree>(factory_->createTreeFromText(xml_txt, config_->blackboard));
 
-  // tick until node succeeds
-  while (tree_->rootNode()->status() != BT::NodeStatus::SUCCESS) {
-    tree_->rootNode()->executeTick();
-  }
+    // tick until node succeeds
+    while (tree_->rootNode()->status() != BT::NodeStatus::SUCCESS) {
+        tree_->rootNode()->executeTick();
+    }
 
-  // check default value
-  std::string selected_planner_result;
-  EXPECT_TRUE(config_->blackboard->get("selected_planner", selected_planner_result));
+    // check default value
+    std::string selected_planner_result;
+    EXPECT_TRUE(config_->blackboard->get("selected_planner", selected_planner_result));
 
-  EXPECT_EQ(selected_planner_result, "GridBased");
+    EXPECT_EQ(selected_planner_result, "GridBased");
 
-  std_msgs::msg::String selected_planner_cmd;
+    std_msgs::msg::String selected_planner_cmd;
 
-  selected_planner_cmd.data = "RRT";
+    selected_planner_cmd.data = "RRT";
 
-  rclcpp::QoS qos = nav2::qos::LatchedPublisherQoS();
+    rclcpp::QoS qos = nav2::qos::LatchedPublisherQoS();
 
-  auto planner_selector_pub =
-    node_->create_publisher<std_msgs::msg::String>("planner_selector", qos);
-  planner_selector_pub->on_activate();
+    auto planner_selector_pub = node_->create_publisher<std_msgs::msg::String>("planner_selector", qos);
+    planner_selector_pub->on_activate();
 
-  // publish a few updates of the selected_planner
-  auto start = node_->now();
-  while ((node_->now() - start).seconds() < 0.5) {
-    tree_->rootNode()->executeTick();
-    planner_selector_pub->publish(selected_planner_cmd);
+    // publish a few updates of the selected_planner
+    auto start = node_->now();
+    while ((node_->now() - start).seconds() < 0.5) {
+        tree_->rootNode()->executeTick();
+        planner_selector_pub->publish(selected_planner_cmd);
 
-    executor_->spin_some();
-  }
+        executor_->spin_some();
+    }
 
-  // check planner updated
-  EXPECT_TRUE(config_->blackboard->get("selected_planner", selected_planner_result));
-  EXPECT_EQ("RRT", selected_planner_result);
+    // check planner updated
+    EXPECT_TRUE(config_->blackboard->get("selected_planner", selected_planner_result));
+    EXPECT_EQ("RRT", selected_planner_result);
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  // initialize ROS
-  rclcpp::init(argc, argv);
+    // initialize ROS
+    rclcpp::init(argc, argv);
 
-  int all_successful = RUN_ALL_TESTS();
+    int all_successful = RUN_ALL_TESTS();
 
-  // shutdown ROS
-  rclcpp::shutdown();
+    // shutdown ROS
+    rclcpp::shutdown();
 
-  return all_successful;
+    return all_successful;
 }

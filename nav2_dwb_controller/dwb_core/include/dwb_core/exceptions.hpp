@@ -34,29 +34,27 @@
 #ifndef DWB_CORE__EXCEPTIONS_HPP_
 #define DWB_CORE__EXCEPTIONS_HPP_
 
-#include <string>
-#include <memory>
-
 #include "nav2_core/controller_exceptions.hpp"
 
-namespace dwb_core
-{
+#include <memory>
+#include <string>
+
+namespace dwb_core {
 
 /**
  * @class IllegalTrajectoryException
  * @brief Thrown when one of the critics encountered a fatal error
  */
-class IllegalTrajectoryException : public nav2_core::ControllerException
-{
-public:
-  IllegalTrajectoryException(const std::string & critic_name, const std::string & description)
-  : nav2_core::ControllerException(description), critic_name_(critic_name) {}
-  std::string getCriticName() const {return critic_name_;}
+class IllegalTrajectoryException : public nav2_core::ControllerException {
+   public:
+    IllegalTrajectoryException(const std::string& critic_name, const std::string& description)
+        : nav2_core::ControllerException(description), critic_name_(critic_name) {}
+    std::string getCriticName() const { return critic_name_; }
 
-protected:
-  std::string critic_name_;
+   protected:
+    std::string critic_name_;
 };
 
-}  // namespace dwb_core
+} // namespace dwb_core
 
-#endif  // DWB_CORE__EXCEPTIONS_HPP_
+#endif // DWB_CORE__EXCEPTIONS_HPP_

@@ -12,89 +12,77 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "nav2_costmap_2d/costmap_2d_ros.hpp"
+#include "nav2_msgs/srv/get_costs.hpp"
+#include <rclcpp/rclcpp.hpp>
+
 #include <gtest/gtest.h>
 
-#include <memory>
 #include <chrono>
-
-#include <rclcpp/rclcpp.hpp>
-#include "nav2_msgs/srv/get_costs.hpp"
-#include "nav2_costmap_2d/costmap_2d_ros.hpp"
+#include <memory>
 
 using namespace std::chrono_literals;
 
-class GetCostServiceTest : public ::testing::Test
-{
-protected:
-  void SetUp() override
-  {
-    costmap_ = std::make_shared<nav2_costmap_2d::Costmap2DROS>("costmap");
-    client_ = costmap_->create_client<nav2_msgs::srv::GetCosts>(
-      "/costmap/get_cost_costmap");
-    costmap_->on_configure(rclcpp_lifecycle::State());
-    ASSERT_TRUE(client_->wait_for_service(10s));
-  }
+class GetCostServiceTest : public ::testing::Test {
+   protected:
+    void SetUp() override {
+        costmap_ = std::make_shared<nav2_costmap_2d::Costmap2DROS>("costmap");
+        client_ = costmap_->create_client<nav2_msgs::srv::GetCosts>("/costmap/get_cost_costmap");
+        costmap_->on_configure(rclcpp_lifecycle::State());
+        ASSERT_TRUE(client_->wait_for_service(10s));
+    }
 
-  std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_;
-  nav2::ServiceClient<nav2_msgs::srv::GetCosts>::SharedPtr client_;
+    std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_;
+    nav2::ServiceClient<nav2_msgs::srv::GetCosts>::SharedPtr client_;
 };
 
-TEST_F(GetCostServiceTest, TestWithoutFootprint)
-{
-  auto request = std::make_shared<nav2_msgs::srv::GetCosts::Request>();
-  geometry_msgs::msg::PoseStamped pose;
-  pose.pose.position.x = 0.5;
-  pose.pose.position.y = 1.0;
-  request->poses.push_back(pose);
-  request->use_footprint = false;
+TEST_F(GetCostServiceTest, TestWithoutFootprint) {
+    auto request = std::make_shared<nav2_msgs::srv::GetCosts::Request>();
+    geometry_msgs::msg::PoseStamped pose;
+    pose.pose.position.x = 0.5;
+    pose.pose.position.y = 1.0;
+    request->poses.push_back(pose);
+    request->use_footprint = false;
 
-  auto result_future = client_->async_call(request);
-  if (rclcpp::spin_until_future_complete(
-      costmap_,
-      result_future) == rclcpp::FutureReturnCode::SUCCESS)
-  {
-    auto response = result_future.get();
-    EXPECT_GE(response->costs[0], 0.0) << "Cost is less than 0";
-    EXPECT_LE(response->costs[0], 255.0) << "Cost is greater than 255";
-  } else {
-    FAIL() << "Failed to call service";
-  }
+    auto result_future = client_->async_call(request);
+    if (rclcpp::spin_until_future_complete(costmap_, result_future) == rclcpp::FutureReturnCode::SUCCESS) {
+        auto response = result_future.get();
+        EXPECT_GE(response->costs[0], 0.0) << "Cost is less than 0";
+        EXPECT_LE(response->costs[0], 255.0) << "Cost is greater than 255";
+    } else {
+        FAIL() << "Failed to call service";
+    }
 }
 
-TEST_F(GetCostServiceTest, TestWithFootprint)
-{
-  auto request = std::make_shared<nav2_msgs::srv::GetCosts::Request>();
-  geometry_msgs::msg::PoseStamped pose;
-  pose.pose.position.x = 0.5;
-  pose.pose.position.y = 1.0;
-  tf2::Quaternion q;
-  q.setRPY(0, 0, 0.5);
-  pose.pose.orientation = tf2::toMsg(q);
-  request->poses.push_back(pose);
-  request->use_footprint = true;
+TEST_F(GetCostServiceTest, TestWithFootprint) {
+    auto request = std::make_shared<nav2_msgs::srv::GetCosts::Request>();
+    geometry_msgs::msg::PoseStamped pose;
+    pose.pose.position.x = 0.5;
+    pose.pose.position.y = 1.0;
+    tf2::Quaternion q;
+    q.setRPY(0, 0, 0.5);
+    pose.pose.orientation = tf2::toMsg(q);
+    request->poses.push_back(pose);
+    request->use_footprint = true;
 
-  auto result_future = client_->async_call(request);
-  if (rclcpp::spin_until_future_complete(
-      costmap_,
-      result_future) == rclcpp::FutureReturnCode::SUCCESS)
-  {
-    auto response = result_future.get();
-    EXPECT_GE(response->costs[0], 0.0) << "Cost is less than 0";
-    EXPECT_LE(response->costs[0], 255.0) << "Cost is greater than 255";
-  } else {
-    FAIL() << "Failed to call service";
-  }
+    auto result_future = client_->async_call(request);
+    if (rclcpp::spin_until_future_complete(costmap_, result_future) == rclcpp::FutureReturnCode::SUCCESS) {
+        auto response = result_future.get();
+        EXPECT_GE(response->costs[0], 0.0) << "Cost is less than 0";
+        EXPECT_LE(response->costs[0], 255.0) << "Cost is greater than 255";
+    } else {
+        FAIL() << "Failed to call service";
+    }
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  rclcpp::init(0, nullptr);
+    rclcpp::init(0, nullptr);
 
-  int result = RUN_ALL_TESTS();
+    int result = RUN_ALL_TESTS();
 
-  rclcpp::shutdown();
+    rclcpp::shutdown();
 
-  return result;
+    return result;
 }

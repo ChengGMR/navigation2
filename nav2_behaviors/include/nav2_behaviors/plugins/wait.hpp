@@ -15,58 +15,56 @@
 #ifndef NAV2_BEHAVIORS__PLUGINS__WAIT_HPP_
 #define NAV2_BEHAVIORS__PLUGINS__WAIT_HPP_
 
-#include <chrono>
-#include <string>
-#include <memory>
-
 #include "nav2_behaviors/timed_behavior.hpp"
 #include "nav2_msgs/action/wait.hpp"
 
-namespace nav2_behaviors
-{
+#include <chrono>
+#include <memory>
+#include <string>
+
+namespace nav2_behaviors {
 using WaitAction = nav2_msgs::action::Wait;
 
 /**
  * @class nav2_behaviors::Wait
  * @brief An action server behavior for waiting a fixed duration
  */
-class Wait : public TimedBehavior<WaitAction>
-{
-  using CostmapInfoType = nav2_core::CostmapInfoType;
+class Wait : public TimedBehavior<WaitAction> {
+    using CostmapInfoType = nav2_core::CostmapInfoType;
 
-public:
-  using WaitActionGoal = WaitAction::Goal;
+   public:
+    using WaitActionGoal = WaitAction::Goal;
 
-  /**
-   * @brief A constructor for nav2_behaviors::Wait
-   */
-  Wait();
-  ~Wait();
+    /**
+     * @brief A constructor for nav2_behaviors::Wait
+     */
+    Wait();
+    ~Wait();
 
-  /**
-   * @brief Initialization to run behavior
-   * @param command Goal to execute
-   * @return Status of behavior
-   */
-  ResultStatus onRun(const std::shared_ptr<const WaitActionGoal> command) override;
+    /**
+     * @brief Initialization to run behavior
+     * @param command Goal to execute
+     * @return Status of behavior
+     */
+    ResultStatus onRun(const std::shared_ptr<const WaitActionGoal> command) override;
 
-  /**
-   * @brief Loop function to run behavior
-   * @return Status of behavior
-   */
-  ResultStatus onCycleUpdate() override;
+    /**
+     * @brief Loop function to run behavior
+     * @return Status of behavior
+     */
+    ResultStatus onCycleUpdate() override;
 
-  /**
-   * @brief Method to determine the required costmap info
-   * @return costmap resources needed
-   */
-  CostmapInfoType getResourceInfo() override {return CostmapInfoType::LOCAL;}
+    /**
+     * @brief Method to determine the required costmap info
+     * @return costmap resources needed
+     */
+    CostmapInfoType getResourceInfo() override { return CostmapInfoType::LOCAL; }
 
-protected:
-  rclcpp::Time wait_end_;
-  WaitAction::Feedback::SharedPtr feedback_;
+   protected:
+    rclcpp::Time wait_end_;
+    WaitAction::Feedback::SharedPtr feedback_;
 };
 
-}  // namespace nav2_behaviors
+} // namespace nav2_behaviors
 
-#endif  // NAV2_BEHAVIORS__PLUGINS__WAIT_HPP_
+#endif // NAV2_BEHAVIORS__PLUGINS__WAIT_HPP_

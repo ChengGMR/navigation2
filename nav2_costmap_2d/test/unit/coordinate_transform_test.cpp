@@ -12,48 +12,44 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. Reserved.
 
-#include <gtest/gtest.h>
-
-#include "rclcpp/rclcpp.hpp"
 #include "nav2_costmap_2d/costmap_2d.hpp"
+#include "rclcpp/rclcpp.hpp"
 
+#include <gtest/gtest.h>
 
 /**
  * Test for mapToWorldNoBounds
  */
 
-TEST(mapToWorldNoBounds, MapToWorldNoBoundsNegativeMapCoords)
-{
-  double wx, wy;
+TEST(mapToWorldNoBounds, MapToWorldNoBoundsNegativeMapCoords) {
+    double wx, wy;
 
-  std::unique_ptr<nav2_costmap_2d::Costmap2D> map;
+    std::unique_ptr<nav2_costmap_2d::Costmap2D> map;
 
-  map = std::make_unique<nav2_costmap_2d::Costmap2D>(10, 10, 1.0, 0.0, 0.0);
-  map->mapToWorldNoBounds(-1, -1, wx, wy);
-  EXPECT_DOUBLE_EQ(wx, -0.5);
-  EXPECT_DOUBLE_EQ(wy, -0.5);
+    map = std::make_unique<nav2_costmap_2d::Costmap2D>(10, 10, 1.0, 0.0, 0.0);
+    map->mapToWorldNoBounds(-1, -1, wx, wy);
+    EXPECT_DOUBLE_EQ(wx, -0.5);
+    EXPECT_DOUBLE_EQ(wy, -0.5);
 
-  map = std::make_unique<nav2_costmap_2d::Costmap2D>(10, 10, 1.0, 1.0, 2.0);
-  map->mapToWorldNoBounds(-5, -5, wx, wy);
-  EXPECT_DOUBLE_EQ(wx, -3.5);
-  EXPECT_DOUBLE_EQ(wy, -2.5);
+    map = std::make_unique<nav2_costmap_2d::Costmap2D>(10, 10, 1.0, 1.0, 2.0);
+    map->mapToWorldNoBounds(-5, -5, wx, wy);
+    EXPECT_DOUBLE_EQ(wx, -3.5);
+    EXPECT_DOUBLE_EQ(wy, -2.5);
 
-  map = std::make_unique<nav2_costmap_2d::Costmap2D>(10, 10, 2.0, 3.0, 4.0);
-  map->mapToWorldNoBounds(-10, -10, wx, wy);
-  EXPECT_DOUBLE_EQ(wx, -16.0);
-  EXPECT_DOUBLE_EQ(wy, -15.0);
+    map = std::make_unique<nav2_costmap_2d::Costmap2D>(10, 10, 2.0, 3.0, 4.0);
+    map->mapToWorldNoBounds(-10, -10, wx, wy);
+    EXPECT_DOUBLE_EQ(wx, -16.0);
+    EXPECT_DOUBLE_EQ(wy, -15.0);
 }
 
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+    rclcpp::init(0, nullptr);
 
-  rclcpp::init(0, nullptr);
+    int result = RUN_ALL_TESTS();
 
-  int result = RUN_ALL_TESTS();
+    rclcpp::shutdown();
 
-  rclcpp::shutdown();
-
-  return result;
+    return result;
 }

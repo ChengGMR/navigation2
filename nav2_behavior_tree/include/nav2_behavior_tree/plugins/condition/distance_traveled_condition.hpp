@@ -16,73 +16,65 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__DISTANCE_TRAVELED_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__DISTANCE_TRAVELED_CONDITION_HPP_
 
-#include <string>
-#include <memory>
-
 #include "behaviortree_cpp/condition_node.h"
-
+#include "nav2_behavior_tree/bt_utils.hpp"
 #include "nav2_ros_common/lifecycle_node.hpp"
+
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "tf2_ros/buffer.hpp"
-#include "nav2_behavior_tree/bt_utils.hpp"
 
-namespace nav2_behavior_tree
-{
+#include <memory>
+#include <string>
+
+namespace nav2_behavior_tree {
 
 /**
  * @brief A BT::ConditionNode that returns SUCCESS every time the robot
  * travels a specified distance and FAILURE otherwise
  * @note It will re-initialize when halted.
  */
-class DistanceTraveledCondition : public BT::ConditionNode
-{
-public:
-  /**
-   * @brief A constructor for nav2_behavior_tree::DistanceTraveledCondition
-   * @param condition_name Name for the XML tag for this node
-   * @param conf BT node configuration
-   */
-  DistanceTraveledCondition(
-    const std::string & condition_name,
-    const BT::NodeConfiguration & conf);
+class DistanceTraveledCondition : public BT::ConditionNode {
+   public:
+    /**
+     * @brief A constructor for nav2_behavior_tree::DistanceTraveledCondition
+     * @param condition_name Name for the XML tag for this node
+     * @param conf BT node configuration
+     */
+    DistanceTraveledCondition(const std::string& condition_name, const BT::NodeConfiguration& conf);
 
-  DistanceTraveledCondition() = delete;
+    DistanceTraveledCondition() = delete;
 
-  /**
-   * @brief The main override required by a BT action
-   * @return BT::NodeStatus Status of tick execution
-   */
-  BT::NodeStatus tick() override;
+    /**
+     * @brief The main override required by a BT action
+     * @return BT::NodeStatus Status of tick execution
+     */
+    BT::NodeStatus tick() override;
 
-  /**
-   * @brief Function to read parameters and initialize class variables
-   */
-  void initialize();
+    /**
+     * @brief Function to read parameters and initialize class variables
+     */
+    void initialize();
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing node-specific ports
-   */
-  static BT::PortsList providedPorts()
-  {
-    return {
-      BT::InputPort<double>("distance", 1.0, "Distance"),
-      BT::InputPort<std::string>("global_frame", "Global frame"),
-      BT::InputPort<std::string>("robot_base_frame", "Robot base frame")
-    };
-  }
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing node-specific ports
+     */
+    static BT::PortsList providedPorts() {
+        return {BT::InputPort<double>("distance", 1.0, "Distance"), BT::InputPort<std::string>("global_frame", "Global frame"),
+                BT::InputPort<std::string>("robot_base_frame", "Robot base frame")};
+    }
 
-private:
-  nav2::LifecycleNode::SharedPtr node_;
-  std::shared_ptr<tf2_ros::Buffer> tf_;
+   private:
+    nav2::LifecycleNode::SharedPtr node_;
+    std::shared_ptr<tf2_ros::Buffer> tf_;
 
-  geometry_msgs::msg::PoseStamped start_pose_;
+    geometry_msgs::msg::PoseStamped start_pose_;
 
-  double distance_;
-  double transform_tolerance_;
-  std::string global_frame_, robot_base_frame_;
+    double distance_;
+    double transform_tolerance_;
+    std::string global_frame_, robot_base_frame_;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__DISTANCE_TRAVELED_CONDITION_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__DISTANCE_TRAVELED_CONDITION_HPP_

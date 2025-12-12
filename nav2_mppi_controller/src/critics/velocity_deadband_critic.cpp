@@ -14,64 +14,76 @@
 
 #include "nav2_mppi_controller/critics/velocity_deadband_critic.hpp"
 
-namespace mppi::critics
-{
+namespace mppi::critics {
 
-void VelocityDeadbandCritic::initialize()
-{
-  auto getParam = parameters_handler_->getParamGetter(name_);
+void VelocityDeadbandCritic::initialize() {
+    auto getParam = parameters_handler_->getParamGetter(name_);
 
-  getParam(power_, "cost_power", 1);
-  getParam(weight_, "cost_weight", 35.0);
+    getParam(power_, "cost_power", 1);
+    getParam(weight_, "cost_weight", 35.0);
 
-  // Recast double to float
-  std::vector<double> deadband_velocities{0.0, 0.0, 0.0};
-  getParam(deadband_velocities, "deadband_velocities", std::vector<double>{0.0, 0.0, 0.0});
-  std::transform(
-    deadband_velocities.begin(), deadband_velocities.end(), deadband_velocities_.begin(),
-    [](double d) {return static_cast<float>(d);});
+    // Recast double to float
+    std::vector<double> deadband_velocities{0.0, 0.0, 0.0};
+    getParam(deadband_velocities, "deadband_velocities", std::vector<double>{0.0, 0.0, 0.0});
+    std::transform(deadband_velocities.begin(), deadband_velocities.end(), deadband_velocities_.begin(),
+                   [](double d) { return static_cast<float>(d); });
 
-  RCLCPP_INFO_STREAM(
-    logger_, "VelocityDeadbandCritic instantiated with "
-      << power_ << " power, " << weight_ << " weight, deadband_velocity ["
-      << deadband_velocities_.at(0) << "," << deadband_velocities_.at(1) << ","
-      << deadband_velocities_.at(2) << "]");
+    RCLCPP_INFO_STREAM(logger_, "VelocityDeadbandCritic instantiated with " << power_ << " power, " << weight_ << " weight, deadband_velocity ["
+                                                                            << deadband_velocities_.at(0) << "," << deadband_velocities_.at(1) << ","
+                                                                            << deadband_velocities_.at(2) << "]");
 }
 
-void VelocityDeadbandCritic::score(CriticData & data)
-{
-  if (!enabled_) {
-    return;
-  }
+void VelocityDeadbandCritic::score(CriticData& data) {
+    if (!enabled_) {
+        return;
+    }
 
-  if (data.motion_model->isHolonomic()) {
+    if (data.motion_model->isHolonomic()) {
+        if (power_ > 1u) {
+            data.costs +=
+                ((((fabs(deadband_velocities_[0]) - data.state.vx.abs()).max(0.0f) + (fabs(deadband_velocities_[1]) - data.state.vy.abs()).max(0.0f)
+                   + (fabs(deadband_velocities_[2]) - data.state.wz.abs()).max(0.0f))
+                  * data.model_dt)
+                     .rowwise()
+                     .sum()
+                 * weight_)
+                    .pow(power_)
+                    .eval();
+        } else {
+            data.costs +=
+                ((((fabs(deadband_velocities_[0]) - data.state.vx.abs()).max(0.0f) + (fabs(deadband_velocities_[1]) - data.state.vy.abs()).max(0.0f)
+                   + (fabs(deadband_velocities_[2]) - data.state.wz.abs()).max(0.0f))
+                  * data.model_dt)
+                     .rowwise()
+                     .sum()
+                 * weight_)
+                    .eval();
+        }
+        return;
+    }
+
     if (power_ > 1u) {
-      data.costs += ((((fabs(deadband_velocities_[0]) - data.state.vx.abs()).max(0.0f) +
-        (fabs(deadband_velocities_[1]) - data.state.vy.abs()).max(0.0f) +
-        (fabs(deadband_velocities_[2]) - data.state.wz.abs()).max(0.0f)) *
-        data.model_dt).rowwise().sum() * weight_).pow(power_).eval();
+        data.costs +=
+            ((((fabs(deadband_velocities_[0]) - data.state.vx.abs()).max(0.0f) + (fabs(deadband_velocities_[2]) - data.state.wz.abs()).max(0.0f))
+              * data.model_dt)
+                 .rowwise()
+                 .sum()
+             * weight_)
+                .pow(power_)
+                .eval();
     } else {
-      data.costs += ((((fabs(deadband_velocities_[0]) - data.state.vx.abs()).max(0.0f) +
-        (fabs(deadband_velocities_[1]) - data.state.vy.abs()).max(0.0f) +
-        (fabs(deadband_velocities_[2]) - data.state.wz.abs()).max(0.0f)) *
-        data.model_dt).rowwise().sum() * weight_).eval();
+        data.costs +=
+            ((((fabs(deadband_velocities_[0]) - data.state.vx.abs()).max(0.0f) + (fabs(deadband_velocities_[2]) - data.state.wz.abs()).max(0.0f))
+              * data.model_dt)
+                 .rowwise()
+                 .sum()
+             * weight_)
+                .eval();
     }
     return;
-  }
-
-  if (power_ > 1u) {
-    data.costs += ((((fabs(deadband_velocities_[0]) - data.state.vx.abs()).max(0.0f) +
-      (fabs(deadband_velocities_[2]) - data.state.wz.abs()).max(0.0f)) *
-      data.model_dt).rowwise().sum() * weight_).pow(power_).eval();
-  } else {
-    data.costs += ((((fabs(deadband_velocities_[0]) - data.state.vx.abs()).max(0.0f) +
-      (fabs(deadband_velocities_[2]) - data.state.wz.abs()).max(0.0f)) *
-      data.model_dt).rowwise().sum() * weight_).eval();
-  }
-  return;
 }
 
-}  // namespace mppi::critics
+} // namespace mppi::critics
 
 #include <pluginlib/class_list_macros.hpp>
 

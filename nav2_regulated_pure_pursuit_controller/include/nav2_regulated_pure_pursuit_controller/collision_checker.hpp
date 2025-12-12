@@ -15,91 +15,80 @@
 #ifndef NAV2_REGULATED_PURE_PURSUIT_CONTROLLER__COLLISION_CHECKER_HPP_
 #define NAV2_REGULATED_PURE_PURSUIT_CONTROLLER__COLLISION_CHECKER_HPP_
 
-#include <string>
-#include <vector>
-#include <memory>
-#include <algorithm>
-#include <mutex>
-
-#include "nav2_ros_common/lifecycle_node.hpp"
-#include "nav2_costmap_2d/costmap_2d_ros.hpp"
-#include "nav2_costmap_2d/footprint_collision_checker.hpp"
-#include "nav2_util/odometry_utils.hpp"
-#include "geometry_msgs/msg/pose.hpp"
-#include "nav2_regulated_pure_pursuit_controller/parameter_handler.hpp"
-
 #include "nav2_core/controller_exceptions.hpp"
+#include "nav2_costmap_2d/costmap_2d_ros.hpp"
+#include "nav2_costmap_2d/costmap_filters/filter_values.hpp"
+#include "nav2_costmap_2d/footprint_collision_checker.hpp"
+#include "nav2_regulated_pure_pursuit_controller/parameter_handler.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
 #include "nav2_ros_common/node_utils.hpp"
 #include "nav2_util/geometry_utils.hpp"
-#include "nav2_costmap_2d/costmap_filters/filter_values.hpp"
+#include "nav2_util/odometry_utils.hpp"
 
-namespace nav2_regulated_pure_pursuit_controller
-{
+#include "geometry_msgs/msg/pose.hpp"
+
+#include <algorithm>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <vector>
+
+namespace nav2_regulated_pure_pursuit_controller {
 
 /**
  * @class nav2_regulated_pure_pursuit_controller::CollisionChecker
  * @brief Checks for collision based on a RPP control command
  */
-class CollisionChecker
-{
-public:
-  /**
-   * @brief Constructor for nav2_regulated_pure_pursuit_controller::CollisionChecker
-   */
-  CollisionChecker(
-    nav2::LifecycleNode::SharedPtr node,
-    std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros, Parameters * params);
+class CollisionChecker {
+   public:
+    /**
+     * @brief Constructor for nav2_regulated_pure_pursuit_controller::CollisionChecker
+     */
+    CollisionChecker(nav2::LifecycleNode::SharedPtr node, std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros, Parameters* params);
 
-  /**
-   * @brief Destrructor for nav2_regulated_pure_pursuit_controller::CollisionChecker
-   */
-  ~CollisionChecker() = default;
+    /**
+     * @brief Destrructor for nav2_regulated_pure_pursuit_controller::CollisionChecker
+     */
+    ~CollisionChecker() = default;
 
-  /**
-   * @brief Whether collision is imminent
-   * @param robot_pose Pose of robot
-   * @param carrot_pose Pose of carrot
-   * @param linear_vel linear velocity to forward project
-   * @param angular_vel angular velocity to forward project
-   * @param carrot_dist Distance to the carrot for PP
-   * @return Whether collision is imminent
-   */
-  bool isCollisionImminent(
-    const geometry_msgs::msg::PoseStamped &,
-    const double &, const double &,
-    const double &);
+    /**
+     * @brief Whether collision is imminent
+     * @param robot_pose Pose of robot
+     * @param carrot_pose Pose of carrot
+     * @param linear_vel linear velocity to forward project
+     * @param angular_vel angular velocity to forward project
+     * @param carrot_dist Distance to the carrot for PP
+     * @return Whether collision is imminent
+     */
+    bool isCollisionImminent(const geometry_msgs::msg::PoseStamped&, const double&, const double&, const double&);
 
-  /**
-   * @brief checks for collision at projected pose
-   * @param x Pose of pose x
-   * @param y Pose of pose y
-   * @param theta orientation of Yaw
-   * @return Whether in collision
-   */
-  bool inCollision(
-    const double & x,
-    const double & y,
-    const double & theta);
+    /**
+     * @brief checks for collision at projected pose
+     * @param x Pose of pose x
+     * @param y Pose of pose y
+     * @param theta orientation of Yaw
+     * @return Whether in collision
+     */
+    bool inCollision(const double& x, const double& y, const double& theta);
 
-  /**
-   * @brief Cost at a point
-   * @param x Pose of pose x
-   * @param y Pose of pose y
-   * @return Cost of pose in costmap
-   */
-  double costAtPose(const double & x, const double & y);
+    /**
+     * @brief Cost at a point
+     * @param x Pose of pose x
+     * @param y Pose of pose y
+     * @return Cost of pose in costmap
+     */
+    double costAtPose(const double& x, const double& y);
 
-protected:
-  rclcpp::Logger logger_ {rclcpp::get_logger("RPPCollisionChecker")};
-  std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
-  nav2_costmap_2d::Costmap2D * costmap_;
-  std::unique_ptr<nav2_costmap_2d::FootprintCollisionChecker<nav2_costmap_2d::Costmap2D *>>
-  footprint_collision_checker_;
-  Parameters * params_;
-  nav2::Publisher<nav_msgs::msg::Path>::SharedPtr carrot_arc_pub_;
-  rclcpp::Clock::SharedPtr clock_;
+   protected:
+    rclcpp::Logger logger_{rclcpp::get_logger("RPPCollisionChecker")};
+    std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros_;
+    nav2_costmap_2d::Costmap2D* costmap_;
+    std::unique_ptr<nav2_costmap_2d::FootprintCollisionChecker<nav2_costmap_2d::Costmap2D*>> footprint_collision_checker_;
+    Parameters* params_;
+    nav2::Publisher<nav_msgs::msg::Path>::SharedPtr carrot_arc_pub_;
+    rclcpp::Clock::SharedPtr clock_;
 };
 
-}  // namespace nav2_regulated_pure_pursuit_controller
+} // namespace nav2_regulated_pure_pursuit_controller
 
-#endif  // NAV2_REGULATED_PURE_PURSUIT_CONTROLLER__COLLISION_CHECKER_HPP_
+#endif // NAV2_REGULATED_PURE_PURSUIT_CONTROLLER__COLLISION_CHECKER_HPP_

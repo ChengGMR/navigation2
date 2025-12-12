@@ -16,47 +16,37 @@
 
 #include <Eigen/Dense>
 
-namespace mppi::critics
-{
+namespace mppi::critics {
 
-void PreferForwardCritic::initialize()
-{
-  auto getParentParam = parameters_handler_->getParamGetter(parent_name_);
-  auto getParam = parameters_handler_->getParamGetter(name_);
-  getParam(power_, "cost_power", 1);
-  getParam(weight_, "cost_weight", 5.0f);
-  getParam(
-    threshold_to_consider_,
-    "threshold_to_consider", 0.5f);
+void PreferForwardCritic::initialize() {
+    auto getParentParam = parameters_handler_->getParamGetter(parent_name_);
+    auto getParam = parameters_handler_->getParamGetter(name_);
+    getParam(power_, "cost_power", 1);
+    getParam(weight_, "cost_weight", 5.0f);
+    getParam(threshold_to_consider_, "threshold_to_consider", 0.5f);
 
-  RCLCPP_INFO(
-    logger_, "PreferForwardCritic instantiated with %d power and %f weight.", power_, weight_);
+    RCLCPP_INFO(logger_, "PreferForwardCritic instantiated with %d power and %f weight.", power_, weight_);
 }
 
-void PreferForwardCritic::score(CriticData & data)
-{
-  if (!enabled_) {
-    return;
-  }
+void PreferForwardCritic::score(CriticData& data) {
+    if (!enabled_) {
+        return;
+    }
 
-  if (data.state.local_path_length < threshold_to_consider_) {
-    return;
-  }
+    if (data.state.local_path_length < threshold_to_consider_) {
+        return;
+    }
 
-  if (power_ > 1u) {
-    data.costs += (
-      (data.state.vx.unaryExpr([&](const float & x) {return std::max(-x, 0.0f);}) *
-      data.model_dt).rowwise().sum() * weight_).pow(power_);
-  } else {
-    data.costs += (data.state.vx.unaryExpr([&](const float & x) {return std::max(-x, 0.0f);}) *
-      data.model_dt).rowwise().sum() * weight_;
-  }
+    if (power_ > 1u) {
+        data.costs +=
+            ((data.state.vx.unaryExpr([&](const float& x) { return std::max(-x, 0.0f); }) * data.model_dt).rowwise().sum() * weight_).pow(power_);
+    } else {
+        data.costs += (data.state.vx.unaryExpr([&](const float& x) { return std::max(-x, 0.0f); }) * data.model_dt).rowwise().sum() * weight_;
+    }
 }
 
-}  // namespace mppi::critics
+} // namespace mppi::critics
 
 #include <pluginlib/class_list_macros.hpp>
 
-PLUGINLIB_EXPORT_CLASS(
-  mppi::critics::PreferForwardCritic,
-  mppi::critics::CriticFunction)
+PLUGINLIB_EXPORT_CLASS(mppi::critics::PreferForwardCritic, mppi::critics::CriticFunction)

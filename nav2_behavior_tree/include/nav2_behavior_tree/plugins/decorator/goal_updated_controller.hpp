@@ -15,67 +15,60 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__DECORATOR__GOAL_UPDATED_CONTROLLER_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__DECORATOR__GOAL_UPDATED_CONTROLLER_HPP_
 
-#include <chrono>
-#include <string>
-#include <vector>
-
 #include "behaviortree_cpp/decorator_node.h"
 #include "behaviortree_cpp/json_export.h"
-#include "geometry_msgs/msg/pose_stamped.hpp"
 #include "nav2_behavior_tree/bt_utils.hpp"
 #include "nav2_behavior_tree/json_utils.hpp"
 #include "rclcpp/rclcpp.hpp"
 
+#include "geometry_msgs/msg/pose_stamped.hpp"
 
-namespace nav2_behavior_tree
-{
+#include <chrono>
+#include <string>
+#include <vector>
+
+namespace nav2_behavior_tree {
 
 /**
  * @brief A BT::DecoratorNode that ticks its child if the goal was updated
  * @note It will re-initialize when halted.
  */
-class GoalUpdatedController : public BT::DecoratorNode
-{
-public:
-  /**
-   * @brief A constructor for nav2_behavior_tree::GoalUpdatedController
-   * @param name Name for the XML tag for this node
-   * @param conf BT node configuration
-   */
-  GoalUpdatedController(
-    const std::string & name,
-    const BT::NodeConfiguration & conf);
+class GoalUpdatedController : public BT::DecoratorNode {
+   public:
+    /**
+     * @brief A constructor for nav2_behavior_tree::GoalUpdatedController
+     * @param name Name for the XML tag for this node
+     * @param conf BT node configuration
+     */
+    GoalUpdatedController(const std::string& name, const BT::NodeConfiguration& conf);
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing node-specific ports
-   */
-  static BT::PortsList providedPorts()
-  {
-    // Register JSON definitions for the types used in the ports
-    BT::RegisterJsonDefinition<geometry_msgs::msg::PoseStamped>();
-    BT::RegisterJsonDefinition<nav_msgs::msg::Goals>();
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing node-specific ports
+     */
+    static BT::PortsList providedPorts() {
+        // Register JSON definitions for the types used in the ports
+        BT::RegisterJsonDefinition<geometry_msgs::msg::PoseStamped>();
+        BT::RegisterJsonDefinition<nav_msgs::msg::Goals>();
 
-    return {
-      BT::InputPort<nav_msgs::msg::Goals>(
-        "goals", "Vector of navigation goals"),
-      BT::InputPort<geometry_msgs::msg::PoseStamped>(
-        "goal", "Navigation goal"),
-    };
-  }
+        return {
+            BT::InputPort<nav_msgs::msg::Goals>("goals", "Vector of navigation goals"),
+            BT::InputPort<geometry_msgs::msg::PoseStamped>("goal", "Navigation goal"),
+        };
+    }
 
-private:
-  /**
-   * @brief The main override required by a BT action
-   * @return BT::NodeStatus Status of tick execution
-   */
-  BT::NodeStatus tick() override;
+   private:
+    /**
+     * @brief The main override required by a BT action
+     * @return BT::NodeStatus Status of tick execution
+     */
+    BT::NodeStatus tick() override;
 
-  bool goal_was_updated_;
-  geometry_msgs::msg::PoseStamped goal_;
-  nav_msgs::msg::Goals goals_;
+    bool goal_was_updated_;
+    geometry_msgs::msg::PoseStamped goal_;
+    nav_msgs::msg::Goals goals_;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__DECORATOR__GOAL_UPDATED_CONTROLLER_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__DECORATOR__GOAL_UPDATED_CONTROLLER_HPP_

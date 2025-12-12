@@ -15,21 +15,21 @@
 #ifndef NAV2_ROUTE__EDGE_SCORER_HPP_
 #define NAV2_ROUTE__EDGE_SCORER_HPP_
 
-#include <string>
-#include <memory>
-#include <vector>
-
-#include "tf2_ros/buffer.hpp"
-#include "pluginlib/class_loader.hpp"
-#include "pluginlib/class_list_macros.hpp"
-#include "nav2_ros_common/node_utils.hpp"
 #include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav2_ros_common/node_utils.hpp"
+#include "nav2_route/interfaces/edge_cost_function.hpp"
 #include "nav2_route/types.hpp"
 #include "nav2_route/utils.hpp"
-#include "nav2_route/interfaces/edge_cost_function.hpp"
+
 #include "geometry_msgs/msg/pose_stamped.hpp"
-namespace nav2_route
-{
+#include "pluginlib/class_list_macros.hpp"
+#include "pluginlib/class_loader.hpp"
+#include "tf2_ros/buffer.hpp"
+
+#include <memory>
+#include <string>
+#include <vector>
+namespace nav2_route {
 
 /**
  * @class nav2_route::EdgeScorer
@@ -42,46 +42,40 @@ namespace nav2_route
  * edges with reduced speed limits are proportionally less preferred for optimality
  * relative to the distance the edge represents to optimize time to goal)
  */
-class EdgeScorer
-{
-public:
-  /**
-   * @brief Constructor
-   */
-  explicit EdgeScorer(
-    nav2::LifecycleNode::SharedPtr node,
-    const std::shared_ptr<tf2_ros::Buffer> tf_buffer,
-    const std::shared_ptr<nav2_costmap_2d::CostmapSubscriber> costmap_subscriber);
+class EdgeScorer {
+   public:
+    /**
+     * @brief Constructor
+     */
+    explicit EdgeScorer(nav2::LifecycleNode::SharedPtr node, const std::shared_ptr<tf2_ros::Buffer> tf_buffer,
+                        const std::shared_ptr<nav2_costmap_2d::CostmapSubscriber> costmap_subscriber);
 
-  /**
-   * @brief Destructor
-   */
-  ~EdgeScorer() = default;
+    /**
+     * @brief Destructor
+     */
+    ~EdgeScorer() = default;
 
-  /**
-   * @brief Score the edge with the set of plugins
-   * @param edge Ptr to edge for scoring
-   * @param goal_pose Pose Stamped of desired goal
-   * @param score of edge
-   * @param final_edge whether this edge brings us to the goal or not
-   * @return If edge is valid
-   */
-  bool score(
-    const EdgePtr edge, const RouteRequest & route_request,
-    const EdgeType & edge_type,
-    float & score);
+    /**
+     * @brief Score the edge with the set of plugins
+     * @param edge Ptr to edge for scoring
+     * @param goal_pose Pose Stamped of desired goal
+     * @param score of edge
+     * @param final_edge whether this edge brings us to the goal or not
+     * @return If edge is valid
+     */
+    bool score(const EdgePtr edge, const RouteRequest& route_request, const EdgeType& edge_type, float& score);
 
-  /**
-   * @brief Provide the number of plugisn in the scorer loaded
-   * @return Number of scoring plugins
-   */
-  int numPlugins() const;
+    /**
+     * @brief Provide the number of plugisn in the scorer loaded
+     * @return Number of scoring plugins
+     */
+    int numPlugins() const;
 
-protected:
-  pluginlib::ClassLoader<EdgeCostFunction> plugin_loader_;
-  std::vector<EdgeCostFunction::Ptr> plugins_;
+   protected:
+    pluginlib::ClassLoader<EdgeCostFunction> plugin_loader_;
+    std::vector<EdgeCostFunction::Ptr> plugins_;
 };
 
-}  // namespace nav2_route
+} // namespace nav2_route
 
-#endif  // NAV2_ROUTE__EDGE_SCORER_HPP_
+#endif // NAV2_ROUTE__EDGE_SCORER_HPP_

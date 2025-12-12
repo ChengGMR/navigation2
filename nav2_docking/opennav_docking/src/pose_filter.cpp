@@ -13,54 +13,51 @@
 // limitations under the License.
 
 #include "opennav_docking/pose_filter.hpp"
+
 #include "rclcpp/rclcpp.hpp"
+
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
 
-namespace opennav_docking
-{
+namespace opennav_docking {
 
-PoseFilter::PoseFilter(double coef, double timeout)
-{
-  coef_ = coef;
-  timeout_ = timeout;
-  pose_.header.stamp = rclcpp::Time(0);
+PoseFilter::PoseFilter(double coef, double timeout) {
+    coef_ = coef;
+    timeout_ = timeout;
+    pose_.header.stamp = rclcpp::Time(0);
 }
 
-geometry_msgs::msg::PoseStamped
-PoseFilter::update(const geometry_msgs::msg::PoseStamped & measurement)
-{
-  if (coef_ <= 0.0) {
-    // No filtering
-    return measurement;
-  }
+geometry_msgs::msg::PoseStamped PoseFilter::update(const geometry_msgs::msg::PoseStamped& measurement) {
+    if (coef_ <= 0.0) {
+        // No filtering
+        return measurement;
+    }
 
-  if ((rclcpp::Time(measurement.header.stamp) - pose_.header.stamp).seconds() > timeout_) {
-    pose_ = measurement;
-  } else if (pose_.header.frame_id != measurement.header.frame_id) {
-    pose_ = measurement;
-  } else {
-    // Copy header
-    pose_.header = measurement.header;
+    if ((rclcpp::Time(measurement.header.stamp) - pose_.header.stamp).seconds() > timeout_) {
+        pose_ = measurement;
+    } else if (pose_.header.frame_id != measurement.header.frame_id) {
+        pose_ = measurement;
+    } else {
+        // Copy header
+        pose_.header = measurement.header;
 
-    // Filter position
-    filter(pose_.pose.position.x, measurement.pose.position.x);
-    filter(pose_.pose.position.y, measurement.pose.position.y);
-    filter(pose_.pose.position.z, measurement.pose.position.z);
+        // Filter position
+        filter(pose_.pose.position.x, measurement.pose.position.x);
+        filter(pose_.pose.position.y, measurement.pose.position.y);
+        filter(pose_.pose.position.z, measurement.pose.position.z);
 
-    // Filter orientation
-    tf2::Quaternion f_quat, m_quat;
-    tf2::fromMsg(measurement.pose.orientation, m_quat);
-    tf2::fromMsg(pose_.pose.orientation, f_quat);
-    f_quat = f_quat.slerp(m_quat, coef_);
-    pose_.pose.orientation = tf2::toMsg(f_quat);
-  }
+        // Filter orientation
+        tf2::Quaternion f_quat, m_quat;
+        tf2::fromMsg(measurement.pose.orientation, m_quat);
+        tf2::fromMsg(pose_.pose.orientation, f_quat);
+        f_quat = f_quat.slerp(m_quat, coef_);
+        pose_.pose.orientation = tf2::toMsg(f_quat);
+    }
 
-  return pose_;
+    return pose_;
 }
 
-void PoseFilter::filter(double & filt, double meas)
-{
-  filt = (1 - coef_) * filt + coef_ * meas;
+void PoseFilter::filter(double& filt, double meas) {
+    filt = (1 - coef_) * filt + coef_ * meas;
 }
 
-}  // namespace opennav_docking
+} // namespace opennav_docking

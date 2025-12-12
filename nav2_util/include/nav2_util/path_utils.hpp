@@ -15,26 +15,25 @@
 #ifndef NAV2_UTIL__PATH_UTILS_HPP_
 #define NAV2_UTIL__PATH_UTILS_HPP_
 
+#include "nav2_util/geometry_utils.hpp"
+#include "nav_msgs/msg/path.hpp"
+
+#include "geometry_msgs/msg/point.hpp"
+#include "geometry_msgs/msg/pose.hpp"
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/quaternion.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <limits>
-
-#include "geometry_msgs/msg/pose.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "geometry_msgs/msg/point.hpp"
-#include "geometry_msgs/msg/quaternion.hpp"
-#include "nav_msgs/msg/path.hpp"
-#include "nav2_util/geometry_utils.hpp"
-namespace nav2_util
-{
+namespace nav2_util {
 
 /**
  * @brief Result of searching for the closest segment on a path.
  */
-struct PathSearchResult
-{
-  double distance;
-  size_t closest_segment_index;
+struct PathSearchResult {
+    double distance;
+    size_t closest_segment_index;
 };
 /**
  * @brief Finds the minimum distance from the robot's pose to the closest segment of a path.
@@ -50,12 +49,9 @@ struct PathSearchResult
  * @param search_window_length The maximum length (in meters) to search along the path (default: unlimited).
  * @return PathSearchResult Struct containing the minimum distance and the index of the closest segment.
  */
-PathSearchResult distance_from_path(
-  const nav_msgs::msg::Path & path,
-  const geometry_msgs::msg::Pose & robot_pose,
-  const size_t start_index = 0,
-  const double search_window_length = std::numeric_limits<double>::max());
+PathSearchResult distance_from_path(const nav_msgs::msg::Path& path, const geometry_msgs::msg::Pose& robot_pose, const size_t start_index = 0,
+                                    const double search_window_length = std::numeric_limits<double>::max());
 
-}  // namespace nav2_util
+} // namespace nav2_util
 
-#endif  // NAV2_UTIL__PATH_UTILS_HPP_
+#endif // NAV2_UTIL__PATH_UTILS_HPP_

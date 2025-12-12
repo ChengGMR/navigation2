@@ -15,81 +15,71 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__IS_STOPPED_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__IS_STOPPED_CONDITION_HPP_
 
-#include <string>
-#include <memory>
-
-#include "nav2_ros_common/lifecycle_node.hpp"
 #include "behaviortree_cpp/condition_node.h"
 #include "behaviortree_cpp/json_export.h"
-#include "nav_msgs/msg/odometry.hpp"
-#include "nav2_util/odometry_utils.hpp"
 #include "nav2_behavior_tree/bt_utils.hpp"
 #include "nav2_behavior_tree/json_utils.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav2_util/odometry_utils.hpp"
+#include "nav_msgs/msg/odometry.hpp"
 
+#include <memory>
+#include <string>
 
 using namespace std::chrono_literals; // NOLINT
 
-namespace nav2_behavior_tree
-{
+namespace nav2_behavior_tree {
 
 /**
  * @brief A BT::ConditionNode that tracks robot odometry and returns SUCCESS
  * if robot is considered stopped for long enough, RUNNING if stopped but not for long enough and FAILURE otherwise
  */
-class IsStoppedCondition : public BT::ConditionNode
-{
-public:
-  /**
-   * @brief A constructor for nav2_behavior_tree::IsStoppedCondition
-   * @param condition_name Name for the XML tag for this node
-   * @param conf BT node configuration
-   */
-  IsStoppedCondition(
-    const std::string & condition_name,
-    const BT::NodeConfiguration & conf);
+class IsStoppedCondition : public BT::ConditionNode {
+   public:
+    /**
+     * @brief A constructor for nav2_behavior_tree::IsStoppedCondition
+     * @param condition_name Name for the XML tag for this node
+     * @param conf BT node configuration
+     */
+    IsStoppedCondition(const std::string& condition_name, const BT::NodeConfiguration& conf);
 
-  IsStoppedCondition() = delete;
+    IsStoppedCondition() = delete;
 
-  /**
-   * @brief A destructor for nav2_behavior_tree::IsStoppedCondition
-   */
-  ~IsStoppedCondition() override;
+    /**
+     * @brief A destructor for nav2_behavior_tree::IsStoppedCondition
+     */
+    ~IsStoppedCondition() override;
 
-  /**
-   * @brief The main override required by a BT action
-   * @return BT::NodeStatus Status of tick execution
-   */
-  BT::NodeStatus tick() override;
+    /**
+     * @brief The main override required by a BT action
+     * @return BT::NodeStatus Status of tick execution
+     */
+    BT::NodeStatus tick() override;
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing node-specific ports
-   */
-  static BT::PortsList providedPorts()
-  {
-    // Register JSON definitions for the types used in the ports
-    BT::RegisterJsonDefinition<std::chrono::milliseconds>();
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing node-specific ports
+     */
+    static BT::PortsList providedPorts() {
+        // Register JSON definitions for the types used in the ports
+        BT::RegisterJsonDefinition<std::chrono::milliseconds>();
 
-    return {
-      BT::InputPort<double>(
-        "velocity_threshold", 0.01,
-        "Velocity threshold below which robot is considered stopped"),
-      BT::InputPort<std::chrono::milliseconds>(
-        "duration_stopped", 1000ms,
-        "Duration (ms) the velocity must remain below the threshold"),
-    };
-  }
+        return {
+            BT::InputPort<double>("velocity_threshold", 0.01, "Velocity threshold below which robot is considered stopped"),
+            BT::InputPort<std::chrono::milliseconds>("duration_stopped", 1000ms, "Duration (ms) the velocity must remain below the threshold"),
+        };
+    }
 
-private:
-  nav2::LifecycleNode::SharedPtr node_;
+   private:
+    nav2::LifecycleNode::SharedPtr node_;
 
-  double velocity_threshold_;
-  std::chrono::milliseconds duration_stopped_;
-  rclcpp::Time stopped_stamp_;
+    double velocity_threshold_;
+    std::chrono::milliseconds duration_stopped_;
+    rclcpp::Time stopped_stamp_;
 
-  std::shared_ptr<nav2_util::OdomSmoother> odom_smoother_;
+    std::shared_ptr<nav2_util::OdomSmoother> odom_smoother_;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__IS_STOPPED_CONDITION_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__IS_STOPPED_CONDITION_HPP_

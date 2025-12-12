@@ -15,20 +15,20 @@
 #ifndef NAV2_ROUTE__PLUGINS__ROUTE_OPERATIONS__TRIGGER_EVENT_HPP_
 #define NAV2_ROUTE__PLUGINS__ROUTE_OPERATIONS__TRIGGER_EVENT_HPP_
 
-#include <memory>
-#include <chrono>
-#include <string>
-
-#include "rclcpp/rclcpp.hpp"
-#include "rclcpp_lifecycle/lifecycle_node.hpp"
-#include "nav2_route/interfaces/route_operation.hpp"
 #include "nav2_core/route_exceptions.hpp"
 #include "nav2_ros_common/node_utils.hpp"
-#include "std_srvs/srv/trigger.hpp"
+#include "nav2_route/interfaces/route_operation.hpp"
 #include "nav2_route/plugins/route_operation_client.hpp"
+#include "rclcpp/rclcpp.hpp"
+#include "rclcpp_lifecycle/lifecycle_node.hpp"
 
-namespace nav2_route
-{
+#include "std_srvs/srv/trigger.hpp"
+
+#include <chrono>
+#include <memory>
+#include <string>
+
+namespace nav2_route {
 
 /**
  * @class TriggerEvent
@@ -42,20 +42,19 @@ namespace nav2_route
  *
  * See the Route Operation Client for more details
  */
-class TriggerEvent : public RouteOperationClient<std_srvs::srv::Trigger>
-{
-public:
-  /**
-   * @brief Constructor
-   */
-  TriggerEvent() = default;
+class TriggerEvent : public RouteOperationClient<std_srvs::srv::Trigger> {
+   public:
+    /**
+     * @brief Constructor
+     */
+    TriggerEvent() = default;
 
-  /**
-   * @brief destructor
-   */
-  virtual ~TriggerEvent() = default;
+    /**
+     * @brief destructor
+     */
+    virtual ~TriggerEvent() = default;
 };
 
-}  // namespace nav2_route
+} // namespace nav2_route
 
-#endif  // NAV2_ROUTE__PLUGINS__ROUTE_OPERATIONS__TRIGGER_EVENT_HPP_
+#endif // NAV2_ROUTE__PLUGINS__ROUTE_OPERATIONS__TRIGGER_EVENT_HPP_

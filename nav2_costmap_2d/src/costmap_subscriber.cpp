@@ -12,118 +12,95 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
-#include <memory>
-#include <mutex>
-
 #include "nav2_costmap_2d/costmap_subscriber.hpp"
 
-namespace nav2_costmap_2d
-{
+#include <memory>
+#include <mutex>
+#include <string>
 
-std::shared_ptr<Costmap2D> CostmapSubscriber::getCostmap()
-{
-  if (!isCostmapReceived()) {
-    throw std::runtime_error("Costmap is not available");
-  }
-  if (costmap_msg_) {
-    processCurrentCostmapMsg();
-  }
-  return costmap_;
-}
+namespace nav2_costmap_2d {
 
-void CostmapSubscriber::costmapCallback(const nav2_msgs::msg::Costmap::SharedPtr msg)
-{
-  {
-    std::lock_guard<std::mutex> lock(costmap_msg_mutex_);
-    costmap_msg_ = msg;
-    frame_id_ = costmap_msg_->header.frame_id;
-  }
-  if (!isCostmapReceived()) {
-    costmap_ = std::make_shared<Costmap2D>(
-      msg->metadata.size_x, msg->metadata.size_y,
-      msg->metadata.resolution, msg->metadata.origin.position.x,
-      msg->metadata.origin.position.y);
-
-    processCurrentCostmapMsg();
-  }
-}
-
-void CostmapSubscriber::costmapUpdateCallback(
-  const nav2_msgs::msg::CostmapUpdate::SharedPtr update_msg)
-{
-  if (isCostmapReceived()) {
+std::shared_ptr<Costmap2D> CostmapSubscriber::getCostmap() {
+    if (!isCostmapReceived()) {
+        throw std::runtime_error("Costmap is not available");
+    }
     if (costmap_msg_) {
-      processCurrentCostmapMsg();
+        processCurrentCostmapMsg();
     }
+    return costmap_;
+}
 
-    std::lock_guard<Costmap2D::mutex_t> lock(*(costmap_->getMutex()));
-
-    auto map_cell_size_x = costmap_->getSizeInCellsX();
-    auto map_call_size_y = costmap_->getSizeInCellsY();
-
-    if (map_cell_size_x < update_msg->x + update_msg->size_x ||
-      map_call_size_y < update_msg->y + update_msg->size_y)
+void CostmapSubscriber::costmapCallback(const nav2_msgs::msg::Costmap::SharedPtr msg) {
     {
-      RCLCPP_WARN(
-        logger_, "Update area outside of original map area. Costmap bounds: %d X %d, "
-        "Update origin: %d, %d  bounds: %d X %d", map_cell_size_x, map_call_size_y,
-        update_msg->x, update_msg->y, update_msg->size_x, update_msg->size_y);
-      return;
+        std::lock_guard<std::mutex> lock(costmap_msg_mutex_);
+        costmap_msg_ = msg;
+        frame_id_ = costmap_msg_->header.frame_id;
     }
-    unsigned char * master_array = costmap_->getCharMap();
-    // copy update msg row-wise
-    for (size_t y = 0; y < update_msg->size_y; ++y) {
-      auto starting_index_of_row_update_in_costmap = (y + update_msg->y) * map_cell_size_x +
-        update_msg->x;
+    if (!isCostmapReceived()) {
+        costmap_ = std::make_shared<Costmap2D>(msg->metadata.size_x, msg->metadata.size_y, msg->metadata.resolution, msg->metadata.origin.position.x,
+                                               msg->metadata.origin.position.y);
 
-      std::copy_n(
-        update_msg->data.begin() + (y * update_msg->size_x),
-        update_msg->size_x, &master_array[starting_index_of_row_update_in_costmap]);
+        processCurrentCostmapMsg();
     }
-  } else {
-    RCLCPP_WARN(logger_, "No costmap received.");
-  }
 }
 
-void CostmapSubscriber::processCurrentCostmapMsg()
-{
-  std::scoped_lock lock(*(costmap_->getMutex()), costmap_msg_mutex_);
-  if (haveCostmapParametersChanged()) {
-    costmap_->resizeMap(
-      costmap_msg_->metadata.size_x, costmap_msg_->metadata.size_y,
-      costmap_msg_->metadata.resolution,
-      costmap_msg_->metadata.origin.position.x,
-      costmap_msg_->metadata.origin.position.y);
-  }
+void CostmapSubscriber::costmapUpdateCallback(const nav2_msgs::msg::CostmapUpdate::SharedPtr update_msg) {
+    if (isCostmapReceived()) {
+        if (costmap_msg_) {
+            processCurrentCostmapMsg();
+        }
 
-  unsigned char * master_array = costmap_->getCharMap();
-  std::copy(costmap_msg_->data.begin(), costmap_msg_->data.end(), master_array);
-  costmap_msg_.reset();
+        std::lock_guard<Costmap2D::mutex_t> lock(*(costmap_->getMutex()));
+
+        auto map_cell_size_x = costmap_->getSizeInCellsX();
+        auto map_call_size_y = costmap_->getSizeInCellsY();
+
+        if (map_cell_size_x < update_msg->x + update_msg->size_x || map_call_size_y < update_msg->y + update_msg->size_y) {
+            RCLCPP_WARN(logger_,
+                        "Update area outside of original map area. Costmap bounds: %d X %d, "
+                        "Update origin: %d, %d  bounds: %d X %d",
+                        map_cell_size_x, map_call_size_y, update_msg->x, update_msg->y, update_msg->size_x, update_msg->size_y);
+            return;
+        }
+        unsigned char* master_array = costmap_->getCharMap();
+        // copy update msg row-wise
+        for (size_t y = 0; y < update_msg->size_y; ++y) {
+            auto starting_index_of_row_update_in_costmap = (y + update_msg->y) * map_cell_size_x + update_msg->x;
+
+            std::copy_n(update_msg->data.begin() + (y * update_msg->size_x), update_msg->size_x,
+                        &master_array[starting_index_of_row_update_in_costmap]);
+        }
+    } else {
+        RCLCPP_WARN(logger_, "No costmap received.");
+    }
 }
 
-bool CostmapSubscriber::haveCostmapParametersChanged()
-{
-  return hasCostmapSizeChanged() ||
-         hasCostmapResolutionChanged() ||
-         hasCostmapOriginPositionChanged();
+void CostmapSubscriber::processCurrentCostmapMsg() {
+    std::scoped_lock lock(*(costmap_->getMutex()), costmap_msg_mutex_);
+    if (haveCostmapParametersChanged()) {
+        costmap_->resizeMap(costmap_msg_->metadata.size_x, costmap_msg_->metadata.size_y, costmap_msg_->metadata.resolution,
+                            costmap_msg_->metadata.origin.position.x, costmap_msg_->metadata.origin.position.y);
+    }
+
+    unsigned char* master_array = costmap_->getCharMap();
+    std::copy(costmap_msg_->data.begin(), costmap_msg_->data.end(), master_array);
+    costmap_msg_.reset();
 }
 
-bool CostmapSubscriber::hasCostmapSizeChanged()
-{
-  return costmap_->getSizeInCellsX() != costmap_msg_->metadata.size_x ||
-         costmap_->getSizeInCellsY() != costmap_msg_->metadata.size_y;
+bool CostmapSubscriber::haveCostmapParametersChanged() {
+    return hasCostmapSizeChanged() || hasCostmapResolutionChanged() || hasCostmapOriginPositionChanged();
 }
 
-bool CostmapSubscriber::hasCostmapResolutionChanged()
-{
-  return costmap_->getResolution() != costmap_msg_->metadata.resolution;
+bool CostmapSubscriber::hasCostmapSizeChanged() {
+    return costmap_->getSizeInCellsX() != costmap_msg_->metadata.size_x || costmap_->getSizeInCellsY() != costmap_msg_->metadata.size_y;
 }
 
-bool CostmapSubscriber::hasCostmapOriginPositionChanged()
-{
-  return costmap_->getOriginX() != costmap_msg_->metadata.origin.position.x ||
-         costmap_->getOriginY() != costmap_msg_->metadata.origin.position.y;
+bool CostmapSubscriber::hasCostmapResolutionChanged() {
+    return costmap_->getResolution() != costmap_msg_->metadata.resolution;
 }
 
-}  // namespace nav2_costmap_2d
+bool CostmapSubscriber::hasCostmapOriginPositionChanged() {
+    return costmap_->getOriginX() != costmap_msg_->metadata.origin.position.x || costmap_->getOriginY() != costmap_msg_->metadata.origin.position.y;
+}
+
+} // namespace nav2_costmap_2d

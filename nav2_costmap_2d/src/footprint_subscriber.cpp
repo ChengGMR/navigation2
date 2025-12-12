@@ -12,73 +12,59 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "nav2_costmap_2d/footprint_subscriber.hpp"
+
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
-
-#include "nav2_costmap_2d/footprint_subscriber.hpp"
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #include "tf2/utils.hpp"
 #pragma GCC diagnostic pop
 
-namespace nav2_costmap_2d
-{
+namespace nav2_costmap_2d {
 
-bool
-FootprintSubscriber::getFootprintRaw(
-  std::vector<geometry_msgs::msg::Point> & footprint,
-  std_msgs::msg::Header & footprint_header)
-{
-  if (!footprint_received_) {
-    return false;
-  }
+bool FootprintSubscriber::getFootprintRaw(std::vector<geometry_msgs::msg::Point>& footprint, std_msgs::msg::Header& footprint_header) {
+    if (!footprint_received_) {
+        return false;
+    }
 
-  auto current_footprint = std::atomic_load(&footprint_);
-  footprint = toPointVector(current_footprint->polygon);
-  footprint_header = current_footprint->header;
+    auto current_footprint = std::atomic_load(&footprint_);
+    footprint = toPointVector(current_footprint->polygon);
+    footprint_header = current_footprint->header;
 
-  return true;
+    return true;
 }
 
-bool
-FootprintSubscriber::getFootprintInRobotFrame(
-  std::vector<geometry_msgs::msg::Point> & footprint,
-  std_msgs::msg::Header & footprint_header)
-{
-  if (!getFootprintRaw(footprint, footprint_header)) {
-    return false;
-  }
+bool FootprintSubscriber::getFootprintInRobotFrame(std::vector<geometry_msgs::msg::Point>& footprint, std_msgs::msg::Header& footprint_header) {
+    if (!getFootprintRaw(footprint, footprint_header)) {
+        return false;
+    }
 
-  geometry_msgs::msg::PoseStamped current_pose;
-  if (!nav2_util::getCurrentPose(
-      current_pose, tf_, footprint_header.frame_id, robot_base_frame_,
-      transform_tolerance_, footprint_header.stamp))
-  {
-    return false;
-  }
+    geometry_msgs::msg::PoseStamped current_pose;
+    if (!nav2_util::getCurrentPose(current_pose, tf_, footprint_header.frame_id, robot_base_frame_, transform_tolerance_, footprint_header.stamp)) {
+        return false;
+    }
 
-  double x = current_pose.pose.position.x;
-  double y = current_pose.pose.position.y;
-  double theta = tf2::getYaw(current_pose.pose.orientation);
+    double x = current_pose.pose.position.x;
+    double y = current_pose.pose.position.y;
+    double theta = tf2::getYaw(current_pose.pose.orientation);
 
-  std::vector<geometry_msgs::msg::Point> temp;
-  transformFootprint(-x, -y, 0, footprint, temp);
-  transformFootprint(0, 0, -theta, temp, footprint);
+    std::vector<geometry_msgs::msg::Point> temp;
+    transformFootprint(-x, -y, 0, footprint, temp);
+    transformFootprint(0, 0, -theta, temp, footprint);
 
-  footprint_header.frame_id = robot_base_frame_;
-  footprint_header.stamp = current_pose.header.stamp;
+    footprint_header.frame_id = robot_base_frame_;
+    footprint_header.stamp = current_pose.header.stamp;
 
-  return true;
+    return true;
 }
 
-void
-FootprintSubscriber::footprint_callback(const geometry_msgs::msg::PolygonStamped::SharedPtr msg)
-{
-  std::atomic_store(&footprint_, msg);
-  if (!footprint_received_) {
-    footprint_received_ = true;
-  }
+void FootprintSubscriber::footprint_callback(const geometry_msgs::msg::PolygonStamped::SharedPtr msg) {
+    std::atomic_store(&footprint_, msg);
+    if (!footprint_received_) {
+        footprint_received_ = true;
+    }
 }
 
-}  // namespace nav2_costmap_2d
+} // namespace nav2_costmap_2d

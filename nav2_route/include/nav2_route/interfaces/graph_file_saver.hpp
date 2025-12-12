@@ -15,53 +15,47 @@
 #ifndef NAV2_ROUTE__INTERFACES__GRAPH_FILE_SAVER_HPP_
 #define NAV2_ROUTE__INTERFACES__GRAPH_FILE_SAVER_HPP_
 
-#include <string>
-#include <memory>
-
-
-#include "rclcpp/rclcpp.hpp"
 #include "nav2_ros_common/lifecycle_node.hpp"
 #include "nav2_route/types.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-namespace nav2_route
-{
+#include <memory>
+#include <string>
+
+namespace nav2_route {
 
 /**
  * @class GraphFileSaver
  * @brief A plugin interface to parse a file into the graph
  */
-class GraphFileSaver
-{
-public:
-  using Ptr = std::shared_ptr<GraphFileSaver>;
+class GraphFileSaver {
+   public:
+    using Ptr = std::shared_ptr<GraphFileSaver>;
 
-  /**
-   * @brief Constructor
-   */
-  GraphFileSaver() = default;
+    /**
+     * @brief Constructor
+     */
+    GraphFileSaver() = default;
 
-  /**
-   * @brief Virtual destructor
-   */
-  virtual ~GraphFileSaver() = default;
+    /**
+     * @brief Virtual destructor
+     */
+    virtual ~GraphFileSaver() = default;
 
-  /**
-   * @brief Configure the graph file saver, but do not store the node
-   * @param parent pointer to user's node
-   */
-  virtual void configure(
-    const nav2::LifecycleNode::SharedPtr node) = 0;
+    /**
+     * @brief Configure the graph file saver, but do not store the node
+     * @param parent pointer to user's node
+     */
+    virtual void configure(const nav2::LifecycleNode::SharedPtr node) = 0;
 
-  /**
-   * @brief Method to save the graph to the filepath
-   * @param graph The graph to save
-   * @param filepath The path to save the file to
-   * @return true if graph was successfully saved
-   */
-  virtual bool saveGraphToFile(
-    Graph & graph,
-    std::string filepath) = 0;
+    /**
+     * @brief Method to save the graph to the filepath
+     * @param graph The graph to save
+     * @param filepath The path to save the file to
+     * @return true if graph was successfully saved
+     */
+    virtual bool saveGraphToFile(Graph& graph, std::string filepath) = 0;
 };
-}  // namespace nav2_route
+} // namespace nav2_route
 
-#endif  // NAV2_ROUTE__INTERFACES__GRAPH_FILE_SAVER_HPP_
+#endif // NAV2_ROUTE__INTERFACES__GRAPH_FILE_SAVER_HPP_

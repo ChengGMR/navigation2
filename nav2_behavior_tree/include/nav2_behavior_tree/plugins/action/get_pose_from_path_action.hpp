@@ -15,49 +15,44 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__GET_POSE_FROM_PATH_ACTION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__GET_POSE_FROM_PATH_ACTION_HPP_
 
-#include <vector>
-#include <memory>
-#include <string>
-
 #include "behaviortree_cpp/action_node.h"
 #include "behaviortree_cpp/json_export.h"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "nav_msgs/msg/path.hpp"
 #include "nav2_behavior_tree/bt_utils.hpp"
 #include "nav2_behavior_tree/json_utils.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
 #include "nav2_util/geometry_utils.hpp"
 #include "nav2_util/robot_utils.hpp"
-#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav_msgs/msg/path.hpp"
 
-namespace nav2_behavior_tree
-{
+#include "geometry_msgs/msg/pose_stamped.hpp"
 
-class GetPoseFromPath : public BT::ActionNodeBase
-{
-public:
-  GetPoseFromPath(
-    const std::string & xml_tag_name,
-    const BT::NodeConfiguration & conf);
+#include <memory>
+#include <string>
+#include <vector>
 
+namespace nav2_behavior_tree {
 
-  static BT::PortsList providedPorts()
-  {
-    // Register JSON definitions for the types used in the ports
-    BT::RegisterJsonDefinition<geometry_msgs::msg::PoseStamped>();
-    BT::RegisterJsonDefinition<nav_msgs::msg::Path>();
+class GetPoseFromPath : public BT::ActionNodeBase {
+   public:
+    GetPoseFromPath(const std::string& xml_tag_name, const BT::NodeConfiguration& conf);
 
-    return {
-      BT::InputPort<nav_msgs::msg::Path>("path", "Path to extract pose from"),
-      BT::OutputPort<geometry_msgs::msg::PoseStamped>("pose", "Stamped Extracted Pose"),
-      BT::InputPort<int>("index", 0, "Index of pose to extract from. -1 is end of list"),
-    };
-  }
+    static BT::PortsList providedPorts() {
+        // Register JSON definitions for the types used in the ports
+        BT::RegisterJsonDefinition<geometry_msgs::msg::PoseStamped>();
+        BT::RegisterJsonDefinition<nav_msgs::msg::Path>();
 
-private:
-  void halt() override {}
-  BT::NodeStatus tick() override;
+        return {
+            BT::InputPort<nav_msgs::msg::Path>("path", "Path to extract pose from"),
+            BT::OutputPort<geometry_msgs::msg::PoseStamped>("pose", "Stamped Extracted Pose"),
+            BT::InputPort<int>("index", 0, "Index of pose to extract from. -1 is end of list"),
+        };
+    }
+
+   private:
+    void halt() override {}
+    BT::NodeStatus tick() override;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__GET_POSE_FROM_PATH_ACTION_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__GET_POSE_FROM_PATH_ACTION_HPP_

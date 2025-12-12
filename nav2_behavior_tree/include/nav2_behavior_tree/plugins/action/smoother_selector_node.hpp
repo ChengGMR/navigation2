@@ -16,18 +16,16 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__SMOOTHER_SELECTOR_NODE_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__SMOOTHER_SELECTOR_NODE_HPP_
 
-#include <memory>
-#include <string>
-#include <chrono>
+#include "behaviortree_cpp/action_node.h"
+#include "nav2_ros_common/lifecycle_node.hpp"
 
 #include "std_msgs/msg/string.hpp"
 
-#include "behaviortree_cpp/action_node.h"
+#include <chrono>
+#include <memory>
+#include <string>
 
-#include "nav2_ros_common/lifecycle_node.hpp"
-
-namespace nav2_behavior_tree
-{
+namespace nav2_behavior_tree {
 
 /**
  * @brief The SmootherSelector behavior is used to switch the smoother
@@ -37,75 +35,62 @@ namespace nav2_behavior_tree
  * input port of the FollowPath
  * @note It will re-initialize when halted.
  */
-class SmootherSelector : public BT::SyncActionNode
-{
-public:
-  /**
-   * @brief A constructor for nav2_behavior_tree::SmootherSelector
-   *
-   * @param xml_tag_name Name for the XML tag for this node
-   * @param conf  BT node configuration
-   */
-  SmootherSelector(
-    const std::string & xml_tag_name,
-    const BT::NodeConfiguration & conf);
+class SmootherSelector : public BT::SyncActionNode {
+   public:
+    /**
+     * @brief A constructor for nav2_behavior_tree::SmootherSelector
+     *
+     * @param xml_tag_name Name for the XML tag for this node
+     * @param conf  BT node configuration
+     */
+    SmootherSelector(const std::string& xml_tag_name, const BT::NodeConfiguration& conf);
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing basic ports along with node-specific ports
-   */
-  static BT::PortsList providedPorts()
-  {
-    return {
-      BT::InputPort<std::string>(
-        "default_smoother",
-        "the default smoother to use if there is not any external topic message received."),
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing basic ports along with node-specific ports
+     */
+    static BT::PortsList providedPorts() {
+        return {BT::InputPort<std::string>("default_smoother", "the default smoother to use if there is not any external topic message received."),
 
-      BT::InputPort<std::string>(
-        "topic_name",
-        "smoother_selector",
-        "the input topic name to select the smoother"),
+                BT::InputPort<std::string>("topic_name", "smoother_selector", "the input topic name to select the smoother"),
 
-      BT::OutputPort<std::string>(
-        "selected_smoother",
-        "Selected smoother by subscription")
-    };
-  }
+                BT::OutputPort<std::string>("selected_smoother", "Selected smoother by subscription")};
+    }
 
-private:
-  /**
-   * @brief Function to read parameters and initialize class variables
-   */
-  void initialize();
-  /**
-   * @brief Function to create ROS interfaces
-   */
-  void createROSInterfaces();
+   private:
+    /**
+     * @brief Function to read parameters and initialize class variables
+     */
+    void initialize();
+    /**
+     * @brief Function to create ROS interfaces
+     */
+    void createROSInterfaces();
 
-  /**
-   * @brief Function to perform some user-defined operation on tick
-   */
-  BT::NodeStatus tick() override;
+    /**
+     * @brief Function to perform some user-defined operation on tick
+     */
+    BT::NodeStatus tick() override;
 
-  /**
-   * @brief callback function for the smoother_selector topic
-   *
-   * @param msg the message with the id of the smoother_selector
-   */
-  void callbackSmootherSelect(const std_msgs::msg::String::SharedPtr msg);
+    /**
+     * @brief callback function for the smoother_selector topic
+     *
+     * @param msg the message with the id of the smoother_selector
+     */
+    void callbackSmootherSelect(const std_msgs::msg::String::SharedPtr msg);
 
-  nav2::Subscription<std_msgs::msg::String>::SharedPtr smoother_selector_sub_;
+    nav2::Subscription<std_msgs::msg::String>::SharedPtr smoother_selector_sub_;
 
-  std::string last_selected_smoother_;
+    std::string last_selected_smoother_;
 
-  nav2::LifecycleNode::SharedPtr node_;
-  rclcpp::CallbackGroup::SharedPtr callback_group_;
-  rclcpp::executors::SingleThreadedExecutor callback_group_executor_;
+    nav2::LifecycleNode::SharedPtr node_;
+    rclcpp::CallbackGroup::SharedPtr callback_group_;
+    rclcpp::executors::SingleThreadedExecutor callback_group_executor_;
 
-  std::string topic_name_;
-  std::chrono::milliseconds bt_loop_duration_;
+    std::string topic_name_;
+    std::chrono::milliseconds bt_loop_duration_;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__SMOOTHER_SELECTOR_NODE_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__SMOOTHER_SELECTOR_NODE_HPP_

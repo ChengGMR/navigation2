@@ -16,47 +16,41 @@
 
 #include <Eigen/Dense>
 
-namespace mppi::critics
-{
+namespace mppi::critics {
 
-void TwirlingCritic::initialize()
-{
-  auto getParentParam = parameters_handler_->getParamGetter(parent_name_);
-  auto getParam = parameters_handler_->getParamGetter(name_);
-  getParam(power_, "cost_power", 1);
-  getParam(weight_, "cost_weight", 10.0f);
+void TwirlingCritic::initialize() {
+    auto getParentParam = parameters_handler_->getParamGetter(parent_name_);
+    auto getParam = parameters_handler_->getParamGetter(name_);
+    getParam(power_, "cost_power", 1);
+    getParam(weight_, "cost_weight", 10.0f);
 
-  RCLCPP_INFO(
-    logger_, "TwirlingCritic instantiated with %d power and %f weight.", power_, weight_);
+    RCLCPP_INFO(logger_, "TwirlingCritic instantiated with %d power and %f weight.", power_, weight_);
 }
 
-void TwirlingCritic::score(CriticData & data)
-{
-  if (!enabled_) {
-    return;
-  }
-
-  if (data.goal_checker != nullptr) {
-    geometry_msgs::msg::Pose pose_tolerance;
-    geometry_msgs::msg::Twist velocity_tolerance;
-    data.goal_checker->getTolerances(pose_tolerance, velocity_tolerance);
-
-    if (data.state.local_path_length < pose_tolerance.position.x) {
-      return;
+void TwirlingCritic::score(CriticData& data) {
+    if (!enabled_) {
+        return;
     }
-  }
 
-  if (power_ > 1u) {
-    data.costs += ((data.state.wz.abs().rowwise().mean()) * weight_).pow(power_).eval();
-  } else {
-    data.costs += ((data.state.wz.abs().rowwise().mean()) * weight_).eval();
-  }
+    if (data.goal_checker != nullptr) {
+        geometry_msgs::msg::Pose pose_tolerance;
+        geometry_msgs::msg::Twist velocity_tolerance;
+        data.goal_checker->getTolerances(pose_tolerance, velocity_tolerance);
+
+        if (data.state.local_path_length < pose_tolerance.position.x) {
+            return;
+        }
+    }
+
+    if (power_ > 1u) {
+        data.costs += ((data.state.wz.abs().rowwise().mean()) * weight_).pow(power_).eval();
+    } else {
+        data.costs += ((data.state.wz.abs().rowwise().mean()) * weight_).eval();
+    }
 }
 
-}  // namespace mppi::critics
+} // namespace mppi::critics
 
 #include <pluginlib/class_list_macros.hpp>
 
-PLUGINLIB_EXPORT_CLASS(
-  mppi::critics::TwirlingCritic,
-  mppi::critics::CriticFunction)
+PLUGINLIB_EXPORT_CLASS(mppi::critics::TwirlingCritic, mppi::critics::CriticFunction)

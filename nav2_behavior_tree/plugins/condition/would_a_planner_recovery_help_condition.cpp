@@ -13,31 +13,20 @@
 // limitations under the License.
 
 #include "nav2_behavior_tree/plugins/condition/would_a_planner_recovery_help_condition.hpp"
+
 #include <memory>
 
-namespace nav2_behavior_tree
-{
+namespace nav2_behavior_tree {
 
-WouldAPlannerRecoveryHelp::WouldAPlannerRecoveryHelp(
-  const std::string & condition_name,
-  const BT::NodeConfiguration & conf)
-: AreErrorCodesPresent(condition_name, conf)
-{
-  error_codes_to_check_ = {
-    ActionResult::UNKNOWN,
-    ActionResult::NO_VALID_PATH,
-    ActionResult::TIMEOUT,
-    ThroughActionResult::UNKNOWN,
-    ThroughActionResult::TIMEOUT,
-    ThroughActionResult::NO_VALID_PATH
-  };
+WouldAPlannerRecoveryHelp::WouldAPlannerRecoveryHelp(const std::string& condition_name, const BT::NodeConfiguration& conf)
+    : AreErrorCodesPresent(condition_name, conf) {
+    error_codes_to_check_ = {ActionResult::UNKNOWN,        ActionResult::NO_VALID_PATH,  ActionResult::TIMEOUT,
+                             ThroughActionResult::UNKNOWN, ThroughActionResult::TIMEOUT, ThroughActionResult::NO_VALID_PATH};
 }
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
 #include "behaviortree_cpp/bt_factory.h"
-BT_REGISTER_NODES(factory)
-{
-  factory.registerNodeType<nav2_behavior_tree::WouldAPlannerRecoveryHelp>(
-    "WouldAPlannerRecoveryHelp");
+BT_REGISTER_NODES(factory) {
+    factory.registerNodeType<nav2_behavior_tree::WouldAPlannerRecoveryHelp>("WouldAPlannerRecoveryHelp");
 }

@@ -34,12 +34,12 @@
 #ifndef DWB_CRITICS__GOAL_ALIGN_HPP_
 #define DWB_CRITICS__GOAL_ALIGN_HPP_
 
-#include <vector>
-#include <string>
 #include "dwb_critics/goal_dist.hpp"
 
-namespace dwb_critics
-{
+#include <string>
+#include <vector>
+
+namespace dwb_critics {
 
 /**
  * @class GoalAlignCritic
@@ -49,20 +49,17 @@ namespace dwb_critics
  * that is still on the costmap and then evaluates how far the front of the robot is from that point.
  * This works as a proxy to calculating which way the robot should be pointing.
  */
-class GoalAlignCritic : public GoalDistCritic
-{
-public:
-  GoalAlignCritic()
-  : forward_point_distance_(0.0) {}
-  void onInit() override;
-  bool prepare(
-    const geometry_msgs::msg::Pose & pose, const nav_2d_msgs::msg::Twist2D & vel,
-    const geometry_msgs::msg::Pose & goal, const nav_msgs::msg::Path & global_plan) override;
-  double scorePose(const geometry_msgs::msg::Pose & pose) override;
+class GoalAlignCritic : public GoalDistCritic {
+   public:
+    GoalAlignCritic() : forward_point_distance_(0.0) {}
+    void onInit() override;
+    bool prepare(const geometry_msgs::msg::Pose& pose, const nav_2d_msgs::msg::Twist2D& vel, const geometry_msgs::msg::Pose& goal,
+                 const nav_msgs::msg::Path& global_plan) override;
+    double scorePose(const geometry_msgs::msg::Pose& pose) override;
 
-protected:
-  double forward_point_distance_;
+   protected:
+    double forward_point_distance_;
 };
 
-}  // namespace dwb_critics
-#endif  // DWB_CRITICS__GOAL_ALIGN_HPP_
+} // namespace dwb_critics
+#endif // DWB_CRITICS__GOAL_ALIGN_HPP_

@@ -15,29 +15,25 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__WOULD_A_ROUTE_RECOVERY_HELP_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__WOULD_A_ROUTE_RECOVERY_HELP_CONDITION_HPP_
 
+#include "nav2_behavior_tree/plugins/condition/are_error_codes_present_condition.hpp"
+#include "nav2_msgs/action/compute_and_track_route.hpp"
+#include "nav2_msgs/action/compute_route.hpp"
+
 #include <string>
 
-#include "nav2_msgs/action/compute_route.hpp"
-#include "nav2_msgs/action/compute_and_track_route.hpp"
-#include "nav2_behavior_tree/plugins/condition/are_error_codes_present_condition.hpp"
+namespace nav2_behavior_tree {
 
-namespace nav2_behavior_tree
-{
+class WouldARouteRecoveryHelp : public AreErrorCodesPresent {
+    using Action = nav2_msgs::action::ComputeRoute;
+    using ActionResult = Action::Result;
+    using TrackAction = nav2_msgs::action::ComputeAndTrackRoute;
+    using TrackActionResult = TrackAction::Result;
 
-class WouldARouteRecoveryHelp : public AreErrorCodesPresent
-{
-  using Action = nav2_msgs::action::ComputeRoute;
-  using ActionResult = Action::Result;
-  using TrackAction = nav2_msgs::action::ComputeAndTrackRoute;
-  using TrackActionResult = TrackAction::Result;
+   public:
+    WouldARouteRecoveryHelp(const std::string& condition_name, const BT::NodeConfiguration& conf);
 
-public:
-  WouldARouteRecoveryHelp(
-    const std::string & condition_name,
-    const BT::NodeConfiguration & conf);
-
-  WouldARouteRecoveryHelp() = delete;
+    WouldARouteRecoveryHelp() = delete;
 };
 
-}  // namespace nav2_behavior_tree
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__WOULD_A_ROUTE_RECOVERY_HELP_CONDITION_HPP_
+} // namespace nav2_behavior_tree
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__WOULD_A_ROUTE_RECOVERY_HELP_CONDITION_HPP_

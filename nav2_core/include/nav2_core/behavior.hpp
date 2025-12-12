@@ -15,73 +15,69 @@
 #ifndef NAV2_CORE__BEHAVIOR_HPP_
 #define NAV2_CORE__BEHAVIOR_HPP_
 
-#include <string>
-#include <memory>
-
-#include "rclcpp/rclcpp.hpp"
-#include "nav2_ros_common/lifecycle_node.hpp"
-#include "tf2_ros/buffer.hpp"
 #include "nav2_costmap_2d/costmap_topic_collision_checker.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-namespace nav2_core
-{
+#include "tf2_ros/buffer.hpp"
 
-enum class CostmapInfoType
-{
-  NONE = 0,
-  LOCAL = 1,
-  GLOBAL = 2,
-  BOTH = 3
+#include <memory>
+#include <string>
+
+namespace nav2_core {
+
+enum class CostmapInfoType {
+    NONE = 0,
+    LOCAL = 1,
+    GLOBAL = 2,
+    BOTH = 3
 };
 
 /**
  * @class Behavior
  * @brief Abstract interface for behaviors to adhere to with pluginlib
  */
-class Behavior
-{
-public:
-  using Ptr = std::shared_ptr<Behavior>;
+class Behavior {
+   public:
+    using Ptr = std::shared_ptr<Behavior>;
 
-  /**
-   * @brief Virtual destructor
-   */
-  virtual ~Behavior() {}
+    /**
+     * @brief Virtual destructor
+     */
+    virtual ~Behavior() {}
 
-  /**
-   * @param  parent pointer to user's node
-   * @param  name The name of this planner
-   * @param  tf A pointer to a TF buffer
-   * @param  costmap_ros A pointer to the costmap
-   */
-  virtual void configure(
-    const nav2::LifecycleNode::WeakPtr & parent,
-    const std::string & name, std::shared_ptr<tf2_ros::Buffer> tf,
-    std::shared_ptr<nav2_costmap_2d::CostmapTopicCollisionChecker> local_collision_checker,
-    std::shared_ptr<nav2_costmap_2d::CostmapTopicCollisionChecker> global_collision_checker) = 0;
+    /**
+     * @param  parent pointer to user's node
+     * @param  name The name of this planner
+     * @param  tf A pointer to a TF buffer
+     * @param  costmap_ros A pointer to the costmap
+     */
+    virtual void configure(const nav2::LifecycleNode::WeakPtr& parent, const std::string& name, std::shared_ptr<tf2_ros::Buffer> tf,
+                           std::shared_ptr<nav2_costmap_2d::CostmapTopicCollisionChecker> local_collision_checker,
+                           std::shared_ptr<nav2_costmap_2d::CostmapTopicCollisionChecker> global_collision_checker) = 0;
 
-  /**
-   * @brief Method to cleanup resources used on shutdown.
-   */
-  virtual void cleanup() = 0;
+    /**
+     * @brief Method to cleanup resources used on shutdown.
+     */
+    virtual void cleanup() = 0;
 
-  /**
-   * @brief Method to active Behavior and any threads involved in execution.
-   */
-  virtual void activate() = 0;
+    /**
+     * @brief Method to active Behavior and any threads involved in execution.
+     */
+    virtual void activate() = 0;
 
-  /**
-   * @brief Method to deactivate Behavior and any threads involved in execution.
-   */
-  virtual void deactivate() = 0;
+    /**
+     * @brief Method to deactivate Behavior and any threads involved in execution.
+     */
+    virtual void deactivate() = 0;
 
-  /**
-   * @brief Method to determine the required costmap info
-   * @return costmap resources needed
-   */
-  virtual CostmapInfoType getResourceInfo() = 0;
+    /**
+     * @brief Method to determine the required costmap info
+     * @return costmap resources needed
+     */
+    virtual CostmapInfoType getResourceInfo() = 0;
 };
 
-}  // namespace nav2_core
+} // namespace nav2_core
 
-#endif  // NAV2_CORE__BEHAVIOR_HPP_
+#endif // NAV2_CORE__BEHAVIOR_HPP_

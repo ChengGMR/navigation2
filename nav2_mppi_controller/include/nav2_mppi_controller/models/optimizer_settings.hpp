@@ -15,32 +15,31 @@
 #ifndef NAV2_MPPI_CONTROLLER__MODELS__OPTIMIZER_SETTINGS_HPP_
 #define NAV2_MPPI_CONTROLLER__MODELS__OPTIMIZER_SETTINGS_HPP_
 
-#include <cstddef>
 #include "nav2_mppi_controller/models/constraints.hpp"
 
-namespace mppi::models
-{
+#include <cstddef>
+
+namespace mppi::models {
 
 /**
  * @struct mppi::models::OptimizerSettings
  * @brief Settings for the optimizer to use
  */
-struct OptimizerSettings
-{
-  models::ControlConstraints base_constraints{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-  models::ControlConstraints constraints{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
-  models::SamplingStd sampling_std{0.0f, 0.0f, 0.0f};
-  float model_dt{0.0f};
-  float temperature{0.0f};
-  float gamma{0.0f};
-  unsigned int batch_size{0u};
-  unsigned int time_steps{0u};
-  unsigned int iteration_count{0u};
-  bool shift_control_sequence{false};
-  size_t retry_attempt_limit{0};
-  bool open_loop{false};
+struct OptimizerSettings {
+    models::ControlConstraints base_constraints{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+    models::ControlConstraints constraints{0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+    models::SamplingStd sampling_std{0.0f, 0.0f, 0.0f};
+    float model_dt{0.0f};
+    float temperature{0.0f};
+    float gamma{0.0f};
+    unsigned int batch_size{0u};
+    unsigned int time_steps{0u};
+    unsigned int iteration_count{0u};
+    bool shift_control_sequence{false};
+    size_t retry_attempt_limit{0};
+    bool open_loop{false};
 };
 
-}  // namespace mppi::models
+} // namespace mppi::models
 
-#endif  // NAV2_MPPI_CONTROLLER__MODELS__OPTIMIZER_SETTINGS_HPP_
+#endif // NAV2_MPPI_CONTROLLER__MODELS__OPTIMIZER_SETTINGS_HPP_

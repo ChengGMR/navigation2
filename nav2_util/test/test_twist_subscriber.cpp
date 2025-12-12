@@ -12,90 +12,81 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <memory>
-#include <string>
-
 #include "nav2_util/twist_subscriber.hpp"
+#include "rclcpp/rclcpp.hpp"
+
 #include "geometry_msgs/msg/twist.hpp"
 #include "geometry_msgs/msg/twist_stamped.hpp"
 
 #include "gtest/gtest.h"
-#include "rclcpp/rclcpp.hpp"
 
+#include <memory>
+#include <string>
 
-TEST(TwistSubscriber, Unstamped)
-{
-  rclcpp::init(0, nullptr);
-  auto sub_node = std::make_shared<nav2::LifecycleNode>("sub_node", "");
-  sub_node->configure();
-  sub_node->activate();
-  sub_node->declare_parameter("enable_stamped_cmd_vel", rclcpp::ParameterValue(false));
+TEST(TwistSubscriber, Unstamped) {
+    rclcpp::init(0, nullptr);
+    auto sub_node = std::make_shared<nav2::LifecycleNode>("sub_node", "");
+    sub_node->configure();
+    sub_node->activate();
+    sub_node->declare_parameter("enable_stamped_cmd_vel", rclcpp::ParameterValue(false));
 
-  geometry_msgs::msg::TwistStamped sub_msg {};
-  auto vel_subscriber = std::make_unique<nav2_util::TwistSubscriber>(
-    sub_node, "cmd_vel",
-    [&](const geometry_msgs::msg::Twist msg) {sub_msg.twist = msg;},
-    [&](const geometry_msgs::msg::TwistStamped msg) {sub_msg = msg;},
-    rclcpp::QoS(1)
-  );
+    geometry_msgs::msg::TwistStamped sub_msg{};
+    auto vel_subscriber = std::make_unique<nav2_util::TwistSubscriber>(
+        sub_node, "cmd_vel", [&](const geometry_msgs::msg::Twist msg) { sub_msg.twist = msg; },
+        [&](const geometry_msgs::msg::TwistStamped msg) { sub_msg = msg; }, rclcpp::QoS(1));
 
-  auto pub_node = std::make_shared<nav2::LifecycleNode>("pub_node", "");
-  pub_node->configure();
+    auto pub_node = std::make_shared<nav2::LifecycleNode>("pub_node", "");
+    pub_node->configure();
 
-  geometry_msgs::msg::TwistStamped pub_msg {};
-  pub_msg.twist.linear.x = 42.0;
+    geometry_msgs::msg::TwistStamped pub_msg{};
+    pub_msg.twist.linear.x = 42.0;
 
-  auto vel_pub =
-    pub_node->create_publisher<geometry_msgs::msg::Twist>("cmd_vel");
-  rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(sub_node->get_node_base_interface());
-  pub_node->activate();
-  vel_pub->on_activate();
+    auto vel_pub = pub_node->create_publisher<geometry_msgs::msg::Twist>("cmd_vel");
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(sub_node->get_node_base_interface());
+    pub_node->activate();
+    vel_pub->on_activate();
 
-  vel_pub->publish(pub_msg.twist);
-  executor.spin_some();
-  ASSERT_EQ(vel_pub->get_subscription_count(), 1);
-  EXPECT_EQ(pub_msg, sub_msg);
+    vel_pub->publish(pub_msg.twist);
+    executor.spin_some();
+    ASSERT_EQ(vel_pub->get_subscription_count(), 1);
+    EXPECT_EQ(pub_msg, sub_msg);
 
-  pub_node->deactivate();
-  sub_node->deactivate();
-  rclcpp::shutdown();
+    pub_node->deactivate();
+    sub_node->deactivate();
+    rclcpp::shutdown();
 }
 
-TEST(TwistSubscriber, Stamped)
-{
-  rclcpp::init(0, nullptr);
-  auto sub_node = std::make_shared<nav2::LifecycleNode>("sub_node", "");
-  sub_node->declare_parameter("enable_stamped_cmd_vel", true);
-  sub_node->configure();
-  sub_node->activate();
+TEST(TwistSubscriber, Stamped) {
+    rclcpp::init(0, nullptr);
+    auto sub_node = std::make_shared<nav2::LifecycleNode>("sub_node", "");
+    sub_node->declare_parameter("enable_stamped_cmd_vel", true);
+    sub_node->configure();
+    sub_node->activate();
 
-  geometry_msgs::msg::TwistStamped sub_msg {};
-  auto vel_subscriber = std::make_unique<nav2_util::TwistSubscriber>(
-    sub_node, "cmd_vel",
-    [&](const geometry_msgs::msg::Twist msg) {sub_msg.twist = msg;},
-    [&](const geometry_msgs::msg::TwistStamped msg) {sub_msg = msg;}
-  );
+    geometry_msgs::msg::TwistStamped sub_msg{};
+    auto vel_subscriber = std::make_unique<nav2_util::TwistSubscriber>(
+        sub_node, "cmd_vel", [&](const geometry_msgs::msg::Twist msg) { sub_msg.twist = msg; },
+        [&](const geometry_msgs::msg::TwistStamped msg) { sub_msg = msg; });
 
-  auto pub_node = std::make_shared<nav2::LifecycleNode>("pub_node", "");
-  pub_node->configure();
+    auto pub_node = std::make_shared<nav2::LifecycleNode>("pub_node", "");
+    pub_node->configure();
 
-  geometry_msgs::msg::TwistStamped pub_msg {};
-  pub_msg.twist.linear.x = 42.0;
+    geometry_msgs::msg::TwistStamped pub_msg{};
+    pub_msg.twist.linear.x = 42.0;
 
-  auto vel_pub =
-    pub_node->create_publisher<geometry_msgs::msg::TwistStamped>("cmd_vel");
+    auto vel_pub = pub_node->create_publisher<geometry_msgs::msg::TwistStamped>("cmd_vel");
 
-  pub_node->activate();
-  vel_pub->on_activate();
-  rclcpp::executors::SingleThreadedExecutor executor;
-  executor.add_node(sub_node->get_node_base_interface());
-  vel_pub->publish(pub_msg);
-  executor.spin_some();
-  ASSERT_EQ(vel_pub->get_subscription_count(), 1);
-  EXPECT_EQ(pub_msg, sub_msg);
+    pub_node->activate();
+    vel_pub->on_activate();
+    rclcpp::executors::SingleThreadedExecutor executor;
+    executor.add_node(sub_node->get_node_base_interface());
+    vel_pub->publish(pub_msg);
+    executor.spin_some();
+    ASSERT_EQ(vel_pub->get_subscription_count(), 1);
+    EXPECT_EQ(pub_msg, sub_msg);
 
-  pub_node->deactivate();
-  sub_node->deactivate();
-  rclcpp::shutdown();
+    pub_node->deactivate();
+    sub_node->deactivate();
+    rclcpp::shutdown();
 }

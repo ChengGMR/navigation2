@@ -36,42 +36,37 @@
 #ifndef NAV2_UTIL__RAYTRACE_LINE_2D_HPP_
 #define NAV2_UTIL__RAYTRACE_LINE_2D_HPP_
 
-#include <limits.h>
 #include <algorithm>
 #include <cmath>
+#include <limits.h>
 
-namespace nav2_util
-{
+namespace nav2_util {
 
 /**
  * @brief get the sign of an int
  */
-inline int sign(int x)
-{
-  return x > 0 ? 1 : -1;
+inline int sign(int x) {
+    return x > 0 ? 1 : -1;
 }
 
 /**
  * @brief  A 2D implementation of Bresenham's raytracing algorithm...
  * applies an action at each step
  */
-template<class ActionType>
-inline void bresenham2D(
-  ActionType at, unsigned int abs_da, unsigned int abs_db, int error_b,
-  int offset_a, int offset_b, unsigned int offset,
-  unsigned int max_length)
-{
-  unsigned int end = std::min(max_length, abs_da);
-  for (unsigned int i = 0; i < end; ++i) {
-    at(offset);
-    offset += offset_a;
-    error_b += abs_db;
-    if ((unsigned int)error_b >= abs_da) {
-      offset += offset_b;
-      error_b -= abs_da;
+template <class ActionType>
+inline void bresenham2D(ActionType at, unsigned int abs_da, unsigned int abs_db, int error_b, int offset_a, int offset_b, unsigned int offset,
+                        unsigned int max_length) {
+    unsigned int end = std::min(max_length, abs_da);
+    for (unsigned int i = 0; i < end; ++i) {
+        at(offset);
+        offset += offset_a;
+        error_b += abs_db;
+        if ((unsigned int)error_b >= abs_da) {
+            offset += offset_b;
+            error_b -= abs_da;
+        }
     }
-  }
-  at(offset);
+    at(offset);
 }
 
 /**
@@ -86,61 +81,56 @@ inline void bresenham2D(
  * allows you to not go all the way to the endpoint
  * @param  min_length The minimum desired length of the segment
  */
-template<class ActionType>
-inline void raytraceLine(
-  ActionType at, unsigned int x0, unsigned int y0, unsigned int x1,
-  unsigned int y1, unsigned int step_x,
-  unsigned int max_length = UINT_MAX, unsigned int min_length = 0)
-{
-  int dx_full = x1 - x0;
-  int dy_full = y1 - y0;
+template <class ActionType>
+inline void raytraceLine(ActionType at, unsigned int x0, unsigned int y0, unsigned int x1, unsigned int y1, unsigned int step_x,
+                         unsigned int max_length = UINT_MAX, unsigned int min_length = 0) {
+    int dx_full = x1 - x0;
+    int dy_full = y1 - y0;
 
-  // we need to chose how much to scale our dominant dimension,
-  // based on the maximum length of the line
-  double dist = std::hypot(dx_full, dy_full);
-  if (dist < min_length) {
-    return;
-  }
+    // we need to chose how much to scale our dominant dimension,
+    // based on the maximum length of the line
+    double dist = std::hypot(dx_full, dy_full);
+    if (dist < min_length) {
+        return;
+    }
 
-  unsigned int min_x0, min_y0;
-  if (dist > 0.0) {
-    // Adjust starting point and offset to start from min_length distance
-    min_x0 = (unsigned int)(x0 + dx_full / dist * min_length);
-    min_y0 = (unsigned int)(y0 + dy_full / dist * min_length);
-  } else {
-    // dist can be 0 if [x0, y0]==[x1, y1].
-    // In this case only this cell should be processed.
-    min_x0 = x0;
-    min_y0 = y0;
-  }
-  unsigned int offset = min_y0 * step_x + min_x0;
+    unsigned int min_x0, min_y0;
+    if (dist > 0.0) {
+        // Adjust starting point and offset to start from min_length distance
+        min_x0 = (unsigned int)(x0 + dx_full / dist * min_length);
+        min_y0 = (unsigned int)(y0 + dy_full / dist * min_length);
+    } else {
+        // dist can be 0 if [x0, y0]==[x1, y1].
+        // In this case only this cell should be processed.
+        min_x0 = x0;
+        min_y0 = y0;
+    }
+    unsigned int offset = min_y0 * step_x + min_x0;
 
-  int dx = x1 - min_x0;
-  int dy = y1 - min_y0;
+    int dx = x1 - min_x0;
+    int dy = y1 - min_y0;
 
-  unsigned int abs_dx = abs(dx);
-  unsigned int abs_dy = abs(dy);
+    unsigned int abs_dx = abs(dx);
+    unsigned int abs_dy = abs(dy);
 
-  int offset_dx = sign(dx);
-  int offset_dy = sign(dy) * step_x;
+    int offset_dx = sign(dx);
+    int offset_dy = sign(dy) * step_x;
 
-  double scale = (dist == 0.0) ? 1.0 : std::min(1.0, max_length / dist);
-  // if x is dominant
-  if (abs_dx >= abs_dy) {
-    int error_y = abs_dx / 2;
+    double scale = (dist == 0.0) ? 1.0 : std::min(1.0, max_length / dist);
+    // if x is dominant
+    if (abs_dx >= abs_dy) {
+        int error_y = abs_dx / 2;
 
-    bresenham2D(
-      at, abs_dx, abs_dy, error_y, offset_dx, offset_dy, offset, (unsigned int)(scale * abs_dx));
-    return;
-  }
+        bresenham2D(at, abs_dx, abs_dy, error_y, offset_dx, offset_dy, offset, (unsigned int)(scale * abs_dx));
+        return;
+    }
 
-  // otherwise y is dominant
-  int error_x = abs_dy / 2;
+    // otherwise y is dominant
+    int error_x = abs_dy / 2;
 
-  bresenham2D(
-    at, abs_dy, abs_dx, error_x, offset_dy, offset_dx, offset, (unsigned int)(scale * abs_dy));
+    bresenham2D(at, abs_dy, abs_dx, error_x, offset_dy, offset_dx, offset, (unsigned int)(scale * abs_dy));
 }
 
-}  // namespace nav2_util
+} // namespace nav2_util
 
-#endif  // NAV2_UTIL__RAYTRACE_LINE_2D_HPP_
+#endif // NAV2_UTIL__RAYTRACE_LINE_2D_HPP_

@@ -35,44 +35,38 @@
 #ifndef DWB_PLUGINS__LIMITED_ACCEL_GENERATOR_HPP_
 #define DWB_PLUGINS__LIMITED_ACCEL_GENERATOR_HPP_
 
-#include <memory>
-#include <string>
-
 #include "dwb_plugins/standard_traj_generator.hpp"
 #include "nav2_ros_common/lifecycle_node.hpp"
 
-namespace dwb_plugins
-{
+#include <memory>
+#include <string>
+
+namespace dwb_plugins {
 /**
  * @class LimitedAccelGenerator
  * @brief Limits the acceleration in the generated trajectories to a fraction of the simulated time.
  */
-class LimitedAccelGenerator : public StandardTrajectoryGenerator
-{
-public:
-  void initialize(
-    const nav2::LifecycleNode::SharedPtr & nh,
-    const std::string & plugin_name) override;
-  void startNewIteration(const nav_2d_msgs::msg::Twist2D & current_velocity) override;
+class LimitedAccelGenerator : public StandardTrajectoryGenerator {
+   public:
+    void initialize(const nav2::LifecycleNode::SharedPtr& nh, const std::string& plugin_name) override;
+    void startNewIteration(const nav_2d_msgs::msg::Twist2D& current_velocity) override;
 
-protected:
-  /**
-   * @brief Calculate the velocity after a set period of time, given the desired velocity and acceleration limits
-   *
-   * Unlike the StandardTrajectoryGenerator, the velocity remains constant in the LimitedAccelGenerator
-   *
-   * @param cmd_vel Desired velocity
-   * @param start_vel starting velocity
-   * @param dt amount of time in seconds
-   * @return cmd_vel
-   */
-  nav_2d_msgs::msg::Twist2D computeNewVelocity(
-    const nav_2d_msgs::msg::Twist2D & cmd_vel,
-    const nav_2d_msgs::msg::Twist2D & start_vel,
-    const double dt) override;
-  double acceleration_time_;
-  std::string plugin_name_;
+   protected:
+    /**
+     * @brief Calculate the velocity after a set period of time, given the desired velocity and acceleration limits
+     *
+     * Unlike the StandardTrajectoryGenerator, the velocity remains constant in the LimitedAccelGenerator
+     *
+     * @param cmd_vel Desired velocity
+     * @param start_vel starting velocity
+     * @param dt amount of time in seconds
+     * @return cmd_vel
+     */
+    nav_2d_msgs::msg::Twist2D computeNewVelocity(const nav_2d_msgs::msg::Twist2D& cmd_vel, const nav_2d_msgs::msg::Twist2D& start_vel,
+                                                 const double dt) override;
+    double acceleration_time_;
+    std::string plugin_name_;
 };
-}  // namespace dwb_plugins
+} // namespace dwb_plugins
 
-#endif  // DWB_PLUGINS__LIMITED_ACCEL_GENERATOR_HPP_
+#endif // DWB_PLUGINS__LIMITED_ACCEL_GENERATOR_HPP_

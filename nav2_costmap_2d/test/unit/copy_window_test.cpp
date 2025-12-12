@@ -12,46 +12,43 @@
 // See the License for the specific language governing permissions and
 // limitations under the License. Reserved.
 
+#include "nav2_costmap_2d/costmap_2d.hpp"
+#include "rclcpp/rclcpp.hpp"
+
 #include <gtest/gtest.h>
 
-#include "rclcpp/rclcpp.hpp"
-#include "nav2_costmap_2d/costmap_2d.hpp"
+TEST(CopyWindow, copyValidWindow) {
+    nav2_costmap_2d::Costmap2D src(10, 10, 0.1, 0.0, 0.0);
+    nav2_costmap_2d::Costmap2D dst(5, 5, 0.2, 100.0, 100.0);
+    // Adding 2 marked cells to source costmap
+    src.setCost(2, 2, 100);
+    src.setCost(5, 5, 200);
 
-TEST(CopyWindow, copyValidWindow)
-{
-  nav2_costmap_2d::Costmap2D src(10, 10, 0.1, 0.0, 0.0);
-  nav2_costmap_2d::Costmap2D dst(5, 5, 0.2, 100.0, 100.0);
-  // Adding 2 marked cells to source costmap
-  src.setCost(2, 2, 100);
-  src.setCost(5, 5, 200);
-
-  ASSERT_TRUE(dst.copyWindow(src, 2, 2, 6, 6, 0, 0));
-  // Check that both marked cells were copied to destination costmap
-  ASSERT_EQ(dst.getCost(0, 0), 100);
-  ASSERT_EQ(dst.getCost(3, 3), 200);
+    ASSERT_TRUE(dst.copyWindow(src, 2, 2, 6, 6, 0, 0));
+    // Check that both marked cells were copied to destination costmap
+    ASSERT_EQ(dst.getCost(0, 0), 100);
+    ASSERT_EQ(dst.getCost(3, 3), 200);
 }
 
-TEST(CopyWindow, copyInvalidWindow)
-{
-  nav2_costmap_2d::Costmap2D src(10, 10, 0.1, 0.0, 0.0);
-  nav2_costmap_2d::Costmap2D dst(5, 5, 0.2, 100.0, 100.0);
+TEST(CopyWindow, copyInvalidWindow) {
+    nav2_costmap_2d::Costmap2D src(10, 10, 0.1, 0.0, 0.0);
+    nav2_costmap_2d::Costmap2D dst(5, 5, 0.2, 100.0, 100.0);
 
-  // Case1: incorrect source bounds
-  ASSERT_FALSE(dst.copyWindow(src, 9, 9, 11, 11, 0, 0));
-  // Case2: incorrect destination bounds
-  ASSERT_FALSE(dst.copyWindow(src, 0, 0, 1, 1, 5, 5));
-  ASSERT_FALSE(dst.copyWindow(src, 0, 0, 6, 6, 0, 0));
+    // Case1: incorrect source bounds
+    ASSERT_FALSE(dst.copyWindow(src, 9, 9, 11, 11, 0, 0));
+    // Case2: incorrect destination bounds
+    ASSERT_FALSE(dst.copyWindow(src, 0, 0, 1, 1, 5, 5));
+    ASSERT_FALSE(dst.copyWindow(src, 0, 0, 6, 6, 0, 0));
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  rclcpp::init(0, nullptr);
+    rclcpp::init(0, nullptr);
 
-  int result = RUN_ALL_TESTS();
+    int result = RUN_ALL_TESTS();
 
-  rclcpp::shutdown();
+    rclcpp::shutdown();
 
-  return result;
+    return result;
 }

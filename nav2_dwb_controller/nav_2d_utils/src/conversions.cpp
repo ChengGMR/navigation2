@@ -34,15 +34,16 @@
 
 #include "nav_2d_utils/conversions.hpp"
 
-#include <vector>
-#include <string>
+#include "nav_2d_msgs/msg/twist2_d.hpp"
+#include "nav_msgs/msg/path.hpp"
 
 #include "geometry_msgs/msg/pose.hpp"
 #include "geometry_msgs/msg/pose_stamped.hpp"
 #include "geometry_msgs/msg/twist.hpp"
-#include "nav_msgs/msg/path.hpp"
-#include "nav_2d_msgs/msg/twist2_d.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
+
+#include <string>
+#include <vector>
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wpedantic"
 #include "tf2/utils.hpp"
@@ -50,42 +51,36 @@
 
 #include "nav2_util/geometry_utils.hpp"
 
-namespace nav_2d_utils
-{
+namespace nav_2d_utils {
 using nav2_util::geometry_utils::orientationAroundZAxis;
 
-geometry_msgs::msg::Twist twist2Dto3D(const nav_2d_msgs::msg::Twist2D & cmd_vel_2d)
-{
-  geometry_msgs::msg::Twist cmd_vel;
-  cmd_vel.linear.x = cmd_vel_2d.x;
-  cmd_vel.linear.y = cmd_vel_2d.y;
-  cmd_vel.angular.z = cmd_vel_2d.theta;
-  return cmd_vel;
+geometry_msgs::msg::Twist twist2Dto3D(const nav_2d_msgs::msg::Twist2D& cmd_vel_2d) {
+    geometry_msgs::msg::Twist cmd_vel;
+    cmd_vel.linear.x = cmd_vel_2d.x;
+    cmd_vel.linear.y = cmd_vel_2d.y;
+    cmd_vel.angular.z = cmd_vel_2d.theta;
+    return cmd_vel;
 }
 
-nav_2d_msgs::msg::Twist2D twist3Dto2D(const geometry_msgs::msg::Twist & cmd_vel)
-{
-  nav_2d_msgs::msg::Twist2D cmd_vel_2d;
-  cmd_vel_2d.x = cmd_vel.linear.x;
-  cmd_vel_2d.y = cmd_vel.linear.y;
-  cmd_vel_2d.theta = cmd_vel.angular.z;
-  return cmd_vel_2d;
+nav_2d_msgs::msg::Twist2D twist3Dto2D(const geometry_msgs::msg::Twist& cmd_vel) {
+    nav_2d_msgs::msg::Twist2D cmd_vel_2d;
+    cmd_vel_2d.x = cmd_vel.linear.x;
+    cmd_vel_2d.y = cmd_vel.linear.y;
+    cmd_vel_2d.theta = cmd_vel.angular.z;
+    return cmd_vel_2d;
 }
 
-nav_msgs::msg::Path posesToPath(
-  const std::vector<geometry_msgs::msg::Pose> & poses,
-  const std::string & frame, const rclcpp::Time & stamp)
-{
-  nav_msgs::msg::Path path;
-  path.poses.resize(poses.size());
-  path.header.frame_id = frame;
-  path.header.stamp = stamp;
-  for (unsigned int i = 0; i < poses.size(); i++) {
-    path.poses[i].header.frame_id = frame;
-    path.poses[i].header.stamp = stamp;
-    path.poses[i].pose = poses[i];
-  }
-  return path;
+nav_msgs::msg::Path posesToPath(const std::vector<geometry_msgs::msg::Pose>& poses, const std::string& frame, const rclcpp::Time& stamp) {
+    nav_msgs::msg::Path path;
+    path.poses.resize(poses.size());
+    path.header.frame_id = frame;
+    path.header.stamp = stamp;
+    for (unsigned int i = 0; i < poses.size(); i++) {
+        path.poses[i].header.frame_id = frame;
+        path.poses[i].header.stamp = stamp;
+        path.poses[i].pose = poses[i];
+    }
+    return path;
 }
 
-}  // namespace nav_2d_utils
+} // namespace nav_2d_utils

@@ -35,11 +35,11 @@
 #ifndef DWB_CRITICS__OBSTACLE_FOOTPRINT_HPP_
 #define DWB_CRITICS__OBSTACLE_FOOTPRINT_HPP_
 
-#include <vector>
 #include "dwb_critics/base_obstacle.hpp"
 
-namespace dwb_critics
-{
+#include <vector>
+
+namespace dwb_critics {
 typedef std::vector<geometry_msgs::msg::Point> Footprint;
 
 /**
@@ -48,9 +48,7 @@ typedef std::vector<geometry_msgs::msg::Point> Footprint;
  * @param footprint_spec List of points that make up the footprint spec, centered at 0,0
  * @return oriented footprint
  */
-Footprint getOrientedFootprint(
-  const geometry_msgs::msg::Pose & pose,
-  const Footprint & footprint_spec);
+Footprint getOrientedFootprint(const geometry_msgs::msg::Pose& pose, const Footprint& footprint_spec);
 
 /**
  * @class ObstacleFootprintCritic
@@ -62,39 +60,35 @@ Footprint getOrientedFootprint(
  * A more robust class could check every cell within the robot's footprint without inflating the obstacles,
  * at some computational cost. That is left as an exercise to the reader.
  */
-class ObstacleFootprintCritic : public BaseObstacleCritic
-{
-public:
-  bool prepare(
-    const geometry_msgs::msg::Pose & pose, const nav_2d_msgs::msg::Twist2D & vel,
-    const geometry_msgs::msg::Pose & goal, const nav_msgs::msg::Path & global_plan) override;
-  double scorePose(const geometry_msgs::msg::Pose & pose) override;
-  virtual double scorePose(
-    const geometry_msgs::msg::Pose & pose,
-    const Footprint & oriented_footprint);
-  double getScale() const override {return costmap_->getResolution() * scale_;}
+class ObstacleFootprintCritic : public BaseObstacleCritic {
+   public:
+    bool prepare(const geometry_msgs::msg::Pose& pose, const nav_2d_msgs::msg::Twist2D& vel, const geometry_msgs::msg::Pose& goal,
+                 const nav_msgs::msg::Path& global_plan) override;
+    double scorePose(const geometry_msgs::msg::Pose& pose) override;
+    virtual double scorePose(const geometry_msgs::msg::Pose& pose, const Footprint& oriented_footprint);
+    double getScale() const override { return costmap_->getResolution() * scale_; }
 
-protected:
-  /**
-   * @brief Rasterizes a line in the costmap grid and checks for collisions
-   * @param x0 The x position of the first cell in grid coordinates
-   * @param y0 The y position of the first cell in grid coordinates
-   * @param x1 The x position of the second cell in grid coordinates
-   * @param y1 The y position of the second cell in grid coordinates
-   * @return A positive cost for a legal line... negative otherwise
-   */
-  double lineCost(int x0, int x1, int y0, int y1);
+   protected:
+    /**
+     * @brief Rasterizes a line in the costmap grid and checks for collisions
+     * @param x0 The x position of the first cell in grid coordinates
+     * @param y0 The y position of the first cell in grid coordinates
+     * @param x1 The x position of the second cell in grid coordinates
+     * @param y1 The y position of the second cell in grid coordinates
+     * @return A positive cost for a legal line... negative otherwise
+     */
+    double lineCost(int x0, int x1, int y0, int y1);
 
-  /**
-   * @brief Checks the cost of a point in the costmap
-   * @param x The x position of the point in cell coordinates
-   * @param y The y position of the point in cell coordinates
-   * @return A positive cost for a legal point... negative otherwise
-   */
-  double pointCost(int x, int y);
+    /**
+     * @brief Checks the cost of a point in the costmap
+     * @param x The x position of the point in cell coordinates
+     * @param y The y position of the point in cell coordinates
+     * @return A positive cost for a legal point... negative otherwise
+     */
+    double pointCost(int x, int y);
 
-  Footprint footprint_spec_;
+    Footprint footprint_spec_;
 };
-}  // namespace dwb_critics
+} // namespace dwb_critics
 
-#endif  // DWB_CRITICS__OBSTACLE_FOOTPRINT_HPP_
+#endif // DWB_CRITICS__OBSTACLE_FOOTPRINT_HPP_

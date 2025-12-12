@@ -32,50 +32,48 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <cmath>
-#include "gtest/gtest.h"
 #include "nav_2d_utils/path_ops.hpp"
 
-using std::sqrt;
-using nav_2d_utils::adjustPlanResolution;
+#include "gtest/gtest.h"
 
-TEST(path_ops_test, AdjustResolutionEmpty)
-{
-  nav_msgs::msg::Path in;
-  nav_msgs::msg::Path out = adjustPlanResolution(in, 2.0);
-  EXPECT_EQ(out.poses.size(), 0ul);
+#include <cmath>
+
+using nav_2d_utils::adjustPlanResolution;
+using std::sqrt;
+
+TEST(path_ops_test, AdjustResolutionEmpty) {
+    nav_msgs::msg::Path in;
+    nav_msgs::msg::Path out = adjustPlanResolution(in, 2.0);
+    EXPECT_EQ(out.poses.size(), 0ul);
 }
 
-TEST(path_ops_test, AdjustResolutionSimple)
-{
-  nav_msgs::msg::Path in;
-  const float RESOLUTION = 20.0;
+TEST(path_ops_test, AdjustResolutionSimple) {
+    nav_msgs::msg::Path in;
+    const float RESOLUTION = 20.0;
 
-  geometry_msgs::msg::PoseStamped pose1;
-  pose1.pose.position.x = 0.0;
-  pose1.pose.position.y = 0.0;
-  geometry_msgs::msg::PoseStamped pose2;
-  pose2.pose.position.x = 100.0;
-  pose2.pose.position.y = 0.0;
+    geometry_msgs::msg::PoseStamped pose1;
+    pose1.pose.position.x = 0.0;
+    pose1.pose.position.y = 0.0;
+    geometry_msgs::msg::PoseStamped pose2;
+    pose2.pose.position.x = 100.0;
+    pose2.pose.position.y = 0.0;
 
-  in.poses.push_back(pose1);
-  in.poses.push_back(pose2);
+    in.poses.push_back(pose1);
+    in.poses.push_back(pose2);
 
-  nav_msgs::msg::Path out = adjustPlanResolution(in, RESOLUTION);
-  float length = 100;
-  uint32_t number_of_points = ceil(length / (2 * RESOLUTION));
-  EXPECT_EQ(out.poses.size(), number_of_points);
-  float max_length = length / (number_of_points - 1);
+    nav_msgs::msg::Path out = adjustPlanResolution(in, RESOLUTION);
+    float length = 100;
+    uint32_t number_of_points = ceil(length / (2 * RESOLUTION));
+    EXPECT_EQ(out.poses.size(), number_of_points);
+    float max_length = length / (number_of_points - 1);
 
-  for (unsigned int i = 1; i < out.poses.size(); i++) {
-    pose1 = out.poses[i - 1];
-    pose2 = out.poses[i];
+    for (unsigned int i = 1; i < out.poses.size(); i++) {
+        pose1 = out.poses[i - 1];
+        pose2 = out.poses[i];
 
-    double sq_dist = (pose1.pose.position.x - pose2.pose.position.x) *
-      (pose1.pose.position.x - pose2.pose.position.x) +
-      (pose1.pose.position.y - pose2.pose.position.y) *
-      (pose1.pose.position.y - pose2.pose.position.y);
+        double sq_dist = (pose1.pose.position.x - pose2.pose.position.x) * (pose1.pose.position.x - pose2.pose.position.x)
+                         + (pose1.pose.position.y - pose2.pose.position.y) * (pose1.pose.position.y - pose2.pose.position.y);
 
-    EXPECT_TRUE(sqrt(sq_dist) <= max_length);
-  }
+        EXPECT_TRUE(sqrt(sq_dist) <= max_length);
+    }
 }

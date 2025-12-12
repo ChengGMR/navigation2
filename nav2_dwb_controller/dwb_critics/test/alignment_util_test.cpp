@@ -32,56 +32,57 @@
  *  POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <vector>
-#include <memory>
-#include <string>
+#include "dwb_critics/alignment_util.hpp"
 
-#include "gtest/gtest.h"
+#include "dwb_core/exceptions.hpp"
 #include "rclcpp/rclcpp.hpp"
+
 #include "tf2/LinearMath/Quaternion.hpp"
 #include "tf2/utils.hpp"
 #include "tf2_geometry_msgs/tf2_geometry_msgs.hpp"
-#include "dwb_critics/alignment_util.hpp"
-#include "dwb_core/exceptions.hpp"
 
-TEST(AlignmentUtil, TestProjection)
-{
-  geometry_msgs::msg::Pose pose, pose_out;
-  pose.position.x = 1.0;
-  pose.position.y = -1.0;
-  tf2::Quaternion q1;
-  q1.setRPY(0, 0, 0.0);  // theta = 0.0
-  pose.orientation = tf2::toMsg(q1);
+#include "gtest/gtest.h"
 
-  double distance = 1.0;
-  pose_out = dwb_critics::getForwardPose(pose, distance);
-  EXPECT_EQ(pose_out.position.x, 2.0);
-  EXPECT_EQ(pose_out.position.y, -1.0);
-  EXPECT_NEAR(tf2::getYaw(pose_out.orientation), 0.0, 1e-6);
+#include <memory>
+#include <string>
+#include <vector>
 
-  pose.position.x = 2.0;
-  pose.position.y = -10.0;
-  tf2::Quaternion q2;
-  q2.setRPY(0, 0, 0.54);
-  pose.orientation = tf2::toMsg(q2);
+TEST(AlignmentUtil, TestProjection) {
+    geometry_msgs::msg::Pose pose, pose_out;
+    pose.position.x = 1.0;
+    pose.position.y = -1.0;
+    tf2::Quaternion q1;
+    q1.setRPY(0, 0, 0.0); // theta = 0.0
+    pose.orientation = tf2::toMsg(q1);
 
-  pose_out = dwb_critics::getForwardPose(pose, distance);
-  EXPECT_NEAR(pose_out.position.x, 2.8577, 0.01);
-  EXPECT_NEAR(pose_out.position.y, -9.4858, 0.01);
-  EXPECT_NEAR(tf2::getYaw(pose_out.orientation), 0.54, 0.01);
+    double distance = 1.0;
+    pose_out = dwb_critics::getForwardPose(pose, distance);
+    EXPECT_EQ(pose_out.position.x, 2.0);
+    EXPECT_EQ(pose_out.position.y, -1.0);
+    EXPECT_NEAR(tf2::getYaw(pose_out.orientation), 0.0, 1e-6);
+
+    pose.position.x = 2.0;
+    pose.position.y = -10.0;
+    tf2::Quaternion q2;
+    q2.setRPY(0, 0, 0.54);
+    pose.orientation = tf2::toMsg(q2);
+
+    pose_out = dwb_critics::getForwardPose(pose, distance);
+    EXPECT_NEAR(pose_out.position.x, 2.8577, 0.01);
+    EXPECT_NEAR(pose_out.position.y, -9.4858, 0.01);
+    EXPECT_NEAR(tf2::getYaw(pose_out.orientation), 0.54, 0.01);
 }
 
-int main(int argc, char ** argv)
-{
-  ::testing::InitGoogleTest(&argc, argv);
+int main(int argc, char** argv) {
+    ::testing::InitGoogleTest(&argc, argv);
 
-  // initialize ROS
-  rclcpp::init(argc, argv);
+    // initialize ROS
+    rclcpp::init(argc, argv);
 
-  bool all_successful = RUN_ALL_TESTS();
+    bool all_successful = RUN_ALL_TESTS();
 
-  // shutdown ROS
-  rclcpp::shutdown();
+    // shutdown ROS
+    rclcpp::shutdown();
 
-  return all_successful;
+    return all_successful;
 }

@@ -15,38 +15,36 @@
 #ifndef NAV2_ROUTE__INTERFACES__ROUTE_OPERATION_HPP_
 #define NAV2_ROUTE__INTERFACES__ROUTE_OPERATION_HPP_
 
+#include "nav2_costmap_2d/costmap_subscriber.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav2_route/types.hpp"
+
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "pluginlib/class_loader.hpp"
+
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "nav2_ros_common/lifecycle_node.hpp"
-#include "pluginlib/class_loader.hpp"
-#include "nav2_route/types.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "nav2_costmap_2d/costmap_subscriber.hpp"
-
-namespace nav2_route
-{
+namespace nav2_route {
 
 /**
  * @struct OperationResult
  * @brief a struct to hold return from an operation
  */
-struct OperationResult
-{
-  bool reroute{false};
-  std::vector<unsigned int> blocked_ids;
+struct OperationResult {
+    bool reroute{false};
+    std::vector<unsigned int> blocked_ids;
 };
 
 /**
  * @enum nav2_route::RouteOperationType
  * @brief The type of operation plugin
  */
-enum class RouteOperationType
-{
-  ON_GRAPH = 0,
-  ON_STATUS_CHANGE = 1,
-  ON_QUERY = 2
+enum class RouteOperationType {
+    ON_GRAPH = 0,
+    ON_STATUS_CHANGE = 1,
+    ON_QUERY = 2
 };
 
 /**
@@ -62,76 +60,68 @@ enum class RouteOperationType
  * such as calling an elevator or opening an automatic door, etc.
  * Operations may throw nav2_core::OperationFailed exceptions in failure cases
  */
-class RouteOperation
-{
-public:
-  using Ptr = std::shared_ptr<nav2_route::RouteOperation>;
+class RouteOperation {
+   public:
+    using Ptr = std::shared_ptr<nav2_route::RouteOperation>;
 
-  /**
-   * @brief Constructor
-   */
-  RouteOperation() = default;
+    /**
+     * @brief Constructor
+     */
+    RouteOperation() = default;
 
-  /**
-   * @brief Destructor
-   */
-  virtual ~RouteOperation() = default;
+    /**
+     * @brief Destructor
+     */
+    virtual ~RouteOperation() = default;
 
-  /**
-   * @brief Configure the operation plugin (get params, create interfaces, etc)
-   * @param node A node to use
-   * @param name the plugin's name set by the param file that may need to be used
-   * to correlate an operation instance to the navigation graph operation calls
-   */
-  virtual void configure(
-    const nav2::LifecycleNode::SharedPtr node,
-    std::shared_ptr<nav2_costmap_2d::CostmapSubscriber> costmap_subscriber,
-    const std::string & name) = 0;
+    /**
+     * @brief Configure the operation plugin (get params, create interfaces, etc)
+     * @param node A node to use
+     * @param name the plugin's name set by the param file that may need to be used
+     * to correlate an operation instance to the navigation graph operation calls
+     */
+    virtual void configure(const nav2::LifecycleNode::SharedPtr node, std::shared_ptr<nav2_costmap_2d::CostmapSubscriber> costmap_subscriber,
+                           const std::string& name) = 0;
 
-  /**
-   * @brief An API to get the name of a particular operation for triggering, query
-   * or logging
-   * @return the plugin's name
-   */
-  virtual std::string getName() = 0;
+    /**
+     * @brief An API to get the name of a particular operation for triggering, query
+     * or logging
+     * @return the plugin's name
+     */
+    virtual std::string getName() = 0;
 
-  /**
-   * @brief Indication of which type of route operation this plugin is. Whether it is
-   * be called by the graph's nodes or edges, whether it should be triggered at any
-   * status change, or whether it should be called constantly on any query. By default,
-   * it will create operations that are only called when a graph's node or edge requests it.
-   * Note that On Query, On Status Change, and On Graph are mutually exclusive since each
-   * operation type is merely a subset of the previous level's specificity.
-   * @return The type of operation (on graph call, on status changes, or constantly)
-   */
-  virtual RouteOperationType processType() {return RouteOperationType::ON_GRAPH;}
+    /**
+     * @brief Indication of which type of route operation this plugin is. Whether it is
+     * be called by the graph's nodes or edges, whether it should be triggered at any
+     * status change, or whether it should be called constantly on any query. By default,
+     * it will create operations that are only called when a graph's node or edge requests it.
+     * Note that On Query, On Status Change, and On Graph are mutually exclusive since each
+     * operation type is merely a subset of the previous level's specificity.
+     * @return The type of operation (on graph call, on status changes, or constantly)
+     */
+    virtual RouteOperationType processType() { return RouteOperationType::ON_GRAPH; }
 
-  /**
-   * @brief The main route operation API to perform an operation when triggered.
-   * The return value indicates if the route operation is requesting rerouting when returning true.
-   * Could be if this operation is checking if a route is in collision or operation
-   * failed (to open a door, for example) and thus this current route is now invalid.
-   * @param mdata Metadata corresponding to the operation in the navigation graph.
-   * If metadata is invalid or irrelevant, a nullptr is given
-   * @param node_achieved Node achieved,
-   * for additional context (must check nullptr if at goal)
-   * @param edge_entered Edge entered by node achievement,
-   * for additional context (must check if nullptr if no future edge, at goal)
-   * @param edge_exited Edge exited by node achievement,
-   * for additional context (must check if nullptr if no last edge, starting)
-   * @param route Current route being tracked in full, for additional context
-   * @param curr_pose Current robot pose in the route frame, for additional context
-   * @return Whether to perform rerouting and report blocked edges in that case
-   */
-  virtual OperationResult perform(
-    NodePtr node_achieved,
-    EdgePtr edge_entered,
-    EdgePtr edge_exited,
-    const Route & route,
-    const geometry_msgs::msg::PoseStamped & curr_pose,
-    const Metadata * mdata = nullptr) = 0;
+    /**
+     * @brief The main route operation API to perform an operation when triggered.
+     * The return value indicates if the route operation is requesting rerouting when returning true.
+     * Could be if this operation is checking if a route is in collision or operation
+     * failed (to open a door, for example) and thus this current route is now invalid.
+     * @param mdata Metadata corresponding to the operation in the navigation graph.
+     * If metadata is invalid or irrelevant, a nullptr is given
+     * @param node_achieved Node achieved,
+     * for additional context (must check nullptr if at goal)
+     * @param edge_entered Edge entered by node achievement,
+     * for additional context (must check if nullptr if no future edge, at goal)
+     * @param edge_exited Edge exited by node achievement,
+     * for additional context (must check if nullptr if no last edge, starting)
+     * @param route Current route being tracked in full, for additional context
+     * @param curr_pose Current robot pose in the route frame, for additional context
+     * @return Whether to perform rerouting and report blocked edges in that case
+     */
+    virtual OperationResult perform(NodePtr node_achieved, EdgePtr edge_entered, EdgePtr edge_exited, const Route& route,
+                                    const geometry_msgs::msg::PoseStamped& curr_pose, const Metadata* mdata = nullptr) = 0;
 };
 
-}  // namespace nav2_route
+} // namespace nav2_route
 
-#endif  // NAV2_ROUTE__INTERFACES__ROUTE_OPERATION_HPP_
+#endif // NAV2_ROUTE__INTERFACES__ROUTE_OPERATION_HPP_

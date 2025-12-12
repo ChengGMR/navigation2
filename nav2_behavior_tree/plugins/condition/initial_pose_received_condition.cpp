@@ -14,26 +14,18 @@
 
 #include "nav2_behavior_tree/plugins/condition/initial_pose_received_condition.hpp"
 
-namespace nav2_behavior_tree
-{
-InitialPoseReceived::InitialPoseReceived(
-  const std::string & name,
-  const BT::NodeConfiguration & config)
-: BT::ConditionNode(name, config)
-{
+namespace nav2_behavior_tree {
+InitialPoseReceived::InitialPoseReceived(const std::string& name, const BT::NodeConfiguration& config) : BT::ConditionNode(name, config) {}
+
+BT::NodeStatus InitialPoseReceived::tick() {
+    bool initPoseReceived = false;
+    BT::getInputOrBlackboard("initial_pose_received", initPoseReceived);
+    return initPoseReceived ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
 }
 
-BT::NodeStatus InitialPoseReceived::tick()
-{
-  bool initPoseReceived = false;
-  BT::getInputOrBlackboard("initial_pose_received", initPoseReceived);
-  return initPoseReceived ? BT::NodeStatus::SUCCESS : BT::NodeStatus::FAILURE;
-}
-
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
 #include "behaviortree_cpp/bt_factory.h"
-BT_REGISTER_NODES(factory)
-{
-  factory.registerNodeType<nav2_behavior_tree::InitialPoseReceived>("InitialPoseReceived");
+BT_REGISTER_NODES(factory) {
+    factory.registerNodeType<nav2_behavior_tree::InitialPoseReceived>("InitialPoseReceived");
 }

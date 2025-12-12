@@ -15,43 +15,36 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__APPEND_GOAL_POSE_TO_GOALS_ACTION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__APPEND_GOAL_POSE_TO_GOALS_ACTION_HPP_
 
-#include <vector>
-#include <memory>
-#include <string>
-
-#include "nav_msgs/msg/goals.hpp"
+#include "behaviortree_cpp/action_node.h"
 #include "nav2_msgs/msg/route.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
 #include "nav2_util/geometry_utils.hpp"
 #include "nav2_util/robot_utils.hpp"
-#include "behaviortree_cpp/action_node.h"
-#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav_msgs/msg/goals.hpp"
 
-namespace nav2_behavior_tree
-{
+#include "geometry_msgs/msg/pose_stamped.hpp"
 
-class AppendGoalPoseToGoals : public BT::ActionNodeBase
-{
-public:
-  AppendGoalPoseToGoals(
-    const std::string & xml_tag_name,
-    const BT::NodeConfiguration & conf);
+#include <memory>
+#include <string>
+#include <vector>
 
+namespace nav2_behavior_tree {
 
-  static BT::PortsList providedPorts()
-  {
-    return {
-      BT::InputPort<geometry_msgs::msg::PoseStamped>("goal_pose", "Goal pose to append"),
-      BT::InputPort<nav_msgs::msg::Goals>("input_goals", "Input goals to append to"),
-      BT::OutputPort<nav_msgs::msg::Goals>("output_goals", "Output goals after appending")
-    };
-  }
+class AppendGoalPoseToGoals : public BT::ActionNodeBase {
+   public:
+    AppendGoalPoseToGoals(const std::string& xml_tag_name, const BT::NodeConfiguration& conf);
 
-private:
-  void halt() override {}
-  BT::NodeStatus tick() override;
+    static BT::PortsList providedPorts() {
+        return {BT::InputPort<geometry_msgs::msg::PoseStamped>("goal_pose", "Goal pose to append"),
+                BT::InputPort<nav_msgs::msg::Goals>("input_goals", "Input goals to append to"),
+                BT::OutputPort<nav_msgs::msg::Goals>("output_goals", "Output goals after appending")};
+    }
+
+   private:
+    void halt() override {}
+    BT::NodeStatus tick() override;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__APPEND_GOAL_POSE_TO_GOALS_ACTION_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__ACTION__APPEND_GOAL_POSE_TO_GOALS_ACTION_HPP_

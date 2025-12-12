@@ -12,31 +12,23 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <string>
-#include <memory>
-
 #include "nav2_behavior_tree/plugins/action/toggle_collision_monitor_service.hpp"
 
-namespace nav2_behavior_tree
-{
+#include <memory>
+#include <string>
 
-ToggleCollisionMonitorService::ToggleCollisionMonitorService(
-  const std::string & service_node_name,
-  const BT::NodeConfiguration & conf)
-: BtServiceNode<nav2_msgs::srv::Toggle>(service_node_name, conf)
-{
+namespace nav2_behavior_tree {
+
+ToggleCollisionMonitorService::ToggleCollisionMonitorService(const std::string& service_node_name, const BT::NodeConfiguration& conf)
+    : BtServiceNode<nav2_msgs::srv::Toggle>(service_node_name, conf) {}
+
+void ToggleCollisionMonitorService::on_tick() {
+    getInput("enable", request_->enable);
 }
 
-void ToggleCollisionMonitorService::on_tick()
-{
-  getInput("enable", request_->enable);
-}
-
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
 #include "behaviortree_cpp/bt_factory.h"
-BT_REGISTER_NODES(factory)
-{
-  factory.registerNodeType<nav2_behavior_tree::ToggleCollisionMonitorService>(
-    "ToggleCollisionMonitor");
+BT_REGISTER_NODES(factory) {
+    factory.registerNodeType<nav2_behavior_tree::ToggleCollisionMonitorService>("ToggleCollisionMonitor");
 }

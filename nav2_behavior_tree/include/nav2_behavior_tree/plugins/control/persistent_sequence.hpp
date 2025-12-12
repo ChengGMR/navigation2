@@ -15,12 +15,12 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONTROL__PERSISTENT_SEQUENCE_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONTROL__PERSISTENT_SEQUENCE_HPP_
 
-#include <string>
-#include "behaviortree_cpp/control_node.h"
 #include "behaviortree_cpp/bt_factory.h"
+#include "behaviortree_cpp/control_node.h"
 
-namespace nav2_behavior_tree
-{
+#include <string>
+
+namespace nav2_behavior_tree {
 /**
  * @brief The PersistentSequenceNode is similar to the SequenceNode, but it
  * stores the index of the last running child in the blackboard (key: "current_child_idx"),
@@ -37,25 +37,23 @@ namespace nav2_behavior_tree
  *   Restart the loop only if (reset_on_failure == true)
  *
  */
-class PersistentSequenceNode : public BT::ControlNode
-{
-public:
-  PersistentSequenceNode(const std::string & name, const BT::NodeConfiguration & conf);
+class PersistentSequenceNode : public BT::ControlNode {
+   public:
+    PersistentSequenceNode(const std::string& name, const BT::NodeConfiguration& conf);
 
-  ~PersistentSequenceNode() override = default;
+    ~PersistentSequenceNode() override = default;
 
-  //! @brief Declare ports
-  static BT::PortsList providedPorts()
-  {
-    return {
-      BT::BidirectionalPort<int>("current_child_idx", "The index of the current child"),
-    };
-  }
+    //! @brief Declare ports
+    static BT::PortsList providedPorts() {
+        return {
+            BT::BidirectionalPort<int>("current_child_idx", "The index of the current child"),
+        };
+    }
 
-private:
-  BT::NodeStatus tick() override;
+   private:
+    BT::NodeStatus tick() override;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__CONTROL__PERSISTENT_SEQUENCE_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONTROL__PERSISTENT_SEQUENCE_HPP_

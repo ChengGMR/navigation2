@@ -14,17 +14,16 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-#include <memory>
-
 #include "nav2_amcl/amcl_node.hpp"
 #include "rclcpp/rclcpp.hpp"
 
-int main(int argc, char ** argv)
-{
-  rclcpp::init(argc, argv);
-  auto node = std::make_shared<nav2_amcl::AmclNode>();
-  rclcpp::spin(node->get_node_base_interface());
-  rclcpp::shutdown();
+#include <memory>
 
-  return 0;
+int main(int argc, char** argv) {
+    rclcpp::init(argc, argv);
+    auto node = std::make_shared<nav2_amcl::AmclNode>();
+    rclcpp::spin(node->get_node_base_interface());
+    rclcpp::shutdown();
+
+    return 0;
 }

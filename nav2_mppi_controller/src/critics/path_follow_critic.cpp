@@ -16,68 +16,60 @@
 
 #include <Eigen/Dense>
 
-namespace mppi::critics
-{
+namespace mppi::critics {
 
-void PathFollowCritic::initialize()
-{
-  auto getParentParam = parameters_handler_->getParamGetter(parent_name_);
-  auto getParam = parameters_handler_->getParamGetter(name_);
-  getParam(
-    threshold_to_consider_,
-    "threshold_to_consider", 1.4f);
-  getParam(offset_from_furthest_, "offset_from_furthest", 6);
-  getParam(power_, "cost_power", 1);
-  getParam(weight_, "cost_weight", 5.0f);
+void PathFollowCritic::initialize() {
+    auto getParentParam = parameters_handler_->getParamGetter(parent_name_);
+    auto getParam = parameters_handler_->getParamGetter(name_);
+    getParam(threshold_to_consider_, "threshold_to_consider", 1.4f);
+    getParam(offset_from_furthest_, "offset_from_furthest", 6);
+    getParam(power_, "cost_power", 1);
+    getParam(weight_, "cost_weight", 5.0f);
 }
 
-void PathFollowCritic::score(CriticData & data)
-{
-  if (!enabled_) {
-    return;
-  }
-
-  if (data.path.x.size() < 2 || data.state.local_path_length < threshold_to_consider_) {
-    return;
-  }
-
-  utils::setPathFurthestPointIfNotSet(data);
-  utils::setPathCostsIfNotSet(data, costmap_ros_);
-  const size_t path_size = data.path.x.size() - 1;
-
-  auto offsetted_idx = std::min(
-    *data.furthest_reached_path_point + offset_from_furthest_, path_size);
-
-  // Drive to the first valid path point, in case of dynamic obstacles on path
-  // we want to drive past it, not through it
-  bool valid = false;
-  while (!valid && offsetted_idx < path_size - 1) {
-    valid = (*data.path_pts_valid)[offsetted_idx];
-    if (!valid) {
-      offsetted_idx++;
+void PathFollowCritic::score(CriticData& data) {
+    if (!enabled_) {
+        return;
     }
-  }
 
-  const auto path_x = data.path.x(offsetted_idx);
-  const auto path_y = data.path.y(offsetted_idx);
+    if (data.path.x.size() < 2 || data.state.local_path_length < threshold_to_consider_) {
+        return;
+    }
 
-  const int && rightmost_idx = data.trajectories.x.cols() - 1;
-  const auto last_x = data.trajectories.x.col(rightmost_idx);
-  const auto last_y = data.trajectories.y.col(rightmost_idx);
+    utils::setPathFurthestPointIfNotSet(data);
+    utils::setPathCostsIfNotSet(data, costmap_ros_);
+    const size_t path_size = data.path.x.size() - 1;
 
-  const auto delta_x = last_x - path_x;
-  const auto delta_y = last_y - path_y;
-  if (power_ > 1u) {
-    data.costs += (((delta_x.square() + delta_y.square()).sqrt()) * weight_).pow(power_);
-  } else {
-    data.costs += ((delta_x.square() + delta_y.square()).sqrt()) * weight_;
-  }
+    auto offsetted_idx = std::min(*data.furthest_reached_path_point + offset_from_furthest_, path_size);
+
+    // Drive to the first valid path point, in case of dynamic obstacles on path
+    // we want to drive past it, not through it
+    bool valid = false;
+    while (!valid && offsetted_idx < path_size - 1) {
+        valid = (*data.path_pts_valid)[offsetted_idx];
+        if (!valid) {
+            offsetted_idx++;
+        }
+    }
+
+    const auto path_x = data.path.x(offsetted_idx);
+    const auto path_y = data.path.y(offsetted_idx);
+
+    const int&& rightmost_idx = data.trajectories.x.cols() - 1;
+    const auto last_x = data.trajectories.x.col(rightmost_idx);
+    const auto last_y = data.trajectories.y.col(rightmost_idx);
+
+    const auto delta_x = last_x - path_x;
+    const auto delta_y = last_y - path_y;
+    if (power_ > 1u) {
+        data.costs += (((delta_x.square() + delta_y.square()).sqrt()) * weight_).pow(power_);
+    } else {
+        data.costs += ((delta_x.square() + delta_y.square()).sqrt()) * weight_;
+    }
 }
 
-}  // namespace mppi::critics
+} // namespace mppi::critics
 
 #include <pluginlib/class_list_macros.hpp>
 
-PLUGINLIB_EXPORT_CLASS(
-  mppi::critics::PathFollowCritic,
-  mppi::critics::CriticFunction)
+PLUGINLIB_EXPORT_CLASS(mppi::critics::PathFollowCritic, mppi::critics::CriticFunction)

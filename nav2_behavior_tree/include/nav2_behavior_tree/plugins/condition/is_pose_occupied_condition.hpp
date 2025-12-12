@@ -15,93 +15,83 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__IS_POSE_OCCUPIED_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__IS_POSE_OCCUPIED_CONDITION_HPP_
 
-#include <string>
-#include <memory>
-
-#include "nav2_ros_common/lifecycle_node.hpp"
 #include "behaviortree_cpp/condition_node.h"
 #include "behaviortree_cpp/json_export.h"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "nav2_msgs/srv/get_costs.hpp"
-#include "nav2_ros_common/service_client.hpp"
 #include "nav2_behavior_tree/bt_utils.hpp"
 #include "nav2_behavior_tree/json_utils.hpp"
+#include "nav2_msgs/srv/get_costs.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav2_ros_common/service_client.hpp"
 
+#include "geometry_msgs/msg/pose_stamped.hpp"
 
-namespace nav2_behavior_tree
-{
+#include <memory>
+#include <string>
+
+namespace nav2_behavior_tree {
 
 /**
  * @brief A BT::ConditionNode that returns SUCCESS when the IsPoseOccupied
  * service returns true and FAILURE otherwise
  */
-class IsPoseOccupiedCondition : public BT::ConditionNode
-{
-public:
-  /**
-   * @brief A constructor for nav2_behavior_tree::IsPoseOccupiedCondition
-   * @param condition_name Name for the XML tag for this node
-   * @param conf BT node configuration
-   */
-  IsPoseOccupiedCondition(
-    const std::string & condition_name,
-    const BT::NodeConfiguration & conf);
+class IsPoseOccupiedCondition : public BT::ConditionNode {
+   public:
+    /**
+     * @brief A constructor for nav2_behavior_tree::IsPoseOccupiedCondition
+     * @param condition_name Name for the XML tag for this node
+     * @param conf BT node configuration
+     */
+    IsPoseOccupiedCondition(const std::string& condition_name, const BT::NodeConfiguration& conf);
 
-  IsPoseOccupiedCondition() = delete;
+    IsPoseOccupiedCondition() = delete;
 
-  /**
-   * @brief The main override required by a BT action
-   * @return BT::NodeStatus Status of tick execution
-   */
-  BT::NodeStatus tick() override;
+    /**
+     * @brief The main override required by a BT action
+     * @return BT::NodeStatus Status of tick execution
+     */
+    BT::NodeStatus tick() override;
 
-  /**
-   * @brief Function to read parameters and initialize class variables
-   */
-  void initialize();
+    /**
+     * @brief Function to read parameters and initialize class variables
+     */
+    void initialize();
 
-  /**
-   * @brief Function to create ROS interfaces
-   */
-  void createROSInterfaces();
+    /**
+     * @brief Function to create ROS interfaces
+     */
+    void createROSInterfaces();
 
-  /**
-   * @brief Creates list of BT ports
-   * @return BT::PortsList Containing node-specific ports
-   */
-  static BT::PortsList providedPorts()
-  {
-    // Register JSON definitions for the types used in the ports
-    BT::RegisterJsonDefinition<geometry_msgs::msg::PoseStamped>();
-    BT::RegisterJsonDefinition<std::chrono::milliseconds>();
+    /**
+     * @brief Creates list of BT ports
+     * @return BT::PortsList Containing node-specific ports
+     */
+    static BT::PortsList providedPorts() {
+        // Register JSON definitions for the types used in the ports
+        BT::RegisterJsonDefinition<geometry_msgs::msg::PoseStamped>();
+        BT::RegisterJsonDefinition<std::chrono::milliseconds>();
 
-    return {
-      BT::InputPort<geometry_msgs::msg::PoseStamped>("pose", "Pose to check if occupied"),
-      BT::InputPort<std::string>("service_name", "global_costmap/get_cost_global_costmap",
-        "The service name to call GetCosts"),
-      BT::InputPort<double>(
-        "cost_threshold", 254.0,
-        "Cost threshold for considering a pose occupied"),
-      BT::InputPort<bool>("use_footprint", true, "Whether to use footprint cost"),
-      BT::InputPort<bool>(
-        "consider_unknown_as_obstacle", false,
-        "Whether to consider unknown cost as obstacle"),
-      BT::InputPort<std::chrono::milliseconds>("server_timeout"),
-    };
-  }
+        return {
+            BT::InputPort<geometry_msgs::msg::PoseStamped>("pose", "Pose to check if occupied"),
+            BT::InputPort<std::string>("service_name", "global_costmap/get_cost_global_costmap", "The service name to call GetCosts"),
+            BT::InputPort<double>("cost_threshold", 254.0, "Cost threshold for considering a pose occupied"),
+            BT::InputPort<bool>("use_footprint", true, "Whether to use footprint cost"),
+            BT::InputPort<bool>("consider_unknown_as_obstacle", false, "Whether to consider unknown cost as obstacle"),
+            BT::InputPort<std::chrono::milliseconds>("server_timeout"),
+        };
+    }
 
-private:
-  nav2::LifecycleNode::SharedPtr node_;
-  nav2::ServiceClient<nav2_msgs::srv::GetCosts>::SharedPtr client_;
-  // The timeout value while waiting for a response from the
-  // get cost service
-  std::chrono::milliseconds server_timeout_;
-  bool use_footprint_;
-  bool consider_unknown_as_obstacle_;
-  double cost_threshold_;
-  std::string service_name_;
+   private:
+    nav2::LifecycleNode::SharedPtr node_;
+    nav2::ServiceClient<nav2_msgs::srv::GetCosts>::SharedPtr client_;
+    // The timeout value while waiting for a response from the
+    // get cost service
+    std::chrono::milliseconds server_timeout_;
+    bool use_footprint_;
+    bool consider_unknown_as_obstacle_;
+    double cost_threshold_;
+    std::string service_name_;
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__IS_POSE_OCCUPIED_CONDITION_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__IS_POSE_OCCUPIED_CONDITION_HPP_

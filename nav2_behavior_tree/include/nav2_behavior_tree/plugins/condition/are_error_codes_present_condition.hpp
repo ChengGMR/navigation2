@@ -15,60 +15,49 @@
 #ifndef NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__ARE_ERROR_CODES_PRESENT_CONDITION_HPP_
 #define NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__ARE_ERROR_CODES_PRESENT_CONDITION_HPP_
 
-#include <string>
-#include <memory>
-#include <vector>
-#include <set>
-
-#include "nav2_ros_common/lifecycle_node.hpp"
 #include "behaviortree_cpp/condition_node.h"
+#include "nav2_ros_common/lifecycle_node.hpp"
 
-namespace nav2_behavior_tree
-{
+#include <memory>
+#include <set>
+#include <string>
+#include <vector>
 
-class AreErrorCodesPresent : public BT::ConditionNode
-{
-public:
-  AreErrorCodesPresent(
-    const std::string & condition_name,
-    const BT::NodeConfiguration & conf)
-  : BT::ConditionNode(condition_name, conf)
-  {
-    std::vector<int> error_codes_to_check_vector;
-    getInput("error_codes_to_check", error_codes_to_check_vector); //NOLINT
+namespace nav2_behavior_tree {
 
-    error_codes_to_check_ = std::set<uint16_t>(
-      error_codes_to_check_vector.begin(),
-      error_codes_to_check_vector.end());
-  }
+class AreErrorCodesPresent : public BT::ConditionNode {
+   public:
+    AreErrorCodesPresent(const std::string& condition_name, const BT::NodeConfiguration& conf) : BT::ConditionNode(condition_name, conf) {
+        std::vector<int> error_codes_to_check_vector;
+        getInput("error_codes_to_check", error_codes_to_check_vector); // NOLINT
 
-  AreErrorCodesPresent() = delete;
-
-  BT::NodeStatus tick()
-  {
-    getInput<uint16_t>("error_code", error_code_);  //NOLINT
-
-    if (error_codes_to_check_.find(error_code_) != error_codes_to_check_.end()) {
-      return BT::NodeStatus::SUCCESS;
+        error_codes_to_check_ = std::set<uint16_t>(error_codes_to_check_vector.begin(), error_codes_to_check_vector.end());
     }
 
-    return BT::NodeStatus::FAILURE;
-  }
+    AreErrorCodesPresent() = delete;
 
-  static BT::PortsList providedPorts()
-  {
-    return
-      {
-        BT::InputPort<uint16_t>("error_code", "The active error codes"), //NOLINT
-        BT::InputPort<std::vector<int>>("error_codes_to_check", "Error codes to check")//NOLINT
-      };
-  }
+    BT::NodeStatus tick() {
+        getInput<uint16_t>("error_code", error_code_); // NOLINT
 
-protected:
-  uint16_t error_code_; //NOLINT
-  std::set<uint16_t> error_codes_to_check_; //NOLINT
+        if (error_codes_to_check_.find(error_code_) != error_codes_to_check_.end()) {
+            return BT::NodeStatus::SUCCESS;
+        }
+
+        return BT::NodeStatus::FAILURE;
+    }
+
+    static BT::PortsList providedPorts() {
+        return {
+            BT::InputPort<uint16_t>("error_code", "The active error codes"), // NOLINT
+            BT::InputPort<std::vector<int>>("error_codes_to_check", "Error codes to check") // NOLINT
+        };
+    }
+
+   protected:
+    uint16_t error_code_; // NOLINT
+    std::set<uint16_t> error_codes_to_check_; // NOLINT
 };
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-#endif  // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__ARE_ERROR_CODES_PRESENT_CONDITION_HPP_
+#endif // NAV2_BEHAVIOR_TREE__PLUGINS__CONDITION__ARE_ERROR_CODES_PRESENT_CONDITION_HPP_

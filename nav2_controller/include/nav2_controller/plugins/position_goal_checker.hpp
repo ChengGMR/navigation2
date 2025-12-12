@@ -15,64 +15,57 @@
 #ifndef NAV2_CONTROLLER__PLUGINS__POSITION_GOAL_CHECKER_HPP_
 #define NAV2_CONTROLLER__PLUGINS__POSITION_GOAL_CHECKER_HPP_
 
-#include <string>
-#include <memory>
-#include <vector>
-#include "rclcpp/rclcpp.hpp"
-#include "nav2_ros_common/lifecycle_node.hpp"
 #include "nav2_core/goal_checker.hpp"
 #include "nav2_costmap_2d/costmap_2d_ros.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "rclcpp/rclcpp.hpp"
 
-namespace nav2_controller
-{
+#include <memory>
+#include <string>
+#include <vector>
+
+namespace nav2_controller {
 
 /**
-     * @class PositionGoalChecker
-     * @brief Goal Checker plugin that only checks XY position, ignoring orientation
+ * @class PositionGoalChecker
+ * @brief Goal Checker plugin that only checks XY position, ignoring orientation
+ */
+class PositionGoalChecker : public nav2_core::GoalChecker {
+   public:
+    PositionGoalChecker();
+    ~PositionGoalChecker() override = default;
+
+    void initialize(const nav2::LifecycleNode::WeakPtr& parent, const std::string& plugin_name,
+                    const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
+
+    void reset() override;
+
+    bool isGoalReached(const geometry_msgs::msg::Pose& query_pose, const geometry_msgs::msg::Pose& goal_pose,
+                       const geometry_msgs::msg::Twist& velocity) override;
+
+    bool getTolerances(geometry_msgs::msg::Pose& pose_tolerance, geometry_msgs::msg::Twist& vel_tolerance) override;
+
+    /**
+     * @brief Set the XY goal tolerance
+     * @param tolerance New tolerance value
      */
-class PositionGoalChecker : public nav2_core::GoalChecker
-{
-public:
-  PositionGoalChecker();
-  ~PositionGoalChecker() override = default;
+    void setXYGoalTolerance(double tolerance);
 
-  void initialize(
-    const nav2::LifecycleNode::WeakPtr & parent,
-    const std::string & plugin_name,
-    const std::shared_ptr<nav2_costmap_2d::Costmap2DROS> costmap_ros) override;
+   protected:
+    double xy_goal_tolerance_;
+    double xy_goal_tolerance_sq_;
+    bool stateful_;
+    bool position_reached_;
+    std::string plugin_name_;
+    rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr dyn_params_handler_;
 
-  void reset() override;
-
-  bool isGoalReached(
-    const geometry_msgs::msg::Pose & query_pose, const geometry_msgs::msg::Pose & goal_pose,
-    const geometry_msgs::msg::Twist & velocity) override;
-
-  bool getTolerances(
-    geometry_msgs::msg::Pose & pose_tolerance,
-    geometry_msgs::msg::Twist & vel_tolerance) override;
-
-  /**
-       * @brief Set the XY goal tolerance
-       * @param tolerance New tolerance value
-       */
-  void setXYGoalTolerance(double tolerance);
-
-protected:
-  double xy_goal_tolerance_;
-  double xy_goal_tolerance_sq_;
-  bool stateful_;
-  bool position_reached_;
-  std::string plugin_name_;
-  rclcpp::Node::OnSetParametersCallbackHandle::SharedPtr dyn_params_handler_;
-
-  /**
-       * @brief Callback executed when a parameter change is detected
-       * @param parameters list of changed parameters
-       */
-  rcl_interfaces::msg::SetParametersResult
-  dynamicParametersCallback(std::vector<rclcpp::Parameter> parameters);
+    /**
+     * @brief Callback executed when a parameter change is detected
+     * @param parameters list of changed parameters
+     */
+    rcl_interfaces::msg::SetParametersResult dynamicParametersCallback(std::vector<rclcpp::Parameter> parameters);
 };
 
-}  // namespace nav2_controller
+} // namespace nav2_controller
 
-#endif  // NAV2_CONTROLLER__PLUGINS__POSITION_GOAL_CHECKER_HPP_
+#endif // NAV2_CONTROLLER__PLUGINS__POSITION_GOAL_CHECKER_HPP_

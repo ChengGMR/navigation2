@@ -15,36 +15,32 @@
 #ifndef OPENNAV_DOCKING__TYPES_HPP_
 #define OPENNAV_DOCKING__TYPES_HPP_
 
-#include <unordered_map>
-#include <string>
-
 #include "nav2_msgs/action/dock_robot.hpp"
 #include "nav2_msgs/action/undock_robot.hpp"
 #include "opennav_docking_core/charging_dock.hpp"
 #include "opennav_docking_core/docking_exceptions.hpp"
 
+#include <string>
+#include <unordered_map>
+
 typedef nav2_msgs::action::DockRobot DockRobot;
 typedef nav2_msgs::action::UndockRobot UndockRobot;
 
 /**
-* @struct A dock instance struct for a database
-*/
-struct Dock
-{
-  geometry_msgs::msg::PoseStamped getStagingPose()
-  {
-    return this->plugin->getStagingPose(this->pose, this->frame);
-  }
+ * @struct A dock instance struct for a database
+ */
+struct Dock {
+    geometry_msgs::msg::PoseStamped getStagingPose() { return this->plugin->getStagingPose(this->pose, this->frame); }
 
-  geometry_msgs::msg::Pose pose;
-  std::string frame;
-  std::string type;
-  std::string id;
-  opennav_docking_core::ChargingDock::Ptr plugin{nullptr};
+    geometry_msgs::msg::Pose pose;
+    std::string frame;
+    std::string type;
+    std::string id;
+    opennav_docking_core::ChargingDock::Ptr plugin{nullptr};
 };
 
 using opennav_docking_core::ChargingDock;
 using DockPluginMap = std::unordered_map<std::string, opennav_docking_core::ChargingDock::Ptr>;
 using DockMap = std::unordered_map<std::string, Dock>;
 
-#endif  // OPENNAV_DOCKING__TYPES_HPP_
+#endif // OPENNAV_DOCKING__TYPES_HPP_

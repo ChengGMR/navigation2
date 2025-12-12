@@ -12,63 +12,51 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <stdexcept>
-#include <sstream>
-#include <string>
-
 #include "nav2_behavior_tree/plugins/control/nonblocking_sequence.hpp"
 
-namespace nav2_behavior_tree
-{
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
-NonblockingSequence::NonblockingSequence(const std::string & name)
-: BT::ControlNode(name, {})
-{
-}
+namespace nav2_behavior_tree {
 
-NonblockingSequence::NonblockingSequence(
-  const std::string & name,
-  const BT::NodeConfiguration & conf)
-: BT::ControlNode(name, conf)
-{
-}
+NonblockingSequence::NonblockingSequence(const std::string& name) : BT::ControlNode(name, {}) {}
 
-BT::NodeStatus NonblockingSequence::tick()
-{
-  bool all_success = true;
+NonblockingSequence::NonblockingSequence(const std::string& name, const BT::NodeConfiguration& conf) : BT::ControlNode(name, conf) {}
 
-  for (std::size_t i = 0; i < children_nodes_.size(); ++i) {
-    auto status = children_nodes_[i]->executeTick();
-    switch (status) {
-      case BT::NodeStatus::FAILURE:
-        ControlNode::haltChildren();
-        all_success = false;  // probably not needed
-        return status;
-      case BT::NodeStatus::SUCCESS:
-        break;
-      case BT::NodeStatus::RUNNING:
-        all_success = false;
-        break;
-      default:
-        std::stringstream error_msg;
-        error_msg << "Invalid node status. Received status " << status <<
-          "from child " << children_nodes_[i]->name();
-        throw std::runtime_error(error_msg.str());
+BT::NodeStatus NonblockingSequence::tick() {
+    bool all_success = true;
+
+    for (std::size_t i = 0; i < children_nodes_.size(); ++i) {
+        auto status = children_nodes_[i]->executeTick();
+        switch (status) {
+            case BT::NodeStatus::FAILURE:
+                ControlNode::haltChildren();
+                all_success = false; // probably not needed
+                return status;
+            case BT::NodeStatus::SUCCESS:
+                break;
+            case BT::NodeStatus::RUNNING:
+                all_success = false;
+                break;
+            default:
+                std::stringstream error_msg;
+                error_msg << "Invalid node status. Received status " << status << "from child " << children_nodes_[i]->name();
+                throw std::runtime_error(error_msg.str());
+        }
     }
-  }
 
-  // Wrap up.
-  if (all_success) {
-    ControlNode::haltChildren();
-    return BT::NodeStatus::SUCCESS;
-  }
+    // Wrap up.
+    if (all_success) {
+        ControlNode::haltChildren();
+        return BT::NodeStatus::SUCCESS;
+    }
 
-  return BT::NodeStatus::RUNNING;
+    return BT::NodeStatus::RUNNING;
 }
 
-}  // namespace nav2_behavior_tree
+} // namespace nav2_behavior_tree
 
-BT_REGISTER_NODES(factory)
-{
-  factory.registerNodeType<nav2_behavior_tree::NonblockingSequence>("NonblockingSequence");
+BT_REGISTER_NODES(factory) {
+    factory.registerNodeType<nav2_behavior_tree::NonblockingSequence>("NonblockingSequence");
 }

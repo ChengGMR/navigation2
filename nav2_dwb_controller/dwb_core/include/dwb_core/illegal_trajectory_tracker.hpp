@@ -35,46 +35,40 @@
 #ifndef DWB_CORE__ILLEGAL_TRAJECTORY_TRACKER_HPP_
 #define DWB_CORE__ILLEGAL_TRAJECTORY_TRACKER_HPP_
 
-#include <map>
-#include <utility>
-#include <string>
 #include "dwb_core/exceptions.hpp"
 #include "nav2_core/controller_exceptions.hpp"
 
-namespace dwb_core
-{
-class IllegalTrajectoryTracker
-{
-public:
-  IllegalTrajectoryTracker()
-  : legal_count_(0), illegal_count_(0) {}
+#include <map>
+#include <string>
+#include <utility>
 
-  void addIllegalTrajectory(const IllegalTrajectoryException & e);
-  void addLegalTrajectory();
+namespace dwb_core {
+class IllegalTrajectoryTracker {
+   public:
+    IllegalTrajectoryTracker() : legal_count_(0), illegal_count_(0) {}
 
-  std::map<std::pair<std::string, std::string>, double> getPercentages() const;
+    void addIllegalTrajectory(const IllegalTrajectoryException& e);
+    void addLegalTrajectory();
 
-  std::string getMessage() const;
+    std::map<std::pair<std::string, std::string>, double> getPercentages() const;
 
-protected:
-  std::map<std::pair<std::string, std::string>, unsigned int> counts_;
-  unsigned int legal_count_, illegal_count_;
+    std::string getMessage() const;
+
+   protected:
+    std::map<std::pair<std::string, std::string>, unsigned int> counts_;
+    unsigned int legal_count_, illegal_count_;
 };
 
 /**
  * @class NoLegalTrajectoriesException
  * @brief Thrown when all the trajectories explored are illegal
  */
-class NoLegalTrajectoriesException
-  : public nav2_core::ControllerException
-{
-public:
-  explicit NoLegalTrajectoriesException(const IllegalTrajectoryTracker & tracker)
-  : ControllerException(tracker.getMessage()),
-    tracker_(tracker) {}
-  IllegalTrajectoryTracker tracker_;
+class NoLegalTrajectoriesException : public nav2_core::ControllerException {
+   public:
+    explicit NoLegalTrajectoriesException(const IllegalTrajectoryTracker& tracker) : ControllerException(tracker.getMessage()), tracker_(tracker) {}
+    IllegalTrajectoryTracker tracker_;
 };
 
-}  // namespace dwb_core
+} // namespace dwb_core
 
-#endif  // DWB_CORE__ILLEGAL_TRAJECTORY_TRACKER_HPP_
+#endif // DWB_CORE__ILLEGAL_TRAJECTORY_TRACKER_HPP_

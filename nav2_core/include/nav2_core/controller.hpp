@@ -36,110 +36,101 @@
 #ifndef NAV2_CORE__CONTROLLER_HPP_
 #define NAV2_CORE__CONTROLLER_HPP_
 
+#include "nav2_core/goal_checker.hpp"
+#include "nav2_costmap_2d/costmap_2d_ros.hpp"
+#include "nav2_ros_common/lifecycle_node.hpp"
+#include "nav_msgs/msg/path.hpp"
+
+#include "geometry_msgs/msg/pose_stamped.hpp"
+#include "geometry_msgs/msg/twist_stamped.hpp"
+#include "pluginlib/class_loader.hpp"
+#include "tf2_ros/transform_listener.hpp"
+
 #include <memory>
 #include <string>
 
-#include "nav2_costmap_2d/costmap_2d_ros.hpp"
-#include "nav2_ros_common/lifecycle_node.hpp"
-#include "tf2_ros/transform_listener.hpp"
-#include "pluginlib/class_loader.hpp"
-#include "geometry_msgs/msg/pose_stamped.hpp"
-#include "geometry_msgs/msg/twist_stamped.hpp"
-#include "nav_msgs/msg/path.hpp"
-#include "nav2_core/goal_checker.hpp"
-
-
-namespace nav2_core
-{
+namespace nav2_core {
 
 /**
  * @class Controller
  * @brief controller interface that acts as a virtual base class for all controller plugins
  */
-class Controller
-{
-public:
-  using Ptr = std::shared_ptr<nav2_core::Controller>;
+class Controller {
+   public:
+    using Ptr = std::shared_ptr<nav2_core::Controller>;
 
+    /**
+     * @brief Virtual destructor
+     */
+    virtual ~Controller() {}
 
-  /**
-   * @brief Virtual destructor
-   */
-  virtual ~Controller() {}
+    /**
+     * @param  parent pointer to user's node
+     * @param  costmap_ros A pointer to the costmap
+     */
+    virtual void configure(const nav2::LifecycleNode::WeakPtr&, std::string name, std::shared_ptr<tf2_ros::Buffer>,
+                           std::shared_ptr<nav2_costmap_2d::Costmap2DROS>) = 0;
 
-  /**
-   * @param  parent pointer to user's node
-   * @param  costmap_ros A pointer to the costmap
-   */
-  virtual void configure(
-    const nav2::LifecycleNode::WeakPtr &,
-    std::string name, std::shared_ptr<tf2_ros::Buffer>,
-    std::shared_ptr<nav2_costmap_2d::Costmap2DROS>) = 0;
+    /**
+     * @brief Method to cleanup resources.
+     */
+    virtual void cleanup() = 0;
 
-  /**
-   * @brief Method to cleanup resources.
-   */
-  virtual void cleanup() = 0;
+    /**
+     * @brief Method to active planner and any threads involved in execution.
+     */
+    virtual void activate() = 0;
 
-  /**
-   * @brief Method to active planner and any threads involved in execution.
-   */
-  virtual void activate() = 0;
+    /**
+     * @brief Method to deactivate planner and any threads involved in execution.
+     */
+    virtual void deactivate() = 0;
 
-  /**
-   * @brief Method to deactivate planner and any threads involved in execution.
-   */
-  virtual void deactivate() = 0;
+    /**
+     * @brief local setPlan - Sets the global plan
+     * @param path The global plan
+     */
+    virtual void setPlan(const nav_msgs::msg::Path& path) = 0;
 
-  /**
-   * @brief local setPlan - Sets the global plan
-   * @param path The global plan
-   */
-  virtual void setPlan(const nav_msgs::msg::Path & path) = 0;
+    /**
+     * @brief Controller computeVelocityCommands - calculates the best command given the current pose and velocity
+     *
+     * It is presumed that the global plan is already set.
+     *
+     * This is mostly a wrapper for the protected computeVelocityCommands
+     * function which has additional debugging info.
+     *
+     * @param pose Current robot pose
+     * @param velocity Current robot velocity
+     * @param goal_checker Pointer to the current goal checker the task is utilizing
+     * @return The best command for the robot to drive
+     */
+    virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(const geometry_msgs::msg::PoseStamped& pose,
+                                                                     const geometry_msgs::msg::Twist& velocity,
+                                                                     nav2_core::GoalChecker* goal_checker) = 0;
 
-  /**
-   * @brief Controller computeVelocityCommands - calculates the best command given the current pose and velocity
-   *
-   * It is presumed that the global plan is already set.
-   *
-   * This is mostly a wrapper for the protected computeVelocityCommands
-   * function which has additional debugging info.
-   *
-   * @param pose Current robot pose
-   * @param velocity Current robot velocity
-   * @param goal_checker Pointer to the current goal checker the task is utilizing
-   * @return The best command for the robot to drive
-   */
-  virtual geometry_msgs::msg::TwistStamped computeVelocityCommands(
-    const geometry_msgs::msg::PoseStamped & pose,
-    const geometry_msgs::msg::Twist & velocity,
-    nav2_core::GoalChecker * goal_checker) = 0;
+    /**
+     * @brief Cancel the current control action
+     * @return True if the cancellation was successful. If false is returned, computeVelocityCommands
+     * will be called until cancel returns true.
+     */
+    virtual bool cancel() { return true; }
 
-  /**
-   * @brief Cancel the current control action
-   * @return True if the cancellation was successful. If false is returned, computeVelocityCommands
-   * will be called until cancel returns true.
-   */
-  virtual bool cancel()
-  {
-    return true;
-  }
+    /**
+     * @brief Limits the maximum linear speed of the robot.
+     * @param speed_limit expressed in absolute value (in m/s)
+     * or in percentage from maximum robot speed.
+     * @param percentage Setting speed limit in percentage if true
+     * or in absolute values in false case.
+     */
+    virtual void setSpeedLimit(const double& speed_limit, const bool& percentage) = 0;
 
-  /**
-   * @brief Limits the maximum linear speed of the robot.
-   * @param speed_limit expressed in absolute value (in m/s)
-   * or in percentage from maximum robot speed.
-   * @param percentage Setting speed limit in percentage if true
-   * or in absolute values in false case.
-   */
-  virtual void setSpeedLimit(const double & speed_limit, const bool & percentage) = 0;
-
-  /**
-   * @brief Reset the state of the controller if necessary after task is exited
-   */
-  virtual void reset() {}
+    /**
+     * @brief Reset the state of the controller if necessary after task is exited
+     */
+    virtual void reset() {}
 };
 
-}  // namespace nav2_core
+} // namespace nav2_core
 
-#endif  // NAV2_CORE__CONTROLLER_HPP_
+#endif // NAV2_CORE__CONTROLLER_HPP_
